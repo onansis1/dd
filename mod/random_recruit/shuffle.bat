@@ -1,8 +1,24 @@
 @echo off
-chcp 65001 >nul
-rem 게임을 끈 상태에서 실행하세요. 아래 경로가 다르면 수정하세요.
+rem Close the game before running this. Edit AB below if your install path differs.
 set "AB=C:\Program Files (x86)\Steam\steamapps\common\Into the Dead Our Darkest Days\IntoTheDeadOurDarkestDays_Data\StreamingAssets\AssetBundles"
-python --version >nul 2>&1 || (echo Python 3 이 필요합니다. https://www.python.org 에서 설치하세요. & pause & exit /b 1)
-python -c "import UnityPy" >nul 2>&1 || python -m pip install UnityPy
-python "%~dp0shuffle_recruits.py" "%AB%" %1
+
+set "PY="
+where py >nul 2>&1 && set "PY=py -3"
+if not defined PY where python >nul 2>&1 && set "PY=python"
+if not defined PY goto nopython
+
+%PY% -c "import UnityPy" >nul 2>&1
+if errorlevel 1 (
+  echo Installing UnityPy, please wait...
+  %PY% -m pip install UnityPy
+)
+
+%PY% "%~dp0shuffle_recruits.py" "%AB%" %1
+goto end
+
+:nopython
+echo Python 3 was not found. Install it from https://www.python.org and check "Add Python to PATH".
+
+:end
+echo.
 pause
