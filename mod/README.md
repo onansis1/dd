@@ -16,3 +16,7 @@
 | ShotgunAmmo_MunitionsExpert | 3 | 15 |
 | AssaultRifleAmmo | 6 | 30 |
 | AssaultRifleAmmo_MunitionsExpert | 9 | 45 |
+
+## data_config (시체 회수 칸 수)
+`data_config` : `InventoryData_EmptyWithCapacity.m_maxSize` 12 -> 24 (생존자 시체 루팅 인벤토리, 프리팹 LootCorpseInteractable이 사용).
+적용: `AssetBundles\data_config` 원본을 백업한 뒤 교체. 재생성: `python3 cfg.py <원본data_config> <칸수> <출력>`
