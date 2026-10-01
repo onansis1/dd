@@ -40,6 +40,14 @@ h1{margin:0;font-size:clamp(28px,5vw,46px);letter-spacing:.18em;font-weight:800;
 .card.done::after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);transform:translateX(-120%);animation:shine 1.2s .1s ease-out forwards}
 @keyframes pop{0%{transform:scale(.88)}100%{transform:scale(1)}}
 @keyframes shine{to{transform:translateX(120%)}}
+.shelter{margin-top:16px;flex-direction:row;justify-content:flex-start;gap:20px;padding:18px 24px;text-align:left}
+.shelter .mono{flex:none;width:72px;height:72px;border-radius:18px}
+.shelter .mono svg{width:38px;height:38px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shelter .info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.shelter .nm{font-size:clamp(20px,3.4vw,28px);min-height:0;line-height:1.25;word-break:keep-all}
+.shelter.off{display:none}
+.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;user-select:none}
+.toggle input{accent-color:var(--accent);width:17px;height:17px}
 .empty{grid-column:1/-1;display:grid;place-items:center;color:var(--muted);font-size:15px;letter-spacing:.1em;border:1px dashed var(--line);border-radius:16px;min-height:200px}
 .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;margin-top:22px}
 .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2)}
@@ -76,17 +84,19 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
 <div class="wrap">
   <header>
     <h1>SURVIVOR DRAW</h1>
-    <div class="sub">생존자 뽑기</div>
+    <div class="sub">생존자 · 쉘터 뽑기</div>
   </header>
 
   <section class="stage">
-    <div id="cards" class="cards"><div class="empty">버튼을 눌러 생존자를 뽑으세요</div></div>
+    <div id="cards" class="cards"><div class="empty">버튼을 눌러 생존자와 쉘터를 뽑으세요</div></div>
+    <div id="shelter" class="card shelter off"></div>
     <div class="controls">
       <div class="stepper" aria-label="뽑을 인원">
         <button id="minus" aria-label="줄이기">−</button>
         <span id="cnt">1명</span>
         <button id="plus" aria-label="늘리기">+</button>
       </div>
+      <label class="toggle"><input type="checkbox" id="shon" checked> 쉘터도 같이 뽑기</label>
       <button id="go" class="go">뽑기</button>
       <button id="reset" class="ghost">기록 지우기</button>
     </div>
@@ -94,11 +104,15 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
 
   <div class="cols">
     <section class="panel">
-      <h2><span>후보 명단 <span id="poolcnt"></span></span><span><button class="ghost" id="all" style="padding:4px 10px;font-size:12px">전체 선택</button> <button class="ghost" id="none" style="padding:4px 10px;font-size:12px">전체 해제</button></span></h2>
+      <h2><span>생존자 후보 <span id="poolcnt"></span></span><span><button class="ghost" id="all" style="padding:4px 10px;font-size:12px">전체 선택</button> <button class="ghost" id="none" style="padding:4px 10px;font-size:12px">전체 해제</button></span></h2>
       <div id="chips" class="chips"></div>
-      <p class="small" style="margin:12px 0 0">이름을 누르면 후보에서 빠지거나 다시 들어갑니다. 한 번에 여러 명을 뽑아도 같은 사람이 겹치지 않습니다.</p>
+      <p class="small" style="margin:12px 0 0">이름을 누르면 후보에서 빠지거나 다시 들어갑니다. 여러 명을 뽑아도 같은 사람이 겹치지 않습니다. 0명으로 두면 쉘터만 뽑습니다.</p>
     </section>
-    <section class="panel">
+    <section class="panel" style="grid-column:1/-1">
+      <h2><span>쉘터 후보 <span id="shpoolcnt"></span></span><span><button class="ghost" id="shall" style="padding:4px 10px;font-size:12px">전체 선택</button> <button class="ghost" id="shnone" style="padding:4px 10px;font-size:12px">전체 해제</button></span></h2>
+      <div id="shchips" class="chips"></div>
+    </section>
+    <section class="panel" style="grid-column:1/-1">
       <h2><span>뽑기 기록</span></h2>
       <ul id="hist" class="hist"></ul>
     </section>
@@ -108,13 +122,17 @@ footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
 
 <script>
 const NAMES=["Bowman","Cooper","Isaiah","Charlie","Hao","Kayla","Mei","Daphne","Dianne","Hector","Tracy","Otto","Leo","Sebastian","Taylor","Wayne","Eva","Penny","Darrel"];
+const SHELTERS=["광저우 웍","릴 브롱코스 어린이집","슈레더 스트리트 319번지","갤럭시 존 오락실","메이 이모의 트럭 기사 식당","밸류 레코드","베스트 일렉트로닉스","스탠튼 & 선 정육점","스프링우드 드라이브 22번지","서티 오트 식스 바","애쉬비 수집광의 집","에버턴가 14번지","킨스키 재단 갤러리","텍사스 스포츠용품점","텍스웨이 주유소 하트 스트리트","피츠제럴드의 집"];
 const hue=n=>(NAMES.indexOf(n)*360/NAMES.length+12)%360|0;
+const shHue=n=>(SHELTERS.indexOf(n)*360/SHELTERS.length+200)%360|0;
+const HOUSE='<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg>';
 const $=id=>document.getElementById(id);
-let off=new Set(), count=1, busy=false;
-try{ off=new Set(JSON.parse(localStorage.getItem("sd_off")||"[]")); count=+localStorage.getItem("sd_cnt")||1; }catch(e){}
-const save=()=>{try{localStorage.setItem("sd_off",JSON.stringify([...off]));localStorage.setItem("sd_cnt",count)}catch(e){}};
+let off=new Set(), offS=new Set(), shOn=true, count=1, busy=false;
+try{ off=new Set(JSON.parse(localStorage.getItem("sd_off")||"[]")); offS=new Set(JSON.parse(localStorage.getItem("sd_offs")||"[]")); shOn=localStorage.getItem("sd_shon")!=="0"; const c=localStorage.getItem("sd_cnt"); count=c===null?1:+c; }catch(e){}
+const save=()=>{try{localStorage.setItem("sd_off",JSON.stringify([...off]));localStorage.setItem("sd_cnt",count);localStorage.setItem("sd_offs",JSON.stringify([...offS]));localStorage.setItem("sd_shon",shOn?"1":"0")}catch(e){}};
 const rnd=n=>{const a=new Uint32Array(1),lim=Math.floor(0xFFFFFFFF/n)*n;do{crypto.getRandomValues(a)}while(a[0]>=lim);return a[0]%n};
 const pool=()=>NAMES.filter(n=>!off.has(n));
+const shPool=()=>SHELTERS.filter(n=>!offS.has(n));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -127,16 +145,30 @@ function renderChips(){
     $("chips").appendChild(c);
   });
 }
+function renderShChips(){
+  $("shchips").innerHTML="";
+  SHELTERS.forEach(n=>{
+    const c=document.createElement("div");c.className="chip"+(offS.has(n)?" off":"");c.style.setProperty("--h",shHue(n));
+    c.innerHTML="<i></i>"+n;
+    c.onclick=()=>{ if(busy)return; offS.has(n)?offS.delete(n):offS.add(n); save(); renderShChips(); sync(); };
+    $("shchips").appendChild(c);
+  });
+}
 function sync(){
-  const p=pool().length;
+  const p=pool().length, sp=shPool().length;
   $("poolcnt").textContent="("+p+"/"+NAMES.length+")";
-  if(count>p)count=Math.max(1,p);
+  $("shpoolcnt").textContent="("+sp+"/"+SHELTERS.length+")";
+  if(count>p)count=p;
   $("cnt").textContent=count+"명";
-  $("go").disabled=busy||p===0;
+  $("shon").checked=shOn;
+  $("go").disabled=busy||(count===0&&!(shOn&&sp>0));
   save();
 }
-$("minus").onclick=()=>{if(busy)return;count=Math.max(1,count-1);sync()};
-$("plus").onclick=()=>{if(busy)return;count=Math.min(Math.max(1,pool().length),count+1);sync()};
+$("minus").onclick=()=>{if(busy)return;count=Math.max(0,count-1);sync()};
+$("plus").onclick=()=>{if(busy)return;count=Math.min(pool().length,count+1);sync()};
+$("shon").onchange=e=>{if(busy)return;shOn=e.target.checked;sync()};
+$("shall").onclick=()=>{if(busy)return;offS.clear();save();renderShChips();sync()};
+$("shnone").onclick=()=>{if(busy)return;offS=new Set(SHELTERS);save();renderShChips();sync()};
 $("all").onclick=()=>{if(busy)return;off.clear();save();renderChips();sync()};
 $("none").onclick=()=>{if(busy)return;off=new Set(NAMES);save();renderChips();sync()};
 $("reset").onclick=()=>{$("hist").innerHTML=""};
@@ -148,32 +180,41 @@ function makeCard(){
 }
 function setCard(d,n){d.style.setProperty("--h",hue(n));d.querySelector(".mono").textContent=n[0];d.querySelector(".nm").textContent=n}
 
+function setShelter(d,n){
+  d.style.setProperty("--h",shHue(n));
+  d.innerHTML='<div class="mono">'+HOUSE+'</div><div class="info"><div class="nm"></div><div class="tag">Shelter</div></div>';
+  d.querySelector(".nm").textContent=n;
+}
+async function spinTo(setFn,list,final,end,onDone){
+  let t=0,delay=45;
+  while(t<end){ setFn(list[rnd(list.length)]); await sleep(delay); t+=delay; delay=Math.min(280,delay*1.13); }
+  setFn(final); onDone();
+}
 async function pull(){
-  if(busy||!pool().length)return; busy=true; sync();
-  const p=pool(), n=Math.min(count,p.length);
+  const p=pool(), sp=shPool(), n=Math.min(count,p.length), withSh=shOn&&sp.length>0;
+  if(busy||(n===0&&!withSh))return; busy=true; sync();
   const picks=[]; const tmp=p.slice();
   for(let i=0;i<n;i++){picks.push(tmp.splice(rnd(tmp.length),1)[0])}
+  const shPick=withSh?sp[rnd(sp.length)]:null;
   const box=$("cards"); box.innerHTML="";
+  if(!n) box.innerHTML='<div class="empty">생존자 0명 · 쉘터만 뽑습니다</div>';
   const cards=picks.map(()=>{const c=makeCard();box.appendChild(c);return c});
+  const sh=$("shelter");
+  if(withSh){ sh.className="card shelter spin"; setShelter(sh,sp[0]); } else { sh.className="card shelter off"; }
   const total=reduce?0:1500;
-  await Promise.all(cards.map(async(c,i)=>{
-    const end=total+i*450;
-    let t=0,delay=45;
-    while(t<end){
-      setCard(c,p[rnd(p.length)]);
-      await sleep(delay); t+=delay; delay=Math.min(280,delay*1.13);
-    }
-    setCard(c,picks[i]); c.classList.remove("spin"); c.classList.add("done");
-  }));
+  const jobs=cards.map((c,i)=>spinTo(x=>setCard(c,x),p,picks[i],total+i*450,()=>{c.classList.remove("spin");c.classList.add("done")}));
+  if(withSh) jobs.push(spinTo(x=>setShelter(sh,x),sp,shPick,total+n*450+300,()=>{sh.classList.remove("spin");sh.classList.add("done")}));
+  await Promise.all(jobs);
   const li=document.createElement("li"), tm=new Date().toTimeString().slice(0,8);
-  li.innerHTML="<time>"+tm+"</time><span><b>"+picks.join(", ")+"</b></span>";
+  const parts=[]; if(picks.length)parts.push(picks.join(", ")); if(shPick)parts.push("🏠 "+shPick);
+  li.innerHTML="<time>"+tm+"</time><span></span>"; li.querySelector("span").innerHTML="<b></b>"; li.querySelector("b").textContent=parts.join("  ·  ");
   $("hist").prepend(li);
   busy=false; sync();
 }
 $("go").onclick=pull;
 document.addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="Enter"){e.preventDefault();pull()}});
 setInterval(()=>fetch("/ping").catch(()=>{}),2000); fetch("/ping").catch(()=>{});
-renderChips(); sync();
+renderChips(); renderShChips(); sync();
 </script>
 </body>
 </html>
