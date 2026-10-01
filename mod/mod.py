@@ -1,31 +1,34 @@
 import sys,re
 from patch import *
 from UnityPy.streams import EndianBinaryReader
-FACTOR=int(sys.argv[1]); OUT=sys.argv[2]
+AMMO=int(sys.argv[1]); INV=int(sys.argv[2]); OUT=sys.argv[3]
 env=UnityPy.load(P)
 bundle=env.file
 name,sf=[(n,f) for n,f in bundle.files.items() if not n.endswith(".resS")][0]
-raw=bytearray(sf.reader.bytes)
-flags=sf.flags
-changes=[]
+raw=bytearray(sf.reader.bytes); flags=sf.flags
+log=[]
 for o in env.objects:
     if o.type.name!="MonoBehaviour": continue
     try: t=o.read()
     except: continue
-    if not re.fullmatch(r"\w*Ammo(_\w+)?_Recipe",t.m_Name) or "Dismantle" in t.m_Name: continue
-    tt=o.read_typetree()
-    outs=[r for r in tt["references"]["RefIds"] if r["rid"]==tt["m_exchangeData"]["m_outputs"][0]["rid"]][0]["data"]["m_items"]
-    g=outs[0]["m_itemDefinitionGuid"]["m_guid"]
-    gb=bytes(g["bytes[%d]"%i] for i in range(16))
-    cnt=outs[0]["m_count"]
-    start=o.byte_start
-    seg=raw[start:start+o.byte_size]
-    idx=seg.find(gb+cnt.to_bytes(4,"little"))
-    assert idx>=0 and seg.count(gb+cnt.to_bytes(4,"little"))==1,t.m_Name
-    p=start+idx+16
-    raw[p:p+4]=(cnt*FACTOR).to_bytes(4,"little")
-    changes.append((t.m_Name,cnt,cnt*FACTOR))
-for c in changes: print(*c)
+    st=o.byte_start; seg=bytes(raw[st:st+o.byte_size])
+    if re.fullmatch(r"\w*Ammo(_\w+)?_Recipe",t.m_Name) and "Dismantle" not in t.m_Name and AMMO!=1:
+        tt=o.read_typetree()
+        outs=[r for r in tt["references"]["RefIds"] if r["rid"]==tt["m_exchangeData"]["m_outputs"][0]["rid"]][0]["data"]["m_items"]
+        g=outs[0]["m_itemDefinitionGuid"]["m_guid"]; gb=bytes(g["bytes[%d]"%i] for i in range(16)); cnt=outs[0]["m_count"]
+        pat=gb+cnt.to_bytes(4,"little"); assert seg.count(pat)==1,t.m_Name
+        p=st+seg.find(pat)+16; raw[p:p+4]=(cnt*AMMO).to_bytes(4,"little"); log.append((t.m_Name,cnt,cnt*AMMO))
+    elif re.fullmatch(r"Survivor_\w+",t.m_Name):
+        tt=o.read_typetree()
+        if "m_inventorySize" not in tt: continue
+        old=tt["m_inventorySize"]; tt["m_inventorySize"]=INV
+        new=o.save_typetree(tt)
+        assert len(new)==len(seg)
+        d=[i for i in range(len(seg)) if seg[i]!=new[i]]
+        assert d and all(i<d[0]+4 for i in d),(t.m_Name,d)
+        raw[st+d[0]:st+d[0]+4]=bytes(new[d[0]:d[0]+4])
+        log.append((t.m_Name,old,INV))
+for l in log: print(*l)
 r=EndianBinaryReader(bytes(raw)); r.flags=flags
 bundle.files[name]=r
 open(OUT,"wb").write(bundle.save(packer="lz4"))
