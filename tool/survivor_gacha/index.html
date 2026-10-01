@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Survivor Draw</title>
+<style>
+:root{
+  --bg:#0b0d12; --panel:#141821; --panel2:#1b2130; --line:#2a3246; --text:#e8ecf5; --muted:#8a94ab;
+  --accent:#ff6a3d; --accent2:#ffb347; --good:#5ee0a0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(255,106,61,.16), transparent 60%),
+    radial-gradient(900px 500px at 100% 100%, rgba(80,120,255,.10), transparent 60%),
+    var(--bg);
+  color:var(--text); font-family:"Segoe UI","Malgun Gothic",system-ui,sans-serif; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
+header{text-align:center;margin-bottom:26px}
+h1{margin:0;font-size:clamp(28px,5vw,46px);letter-spacing:.18em;font-weight:800;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin-top:6px;color:var(--muted);letter-spacing:.3em;font-size:12px;text-transform:uppercase}
+.stage{background:linear-gradient(180deg,var(--panel),#10131b);border:1px solid var(--line);border-radius:20px;padding:26px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;min-height:230px;align-items:stretch}
+.card{position:relative;border-radius:16px;padding:18px 12px;text-align:center;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel2),#10141d);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  transition:transform .25s, box-shadow .25s, border-color .25s}
+.card .mono{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;font-size:38px;font-weight:800;color:#fff;
+  background:radial-gradient(circle at 30% 25%, hsl(var(--h) 90% 62%), hsl(var(--h) 70% 30%));
+  box-shadow:0 0 0 3px rgba(255,255,255,.06), 0 8px 24px hsl(var(--h) 80% 30% / .55)}
+.card .nm{font-size:22px;font-weight:700;letter-spacing:.04em;min-height:30px}
+.card .tag{font-size:11px;color:var(--muted);letter-spacing:.25em;text-transform:uppercase}
+.card.spin .mono{filter:saturate(.5) brightness(.8)}
+.card.spin .nm{color:var(--muted)}
+.card.done{border-color:hsl(var(--h) 80% 55%);box-shadow:0 0 40px hsl(var(--h) 85% 50% / .35), inset 0 0 40px hsl(var(--h) 85% 50% / .12);animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.card.done::after{content:"";position:absolute;inset:-60% -20%;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);transform:translateX(-120%);animation:shine 1.2s .1s ease-out forwards}
+@keyframes pop{0%{transform:scale(.88)}100%{transform:scale(1)}}
+@keyframes shine{to{transform:translateX(120%)}}
+.empty{grid-column:1/-1;display:grid;place-items:center;color:var(--muted);font-size:15px;letter-spacing:.1em;border:1px dashed var(--line);border-radius:16px;min-height:200px}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;margin-top:22px}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2)}
+.stepper button{width:40px;height:44px;border:0;background:transparent;color:var(--text);font-size:20px;cursor:pointer}
+.stepper button:hover{background:#242c40}
+.stepper span{min-width:84px;text-align:center;font-weight:600}
+.go{border:0;border-radius:14px;padding:14px 46px;font-size:20px;font-weight:800;letter-spacing:.2em;color:#1a0d06;cursor:pointer;
+  background:linear-gradient(180deg,var(--accent2),var(--accent));box-shadow:0 10px 30px rgba(255,106,61,.4), inset 0 1px 0 rgba(255,255,255,.5);transition:transform .12s, filter .12s}
+.go:hover{filter:brightness(1.08)} .go:active{transform:translateY(1px) scale(.99)}
+.go:disabled{filter:grayscale(.8) brightness(.6);cursor:not-allowed;box-shadow:none}
+.ghost{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:11px 16px;cursor:pointer;font-size:14px}
+.ghost:hover{background:#242c40}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-top:20px}
+@media(max-width:760px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.panel h2{margin:0 0 12px;font-size:13px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:999px;padding:7px 13px;font-size:14px;cursor:pointer;user-select:none;
+  display:flex;align-items:center;gap:7px;transition:all .15s}
+.chip i{width:9px;height:9px;border-radius:50%;background:hsl(var(--h) 85% 60%);box-shadow:0 0 8px hsl(var(--h) 85% 60% / .8)}
+.chip.off{opacity:.38;text-decoration:line-through}
+.chip:hover{border-color:#47557a}
+.hist{list-style:none;margin:0;padding:0;max-height:240px;overflow:auto;font-size:14px}
+.hist li{padding:8px 4px;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.hist li:last-child{border:0}
+.hist time{color:var(--muted);font-variant-numeric:tabular-nums;min-width:56px}
+.hist b{color:var(--accent2);font-weight:600}
+.small{font-size:12px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>SURVIVOR DRAW</h1>
+    <div class="sub">생존자 뽑기</div>
+  </header>
+
+  <section class="stage">
+    <div id="cards" class="cards"><div class="empty">버튼을 눌러 생존자를 뽑으세요</div></div>
+    <div class="controls">
+      <div class="stepper" aria-label="뽑을 인원">
+        <button id="minus" aria-label="줄이기">−</button>
+        <span id="cnt">1명</span>
+        <button id="plus" aria-label="늘리기">+</button>
+      </div>
+      <button id="go" class="go">뽑기</button>
+      <button id="reset" class="ghost">기록 지우기</button>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="panel">
+      <h2><span>후보 명단 <span id="poolcnt"></span></span><span><button class="ghost" id="all" style="padding:4px 10px;font-size:12px">전체 선택</button> <button class="ghost" id="none" style="padding:4px 10px;font-size:12px">전체 해제</button></span></h2>
+      <div id="chips" class="chips"></div>
+      <p class="small" style="margin:12px 0 0">이름을 누르면 후보에서 빠지거나 다시 들어갑니다. 한 번에 여러 명을 뽑아도 같은 사람이 겹치지 않습니다.</p>
+    </section>
+    <section class="panel">
+      <h2><span>뽑기 기록</span></h2>
+      <ul id="hist" class="hist"></ul>
+    </section>
+  </div>
+  <footer>순수 난수(crypto) 사용 · 창을 닫으면 프로그램도 같이 종료됩니다</footer>
+</div>
+
+<script>
+const NAMES=["Bowman","Cooper","Isaiah","Charlie","Hao","Kayla","Mei","Daphne","Dianne","Hector","Tracy","Otto","Leo","Sebastian","Taylor","Wayne","Eva","Penny","Darrel"];
+const hue=n=>(NAMES.indexOf(n)*360/NAMES.length+12)%360|0;
+const $=id=>document.getElementById(id);
+let off=new Set(), count=1, busy=false;
+try{ off=new Set(JSON.parse(localStorage.getItem("sd_off")||"[]")); count=+localStorage.getItem("sd_cnt")||1; }catch(e){}
+const save=()=>{try{localStorage.setItem("sd_off",JSON.stringify([...off]));localStorage.setItem("sd_cnt",count)}catch(e){}};
+const rnd=n=>{const a=new Uint32Array(1),lim=Math.floor(0xFFFFFFFF/n)*n;do{crypto.getRandomValues(a)}while(a[0]>=lim);return a[0]%n};
+const pool=()=>NAMES.filter(n=>!off.has(n));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function renderChips(){
+  $("chips").innerHTML="";
+  NAMES.forEach(n=>{
+    const c=document.createElement("div");c.className="chip"+(off.has(n)?" off":"");c.style.setProperty("--h",hue(n));
+    c.innerHTML="<i></i>"+n;
+    c.onclick=()=>{ if(busy)return; off.has(n)?off.delete(n):off.add(n); save(); renderChips(); sync(); };
+    $("chips").appendChild(c);
+  });
+}
+function sync(){
+  const p=pool().length;
+  $("poolcnt").textContent="("+p+"/"+NAMES.length+")";
+  if(count>p)count=Math.max(1,p);
+  $("cnt").textContent=count+"명";
+  $("go").disabled=busy||p===0;
+  save();
+}
+$("minus").onclick=()=>{if(busy)return;count=Math.max(1,count-1);sync()};
+$("plus").onclick=()=>{if(busy)return;count=Math.min(Math.max(1,pool().length),count+1);sync()};
+$("all").onclick=()=>{if(busy)return;off.clear();save();renderChips();sync()};
+$("none").onclick=()=>{if(busy)return;off=new Set(NAMES);save();renderChips();sync()};
+$("reset").onclick=()=>{$("hist").innerHTML=""};
+
+function makeCard(){
+  const d=document.createElement("div");d.className="card spin";d.style.setProperty("--h",200);
+  d.innerHTML='<div class="mono">?</div><div class="nm">???</div><div class="tag">Survivor</div>';
+  return d;
+}
+function setCard(d,n){d.style.setProperty("--h",hue(n));d.querySelector(".mono").textContent=n[0];d.querySelector(".nm").textContent=n}
+
+async function pull(){
+  if(busy||!pool().length)return; busy=true; sync();
+  const p=pool(), n=Math.min(count,p.length);
+  const picks=[]; const tmp=p.slice();
+  for(let i=0;i<n;i++){picks.push(tmp.splice(rnd(tmp.length),1)[0])}
+  const box=$("cards"); box.innerHTML="";
+  const cards=picks.map(()=>{const c=makeCard();box.appendChild(c);return c});
+  const total=reduce?0:1500;
+  await Promise.all(cards.map(async(c,i)=>{
+    const end=total+i*450;
+    let t=0,delay=45;
+    while(t<end){
+      setCard(c,p[rnd(p.length)]);
+      await sleep(delay); t+=delay; delay=Math.min(280,delay*1.13);
+    }
+    setCard(c,picks[i]); c.classList.remove("spin"); c.classList.add("done");
+  }));
+  const li=document.createElement("li"), tm=new Date().toTimeString().slice(0,8);
+  li.innerHTML="<time>"+tm+"</time><span><b>"+picks.join(", ")+"</b></span>";
+  $("hist").prepend(li);
+  busy=false; sync();
+}
+$("go").onclick=pull;
+document.addEventListener("keydown",e=>{if(e.code==="Space"||e.code==="Enter"){e.preventDefault();pull()}});
+setInterval(()=>fetch("/ping").catch(()=>{}),2000); fetch("/ping").catch(()=>{});
+renderChips(); sync();
+</script>
+</body>
+</html>
