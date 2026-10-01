@@ -36,7 +36,9 @@ def main():
         shutil.copy2(path, bak)
         print("백업 생성:", bak)
 
-    env = UnityPy.load(path)
+    with open(path, "rb") as fh:   # Windows는 열린 파일을 덮어쓸 수 없으므로 메모리로 읽고 바로 닫는다
+        data = fh.read()
+    env = UnityPy.load(data)
     bundle = env.file
     name, sf = [(n, f) for n, f in bundle.files.items() if hasattr(f, "types")][0]
     raw = bytearray(sf.reader.bytes)
@@ -86,7 +88,11 @@ def main():
     tmp = path + ".tmp"
     with open(tmp, "wb") as f:
         f.write(bundle.save(packer="lz4"))
-    os.replace(tmp, path)
+    try:
+        os.replace(tmp, path)
+    except PermissionError:
+        sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 "
+                 + tmp + " 에 저장돼 있습니다.")
     print("시드:", seed, "/ 수정한 영입 데이터:", patched)
     for s in SLOTS:
         print("  %s 장소 -> %s 등장" % (s, newof[s]))
