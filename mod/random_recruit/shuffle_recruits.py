@@ -17,7 +17,9 @@ import UnityPy
 from UnityPy.streams import EndianBinaryReader
 
 # 섞는 대상 (일반 영입 장소). 인질/스토리 전용은 제외.
-SLOTS = ["Aubrey", "Barb", "Bowman", "Candy", "Christine", "Frank", "Hudson", "Isabel",
+# 제외(키 캐릭터): Bowman. 이미 섞인 상태여도 원래 생존자로 되돌린다.
+KEEP = ["Bowman"]
+SLOTS = ["Aubrey", "Barb", "Candy", "Christine", "Frank", "Hudson", "Isabel",
          "Joe", "Kirk", "Lester", "Michelle", "Miguel", "Rahul", "Robbie", "Vince"]
 
 def gid(g):
@@ -57,7 +59,7 @@ def main():
             surv[n[9:]] = gid(tt["m_guid"])
         elif "m_recruitmentId" in tt and "m_survivorGuid" in tt:
             rows.append((o, n, gid(tt["m_survivorGuid"])))
-    for s in SLOTS:
+    for s in SLOTS + KEEP:
         if s not in surv:
             sys.exit("생존자 데이터를 찾지 못했습니다: " + s)
 
@@ -70,9 +72,22 @@ def main():
     newof = dict(zip(SLOTS, perm))
 
     patched = 0
+    restored = 0
     for o, n, g in rows:
         slot = n.split("_")[0]
-        if slot not in newof or n.startswith("Hostage_"):
+        if n.startswith("Hostage_"):
+            continue
+        if slot in KEEP:
+            if g != surv[slot]:
+                st = o.byte_start
+                seg = bytes(raw[st:st + o.byte_size])
+                if seg.count(g) != 1:
+                    sys.exit("예상과 다른 데이터 구조: " + n)
+                p = st + seg.find(g)
+                raw[p:p + 16] = surv[slot]
+                restored += 1
+            continue
+        if slot not in newof:
             continue
         st = o.byte_start
         seg = bytes(raw[st:st + o.byte_size])
@@ -93,7 +108,7 @@ def main():
     except PermissionError:
         sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 "
                  + tmp + " 에 저장돼 있습니다.")
-    print("시드:", seed, "/ 수정한 영입 데이터:", patched)
+    print("시드:", seed, "/ 수정한 영입 데이터:", patched, "/ 되돌린 데이터:", restored)
     for s in SLOTS:
         print("  %s 장소 -> %s 등장" % (s, newof[s]))
 
