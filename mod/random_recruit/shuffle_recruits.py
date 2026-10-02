@@ -1,6 +1,7 @@
 """Into the Dead: Our Darkest Days - 영입 생존자 무작위 섞기.
 사용: python shuffle_recruits.py <AssetBundles 폴더 경로> [시드]
-data_balancing 의 일반 영입 16곳에 나올 생존자를 매번 무작위로 섞는다. 여러 번 실행해도 안전(매번 새로 섞음).
+data_balancing 의 일반 영입 15곳(Bowman 제외)에 나올 생존자를 한 바퀴짜리 단일 순환으로 무작위로 섞고, 추천 영입 순서를 출력한다.
+게임이 '영입한 생존자의 원래 장소 NPC'를 지우므로, 단일 순환 + 추천 순서를 따르면 15곳 중 14곳을 영입할 수 있다. 여러 번 실행해도 안전(매번 새로 섞음).
 처음 실행할 때 data_balancing.bak 으로 백업한다. 게임을 끈 상태에서 실행할 것.
 """
 import os, random, shutil, sys
@@ -63,13 +64,14 @@ def main():
         if s not in surv:
             sys.exit("생존자 데이터를 찾지 못했습니다: " + s)
 
+    # 게임은 '영입된 생존자'의 원래 장소 NPC를 지운다. 장소 X를 쓰면 생존자 newof[X]를 영입하고 newof[X] 장소가 사라진다.
+    # 모든 장소를 한 바퀴짜리 단일 순환으로 잇고, 추천 순서대로 영입하면 15곳 중 14곳을 영입할 수 있다(손실 1).
     rnd = random.Random(seed)
-    while True:
-        perm = SLOTS[:]
-        rnd.shuffle(perm)
-        if all(a != b for a, b in zip(SLOTS, perm)):
-            break
-    newof = dict(zip(SLOTS, perm))
+    cyc = SLOTS[:]
+    rnd.shuffle(cyc)
+    L = len(cyc)
+    newof = {cyc[i]: cyc[(i + 1) % L] for i in range(L)}
+    order = [cyc[L - 1 - j] for j in range(L - 1)]   # 마지막 cyc[0] 장소는 영입 불가
 
     patched = 0
     restored = 0
@@ -109,8 +111,24 @@ def main():
         sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 "
                  + tmp + " 에 저장돼 있습니다.")
     print("시드:", seed, "/ 수정한 영입 데이터:", patched, "/ 되돌린 데이터:", restored)
-    for s in SLOTS:
-        print("  %s 장소 -> %s 등장" % (s, newof[s]))
+    lines = []
+    lines.append("== 장소별 등장 생존자 ==")
+    for s_ in SLOTS:
+        lines.append("  %s 장소 -> %s 등장" % (s_, newof[s_]))
+    lines.append("")
+    lines.append("== 추천 영입 순서 (이 순서대로 하면 15곳 중 14곳 영입 가능) ==")
+    lines.append("게임이 '영입한 생존자의 원래 장소 NPC'를 지우기 때문에, 순서를 어기면 영입 가능한 수가 줄어듭니다.")
+    for i, s_ in enumerate(order, 1):
+        lines.append("  %2d. %s 장소 -> %s 영입" % (i, s_, newof[s_]))
+    lines.append("  영입 불가: %s 장소 (%s 생존자는 장소에서 영입할 수 없음)" % (cyc[0], newof[cyc[0]]))
+    text = "\n".join(lines)
+    print(text)
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "recruit_order.txt"), "w", encoding="utf-8") as f:
+            f.write(text + "\n")
+        print("\n(위 내용은 recruit_order.txt 에도 저장됨)")
+    except OSError:
+        pass
 
 if __name__ == "__main__":
     main()
