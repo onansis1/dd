@@ -1,7 +1,7 @@
 """Into the Dead: Our Darkest Days - 지도에서 장소(건물)가 놓이는 위치를 무작위로 섞기 (실험적).
 사용: python shuffle_map.py <AssetBundles 폴더 경로> [시드]
 data_levels 의 MapData 에서 장소들의 좌표(m_position)를 서로 바꾼다. 건물 이름/장면/NPC 는 그대로 함께 움직인다.
-- 상인, HOD 전용 장소, 튜토리얼 시작 은신처에서 갈 수 있는 장소, 은신처는 제자리에 둔다.
+- 상인, HOD 전용 장소, 은신처는 제자리에 둔다. (시작 지역 고정은 풀었음: 시작 은신처 주변 장소도 섞인다)
 - 위치가 바뀌므로 각 은신처의 '갈 수 있는 장소' 목록과 시작 해금 목록을 새 좌표/반경 기준으로 다시 만든다.
 처음 실행할 때 data_levels.shufflebak 으로 백업한다. 게임을 끈 상태에서 실행할 것.
 복원: data_levels.shufflebak 을 data_levels 로 덮어쓰면 된다.
@@ -93,17 +93,7 @@ def main():
     def special(g):
         n = names.get(g, "")
         return ("Trader" in n) or n.startswith("Midtown_FieldHospital_01") or n.startswith("Midtown_Stadium_01") or n.startswith("Midtown_Airfield") 
-    # 튜토리얼 시작 은신처에서 갈 수 있는 장소는 고정
-    tut = []
-    for grp in tt["m_startingShelterGroups"]:
-        if "Tutorial" in grp["m_groupName"]:
-            tut += [gid(x) for x in grp["m_shelters"]]
     fixed = set(g for g in locs if special(g))
-    for t in tut:
-        if t in shelters:
-            tx, ty = allpos[t]
-            tr = BASE_RADIUS   # 튜토리얼이 원래 쓰는 범위(기본 반경)만 고정. 넓혀진 반경의 바깥 고리는 움직여도 된다
-            fixed |= {g for g in locs if math.hypot(allpos[g][0] - tx, allpos[g][1] - ty) <= tr}
     movable = [g for g in locs if g not in fixed]
     if len(movable) < 6:
         sys.exit("옮길 수 있는 장소가 너무 적습니다.")
