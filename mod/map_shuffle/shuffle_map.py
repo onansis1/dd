@@ -1,10 +1,11 @@
 """Into the Dead: Our Darkest Days - 지도에서 장소(건물)가 놓이는 위치를 무작위로 섞기 (실험적).
 사용: python shuffle_map.py <AssetBundles 폴더 경로> [시드 | keep]
-  keep : 위치는 섞지 않고, 해금 목록 재계산만 한다 (이미 섞은 파일이나 반경만 넓힌 파일에도 적용 가능)
+  keep : 위치는 섞지 않고, 현재 좌표 기준으로 목록 재계산만 한다 (이미 섞은 파일에 적용 가능)
 data_levels 의 MapData 에서 장소들의 좌표(m_position)를 서로 바꾼다. 건물 이름/장면/NPC 는 그대로 함께 움직인다.
 - 상인, HOD 전용 장소, 은신처는 제자리에 둔다. (시작 지역 고정은 풀었음: 시작 은신처 주변 장소도 섞인다)
 - 위치가 바뀌므로 각 은신처의 '갈 수 있는 장소' 목록을 새 좌표/반경 기준으로 다시 만든다.
-- 망원경 발견이 막히지 않도록, 각 은신처의 시작 해금 목록을 '반경 안의 모든 장소'로 채운다 (지식으로 해금되는 스토리 장소는 제외).
+- 망원경 목록(m_vantagePointObservableLocations)을 새 좌표 기준 '가까운 장소'로 다시 만든다 (개수 유지, 은신처가 대상에 들어가는 구조 유지,
+  원래 보이던 장소가 어디에서도 안 보이게 되면 가장 가까운 망원경 장소에 추가). 은신처의 시작 해금은 원본처럼 그 은신처 망원경 목록과 같게 둔다.
 처음 실행할 때 data_levels.shufflebak 으로 백업한다. 게임을 끈 상태에서 실행할 것.
 복원: data_levels.shufflebak 을 data_levels 로 덮어쓰면 된다.
 """
@@ -131,6 +132,23 @@ def main():
 
     for g in movable:
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
+    # 망원경 목록 재구성: 각 망원경 장소가 보여주는 개수는 유지하고 새 좌표 기준 가까운 장소로 채운다.
+    # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.
+    vps = {g: r["data"]["m_vantagePointObservableLocations"] for g, r in {**locs, **shelters}.items()}
+    old_lists = {g: [gid(x) for x in v] for g, v in vps.items() if v}
+    covered_before = {k for v in old_lists.values() for k in v}
+    dpos = lambda a, b: math.hypot(newpos[a][0] - newpos[b][0], newpos[a][1] - newpos[b][1])
+    new_lists = {}
+    for g, v in old_lists.items():
+        cand = sorted((k for k in newpos if k != g), key=lambda k: dpos(g, k))
+        new_lists[g] = cand[:len(v)]
+    covered_after = {k for v in new_lists.values() for k in v}
+    for k in sorted(covered_before - covered_after):
+        pts = sorted((g for g in new_lists if g != k), key=lambda g: dpos(g, k))
+        new_lists[pts[0]].append(k)
+    for g, v in new_lists.items():
+        vps[g][:] = [mkguid(k) for k in v]
+    vp_new = new_lists
     # 은신처별 갈 수 있는 장소/시작 해금 목록 재계산
     cnts = []
     unl = []
@@ -144,13 +162,10 @@ def main():
         keep = [k for k in old if k in set(within)]
         add = sorted((k for k in within if k not in set(keep)), key=dist)
         d["m_reachableLocations"] = [mkguid(k) for k in keep + add]
-        init = [gid(x) for x in d["m_initialUnlockedLocations"]]
-        inr = [k for k in init if k in set(within)]
-        # 반경 안의 모든 일반 장소를 시작부터 해금 (지식 해금 스토리 장소 제외)
-        fill = [k for k in sorted(within, key=dist)
-                if k in locs and k not in inr and not locs[k]["data"]["m_knowledgeToUnlockLocation"]["m_keys"]]
-        d["m_initialUnlockedLocations"] = [mkguid(k) for k in inr + fill]
-        unl.append(len(inr) + len(fill))
+        # 원본은 모든 은신처에서 '시작 해금 = 그 은신처의 망원경 목록'이다. 같은 관계를 유지한다.
+        ini_new = vp_new.get(sg, [])
+        d["m_initialUnlockedLocations"] = [mkguid(k) for k in ini_new] if ini_new else d["m_initialUnlockedLocations"]
+        unl.append(len(d["m_initialUnlockedLocations"]))
         cnts.append(len(keep) + len(add))
 
     new = bytes(o.save_typetree(tt))
@@ -191,7 +206,7 @@ def main():
         os.replace(tmp, path)
     except PermissionError:
         sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 " + tmp + " 에 있습니다.")
-    print("시드: %s / 위치를 섞은 장소: %d곳 / 고정: %d곳 / 은신처 %d곳의 갈 수 있는 장소 수: 최소 %d, 평균 %.1f / 시작 해금 평균 %.1f곳" % (
+    print("시드: %s / 위치를 섞은 장소: %d곳 / 고정: %d곳 / 은신처 %d곳의 갈 수 있는 장소 수: 최소 %d, 평균 %.1f / 시작 해금(=은신처 망원경 목록) 평균 %.1f곳" % (
         "keep(섞지 않음)" if keep_mode else seed, len(movable), len(fixed), len(shelters), min(cnts), sum(cnts) / len(cnts), sum(unl) / len(unl)))
     moved = [g for g in movable if allpos[g] != newpos[g]]
     for g in moved[:8]:
