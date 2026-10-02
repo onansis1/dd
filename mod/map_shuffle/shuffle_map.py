@@ -5,7 +5,8 @@ data_levels 의 MapData 에서 장소들의 좌표(m_position)를 서로 바꾼�
 - 상인, HOD 전용 장소, 은신처는 제자리에 둔다. (시작 지역 고정은 풀었음: 시작 은신처 주변 장소도 섞인다)
 - 위치가 바뀌므로 각 은신처의 '갈 수 있는 장소' 목록을 새 좌표/반경 기준으로 다시 만든다.
 - 망원경 목록(m_vantagePointObservableLocations)을 새 좌표 기준 '가까운 장소'로 다시 만든다 (개수 유지, 은신처가 대상에 들어가는 구조 유지,
-  원래 보이던 장소가 어디에서도 안 보이게 되면 가장 가까운 망원경 장소에 추가). 은신처의 시작 해금은 원본처럼 그 은신처 망원경 목록과 같게 둔다.
+  원래 보이던 장소가 어디에서도 안 보이게 되면 가장 가까운 망원경 장소에 추가). 은신처의 시작 해금은 원본처럼 그 은신처 망원경 목록과 같게 두고, 항목은 원본 규칙대로
+  '반경 안의 망원경 있는 장소, 서로 다른 방향'으로 고른다 (한 갈래가 막혀도 다른 갈래가 이어지도록).
 처음 실행할 때 data_levels.shufflebak 으로 백업한다. 게임을 끈 상태에서 실행할 것.
 복원: data_levels.shufflebak 을 data_levels 로 덮어쓰면 된다.
 """
@@ -142,9 +143,29 @@ def main():
     for g, v in old_lists.items():
         cand = sorted((k for k in newpos if k != g), key=lambda k: dpos(g, k))
         new_lists[g] = cand[:len(v)]
+    # 은신처 시작 목록: 원본 규칙(항목은 일반 장소, 대부분 망원경 장소, 서로 다른 방향)을 재현한다.
+    # 반경 안의 망원경 장소 중 가까운 후보들에서 방향이 가장 다양하게 갈라지도록 고른다.
+    is_tel0 = lambda g: g not in shelters and g in new_lists and bool(new_lists[g])
+    for S, rS in shelters.items():
+        if not new_lists.get(S):
+            continue
+        k = len(new_lists[S])
+        R = rS["data"]["m_scavengeRadius"]
+        pool = sorted((g for g in locs if is_tel0(g) and dpos(S, g) <= R and not special(g)
+                       and not locs[g]["data"]["m_knowledgeToUnlockLocation"]["m_keys"]), key=lambda g: dpos(S, g))[:12]
+        if len(pool) < k:
+            continue
+        ang = lambda g: math.atan2(newpos[g][1] - newpos[S][1], newpos[g][0] - newpos[S][0])
+        diff = lambda a, b: abs((a - b + math.pi) % (2 * math.pi) - math.pi)
+        picked = [pool[0]]
+        while len(picked) < k:
+            rest = [g for g in pool if g not in picked]
+            best = max(rest, key=lambda g: (min(diff(ang(g), ang(p)) for p in picked), -dpos(S, g)))
+            picked.append(best)
+        new_lists[S] = picked
     covered_after = {k for v in new_lists.values() for k in v}
     for k in sorted(covered_before - covered_after):
-        pts = sorted((g for g in new_lists if g != k), key=lambda g: dpos(g, k))
+        pts = sorted((g for g in new_lists if g != k and g not in shelters and new_lists[g]), key=lambda g: dpos(g, k))
         new_lists[pts[0]].append(k)
     # 발견 연쇄 보정: 은신처의 시작 목록에서 출발해 반경 안 장소를 방문하며 망원경으로 밝혀 나갈 때,
     # 연쇄가 끊기지 않고 반경 안의 '원래 발견 가능했던' 장소를 모두 밝힐 수 있게 한다.
