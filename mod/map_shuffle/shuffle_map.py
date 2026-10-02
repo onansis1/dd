@@ -146,9 +146,51 @@ def main():
     for k in sorted(covered_before - covered_after):
         pts = sorted((g for g in new_lists if g != k), key=lambda g: dpos(g, k))
         new_lists[pts[0]].append(k)
+    # 발견 연쇄 보정: 은신처의 시작 목록에서 출발해 반경 안 장소를 방문하며 망원경으로 밝혀 나갈 때,
+    # 연쇄가 끊기지 않고 반경 안의 '원래 발견 가능했던' 장소를 모두 밝힐 수 있게 한다.
+    #  - 시작 목록에 방문 가능한(반경 안) 망원경 장소가 없으면 가장 가까운 망원경 장소를 시작 목록에 추가
+    #  - 못 밝히는 장소는 연쇄 안의 가장 가까운 망원경 장소의 목록에 추가
+    is_tel = lambda g: g in new_lists and bool(new_lists[g]) and g not in shelters
+    added = 0
+    for S, rS in shelters.items():
+        if not new_lists.get(S):
+            continue
+        R = rS["data"]["m_scavengeRadius"]
+        inC = lambda k, S=S, R=R: dpos(S, k) <= R
+        def closure():
+            K = set(new_lists[S])
+            changed = True
+            while changed:
+                changed = False
+                for v in list(K):
+                    if is_tel(v) and inC(v):
+                        for o in new_lists[v]:
+                            if o not in K:
+                                K.add(o)
+                                changed = True
+            return K
+        targets = {k for k in locs if k in covered_before and inC(k) and not special(k)
+                   and not locs[k]["data"]["m_knowledgeToUnlockLocation"]["m_keys"]}
+        for _ in range(500):
+            K = closure()
+            if not any(is_tel(v) and inC(v) for v in K):
+                near = sorted((g for g in new_lists if is_tel(g) and inC(g) and g not in K), key=lambda g: dpos(S, g))
+                if not near:
+                    break
+                new_lists[S].append(near[0])
+                added += 1
+                continue
+            missing = sorted(targets - K, key=lambda k: min(dpos(k, v) for v in K if is_tel(v) and inC(v)))
+            if not missing:
+                break
+            L = missing[0]
+            hosts = sorted((v for v in K if is_tel(v) and inC(v) and v != L), key=lambda v: dpos(v, L))
+            new_lists[hosts[0]].append(L)
+            added += 1
     for g, v in new_lists.items():
         vps[g][:] = [mkguid(k) for k in v]
     vp_new = new_lists
+    print("발견 연쇄 보정으로 추가한 목록 항목: %d개" % added)
     # 은신처별 갈 수 있는 장소/시작 해금 목록 재계산
     cnts = []
     unl = []
