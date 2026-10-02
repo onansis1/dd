@@ -1,8 +1,10 @@
 """Into the Dead: Our Darkest Days - 지도에서 장소(건물)가 놓이는 위치를 무작위로 섞기 (실험적).
-사용: python shuffle_map.py <AssetBundles 폴더 경로> [시드]
+사용: python shuffle_map.py <AssetBundles 폴더 경로> [시드 | keep]
+  keep : 위치는 섞지 않고, 해금 목록 재계산만 한다 (이미 섞은 파일이나 반경만 넓힌 파일에도 적용 가능)
 data_levels 의 MapData 에서 장소들의 좌표(m_position)를 서로 바꾼다. 건물 이름/장면/NPC 는 그대로 함께 움직인다.
 - 상인, HOD 전용 장소, 은신처는 제자리에 둔다. (시작 지역 고정은 풀었음: 시작 은신처 주변 장소도 섞인다)
-- 위치가 바뀌므로 각 은신처의 '갈 수 있는 장소' 목록과 시작 해금 목록을 새 좌표/반경 기준으로 다시 만든다.
+- 위치가 바뀌므로 각 은신처의 '갈 수 있는 장소' 목록을 새 좌표/반경 기준으로 다시 만든다.
+- 망원경 발견이 막히지 않도록, 각 은신처의 시작 해금 목록을 '반경 안의 모든 장소'로 채운다 (지식으로 해금되는 스토리 장소는 제외).
 처음 실행할 때 data_levels.shufflebak 으로 백업한다. 게임을 끈 상태에서 실행할 것.
 복원: data_levels.shufflebak 을 data_levels 로 덮어쓰면 된다.
 """
@@ -40,7 +42,8 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     path = os.path.join(sys.argv[1], "data_levels")
-    seed = int(sys.argv[2]) if len(sys.argv) > 2 else random.SystemRandom().randrange(1 << 30)
+    keep_mode = len(sys.argv) > 2 and sys.argv[2].lower() == "keep"
+    seed = 0 if keep_mode else (int(sys.argv[2]) if len(sys.argv) > 2 else random.SystemRandom().randrange(1 << 30))
     if not os.path.isfile(path):
         sys.exit("data_levels 를 찾을 수 없습니다: " + path)
     with open(path, "rb") as fh:
@@ -101,31 +104,36 @@ def main():
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
-    for attempt in range(500):
-        perm = slots[:]
-        rnd.shuffle(perm)
-        if any(a == b for a, b in zip(slots, perm)):
-            continue
+    if keep_mode:
+        movable = []
         newpos = dict(allpos)
-        for g, p in zip(movable, perm):
-            newpos[g] = p
-        ok = True
-        for sg, r in shelters.items():
-            R = r["data"]["m_scavengeRadius"]
-            px, py = newpos[sg]
-            n = sum(1 for k in newpos if math.hypot(newpos[k][0] - px, newpos[k][1] - py) <= R)
-            if n < MIN_REACH:
-                ok = False
-                break
-        if ok:
-            break
     else:
-        sys.exit("조건을 만족하는 배치를 찾지 못했습니다. 다른 시드로 다시 시도하세요.")
+        for attempt in range(500):
+            perm = slots[:]
+            rnd.shuffle(perm)
+            if any(a == b for a, b in zip(slots, perm)):
+                continue
+            newpos = dict(allpos)
+            for g, p in zip(movable, perm):
+                newpos[g] = p
+            ok = True
+            for sg, r in shelters.items():
+                R = r["data"]["m_scavengeRadius"]
+                px, py = newpos[sg]
+                n = sum(1 for k in newpos if math.hypot(newpos[k][0] - px, newpos[k][1] - py) <= R)
+                if n < MIN_REACH:
+                    ok = False
+                    break
+            if ok:
+                break
+        else:
+            sys.exit("조건을 만족하는 배치를 찾지 못했습니다. 다른 시드로 다시 시도하세요.")
 
     for g in movable:
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
     # 은신처별 갈 수 있는 장소/시작 해금 목록 재계산
     cnts = []
+    unl = []
     for sg, r in shelters.items():
         d = r["data"]
         R = d["m_scavengeRadius"]
@@ -138,9 +146,11 @@ def main():
         d["m_reachableLocations"] = [mkguid(k) for k in keep + add]
         init = [gid(x) for x in d["m_initialUnlockedLocations"]]
         inr = [k for k in init if k in set(within)]
-        need = len(init) - len(inr)
-        fill = [k for k in sorted(within, key=dist) if k in locs and k not in inr][:need]
+        # 반경 안의 모든 일반 장소를 시작부터 해금 (지식 해금 스토리 장소 제외)
+        fill = [k for k in sorted(within, key=dist)
+                if k in locs and k not in inr and not locs[k]["data"]["m_knowledgeToUnlockLocation"]["m_keys"]]
         d["m_initialUnlockedLocations"] = [mkguid(k) for k in inr + fill]
+        unl.append(len(inr) + len(fill))
         cnts.append(len(keep) + len(add))
 
     new = bytes(o.save_typetree(tt))
@@ -181,8 +191,8 @@ def main():
         os.replace(tmp, path)
     except PermissionError:
         sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 " + tmp + " 에 있습니다.")
-    print("시드: %d / 위치를 섞은 장소: %d곳 / 고정: %d곳 / 은신처 %d곳의 갈 수 있는 장소 수: 최소 %d, 평균 %.1f" % (
-        seed, len(movable), len(fixed), len(shelters), min(cnts), sum(cnts) / len(cnts)))
+    print("시드: %s / 위치를 섞은 장소: %d곳 / 고정: %d곳 / 은신처 %d곳의 갈 수 있는 장소 수: 최소 %d, 평균 %.1f / 시작 해금 평균 %.1f곳" % (
+        "keep(섞지 않음)" if keep_mode else seed, len(movable), len(fixed), len(shelters), min(cnts), sum(cnts) / len(cnts), sum(unl) / len(unl)))
     moved = [g for g in movable if allpos[g] != newpos[g]]
     for g in moved[:8]:
         print("  %s : (%.0f, %.0f) -> (%.0f, %.0f)" % (names.get(g, "?")[:44], *allpos[g], *newpos[g]))
