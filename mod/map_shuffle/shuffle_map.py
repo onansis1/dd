@@ -48,6 +48,21 @@ def main():
         sys.exit(__doc__)
     path = os.path.join(sys.argv[1], "data_levels")
     story_pats = STORY_HIDDEN + [a.lower() for a in sys.argv[3:]]
+    # scan_telescopes.py 결과: 지도 데이터에는 망원경이 있다고 적혀 있지만 장면에는 없는 장소를 걸러낸다 (예: 세인트 버나뎃 병원)
+    fake_names = set()
+    tj = None
+    for cand in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "telescopes.json"), os.path.join(sys.argv[1], "telescopes.json")):
+        if os.path.exists(cand):
+            tj = cand
+            break
+    if tj:
+        import json
+        for n_, v_ in json.load(open(tj, encoding="utf-8")).get("locations", {}).items():
+            if not v_.get("telescope", True) and v_.get("checked_bundles", 0) > 0:
+                fake_names.add(n_)
+        print("telescopes.json 사용: 장면에 망원경이 없는 장소 %d곳을 발견 연쇄에서 제외합니다." % len(fake_names))
+    else:
+        print("안내: telescopes.json 이 없습니다. scan_telescopes.py 를 먼저 실행하면 '지도에는 망원경이 있다고 되어 있지만 실제론 없는 장소'를 걸러냅니다.")
     keep_mode = len(sys.argv) > 2 and sys.argv[2].lower() == "keep"
     seed = 0 if keep_mode else (int(sys.argv[2]) if len(sys.argv) > 2 else random.SystemRandom().randrange(1 << 30))
     if not os.path.isfile(path):
@@ -195,6 +210,9 @@ def main():
     # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.
     vps = {g: r["data"]["m_vantagePointObservableLocations"] for g, r in {**locs, **shelters}.items()}
     old_lists = {g: [gid(x) for x in v] for g, v in vps.items() if v}
+    fake_hosts = {g for g in old_lists if g not in shelters and g not in story and names.get(g, "") in fake_names}
+    for g in fake_hosts:
+        del old_lists[g]
     covered_before = {k for v in old_lists.values() for k in v if k not in story}
     dpos = lambda a, b: math.hypot(newpos[a][0] - newpos[b][0], newpos[a][1] - newpos[b][1])
     new_lists = {}
@@ -271,8 +289,10 @@ def main():
             added += 1
     for g, v in new_lists.items():
         vps[g][:] = [mkguid(k) for k in v]
+    for g in fake_hosts:
+        vps[g][:] = []
     vp_new = new_lists
-    print("스토리 전용으로 숨긴 장소: %d곳 / 발견 연쇄 보정으로 추가한 목록 항목: %d개" % (len(story), added))
+    print("스토리 전용으로 숨긴 장소: %d곳 / 가짜 망원경 제외: %d곳 / 발견 연쇄 보정으로 추가한 목록 항목: %d개" % (len(story), len(fake_hosts), added))
     # 은신처별 갈 수 있는 장소/시작 해금 목록 재계산
     cnts = []
     unl = []
