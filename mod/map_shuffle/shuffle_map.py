@@ -53,7 +53,54 @@ def main():
     if not os.path.isfile(path):
         sys.exit("data_levels 를 찾을 수 없습니다: " + path)
     with open(path, "rb") as fh:
-        data = fh.read()
+        cur_data = fh.read()
+    # 기준 파일: 처음 백업(data_levels.shufflebak)이 있으면 항상 그것에서 시작한다.
+    # 그래야 옛 버전 도구로 이미 가공된 파일에서도 '원본 망원경 목록'(특히 스토리 장소)이 보존된다.
+    bak = path + ".shufflebak"
+    data = cur_data
+    if os.path.exists(bak):
+        with open(bak, "rb") as fh:
+            bak_data = fh.read()
+        if bak_data != cur_data:
+            env_b = UnityPy.load(bak_data)
+            env_c = UnityPy.load(cur_data)
+            sfb = [f for f in env_b.file.files.values() if hasattr(f, "types")][0]
+            sfc = [f for f in env_c.file.files.values() if hasattr(f, "types")][0]
+            rb, rc = bytes(sfb.reader.bytes), bytes(sfc.reader.bytes)
+            ob = {o.path_id: o for o in env_b.objects}
+            oc = {o.path_id: o for o in env_c.objects}
+            # 백업과 현재 파일이 '같은 게임 빌드'인지: 오브젝트 집합이 같고, 서로 다른 오브젝트가 (MapData 한 개) 이하여야 한다.
+            differing = []
+            if set(ob) == set(oc):
+                for pid in ob:
+                    a_, b_ = ob[pid], oc[pid]
+                    if a_.byte_size != b_.byte_size or rb[a_.byte_start:a_.byte_start + a_.byte_size] != rc[b_.byte_start:b_.byte_start + b_.byte_size]:
+                        differing.append(pid)
+            same = set(ob) == set(oc) and len(differing) <= 1
+            if same:
+                data = bak_data
+                print("원본 백업(data_levels.shufflebak)을 기준으로 다시 만듭니다.")
+            else:
+                print("경고: data_levels.shufflebak 이 현재 파일과 맞지 않습니다 (게임 업데이트?). 현재 파일을 기준으로 하고 백업을 새로 만듭니다.")
+                shutil.copy2(bak, bak + ".old")
+                shutil.copy2(path, bak)
+    cur_positions = {}
+    if keep_mode and data is not cur_data:
+        env_cur = UnityPy.load(cur_data)
+        scr_c = {o.path_id: o.read().m_ClassName for o in env_cur.objects if o.type.name == "MonoScript"}
+        for o_ in env_cur.objects:
+            if o_.type.name != "MonoBehaviour":
+                continue
+            try:
+                tt_ = o_.read_typetree()
+            except Exception:
+                continue
+            if scr_c.get(tt_["m_Script"]["m_PathID"]) == "MapData":
+                for r_ in tt_["references"]["RefIds"]:
+                    d_ = r_["data"]
+                    if "m_locationReference" in d_ and "m_position" in d_:
+                        cur_positions[gid(d_["m_locationReference"])] = (d_["m_position"]["x"], d_["m_position"]["y"])
+                break
     env = UnityPy.load(data)
     bundle = env.file
     name, sf = [(n, f) for n, f in bundle.files.items() if hasattr(f, "types")][0]
@@ -96,6 +143,10 @@ def main():
             continue
         g = gid(d["m_locationReference"])
         (shelters if r["type"]["class"] == "MapShelterLocationData" else locs)[g] = r
+    if cur_positions:
+        for g, r in {**locs, **shelters}.items():
+            if g in cur_positions:
+                r["data"]["m_position"]["x"], r["data"]["m_position"]["y"] = cur_positions[g]
     allpos = {g: (r["data"]["m_position"]["x"], r["data"]["m_position"]["y"]) for g, r in {**locs, **shelters}.items()}
 
     # 장소 이름으로 상인/HOD/스토리 전용 판별 (조건 에셋 이름은 데이터 번들 소속이라 장소 이름과 조건 개수로 판단)
