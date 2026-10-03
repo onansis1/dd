@@ -24,6 +24,9 @@ from UnityPy.files import ObjectReader as _ORcls
 from UnityPy.streams import EndianBinaryReader
 
 BASE_RADIUS = 987.5
+# 스토리 전용 장소: 이름에 아래 문구가 들어간 장소는 제자리에 두고, 어떤 망원경/시작 목록에도 나타나지 않게 한다 (스토리로만 해금).
+# 다른 장소도 숨기려면 명령 끝에 이름 일부를 추가 (예: ... 12345 Chiefways Otherstory)
+STORY_HIDDEN = ["chiefways"]
 MIN_REACH = 8
 ENTRY = {}
 _orig_from_reader = _ORcls.from_reader.__func__
@@ -44,6 +47,7 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     path = os.path.join(sys.argv[1], "data_levels")
+    story_pats = STORY_HIDDEN + [a.lower() for a in sys.argv[3:]]
     keep_mode = len(sys.argv) > 2 and sys.argv[2].lower() == "keep"
     seed = 0 if keep_mode else (int(sys.argv[2]) if len(sys.argv) > 2 else random.SystemRandom().randrange(1 << 30))
     if not os.path.isfile(path):
@@ -95,7 +99,10 @@ def main():
     allpos = {g: (r["data"]["m_position"]["x"], r["data"]["m_position"]["y"]) for g, r in {**locs, **shelters}.items()}
 
     # 장소 이름으로 상인/HOD/스토리 전용 판별 (조건 에셋 이름은 데이터 번들 소속이라 장소 이름과 조건 개수로 판단)
+    story = {g for g in {**locs, **shelters} if any(p in names.get(g, "").lower() for p in story_pats)}
     def special(g):
+        if g in story:
+            return True
         n = names.get(g, "")
         return ("Trader" in n) or n.startswith("Midtown_FieldHospital_01") or n.startswith("Midtown_Stadium_01") or n.startswith("Midtown_Airfield") 
     fixed = set(g for g in locs if special(g))
@@ -137,15 +144,18 @@ def main():
     # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.
     vps = {g: r["data"]["m_vantagePointObservableLocations"] for g, r in {**locs, **shelters}.items()}
     old_lists = {g: [gid(x) for x in v] for g, v in vps.items() if v}
-    covered_before = {k for v in old_lists.values() for k in v}
+    covered_before = {k for v in old_lists.values() for k in v if k not in story}
     dpos = lambda a, b: math.hypot(newpos[a][0] - newpos[b][0], newpos[a][1] - newpos[b][1])
     new_lists = {}
     for g, v in old_lists.items():
-        cand = sorted((k for k in newpos if k != g), key=lambda k: dpos(g, k))
+        if g in story:
+            new_lists[g] = list(v)      # 스토리 장소 자체의 목록은 원본 그대로 (스토리 안의 연쇄 유지)
+            continue
+        cand = sorted((k for k in newpos if k != g and k not in story), key=lambda k: dpos(g, k))
         new_lists[g] = cand[:len(v)]
     # 은신처 시작 목록: 원본 규칙(항목은 일반 장소, 대부분 망원경 장소, 서로 다른 방향)을 재현한다.
     # 반경 안의 망원경 장소 중 가까운 후보들에서 방향이 가장 다양하게 갈라지도록 고른다.
-    is_tel0 = lambda g: g not in shelters and g in new_lists and bool(new_lists[g])
+    is_tel0 = lambda g: g not in shelters and g not in story and g in new_lists and bool(new_lists[g])
     for S, rS in shelters.items():
         if not new_lists.get(S):
             continue
@@ -165,13 +175,13 @@ def main():
         new_lists[S] = picked
     covered_after = {k for v in new_lists.values() for k in v}
     for k in sorted(covered_before - covered_after):
-        pts = sorted((g for g in new_lists if g != k and g not in shelters and new_lists[g]), key=lambda g: dpos(g, k))
+        pts = sorted((g for g in new_lists if g != k and g not in shelters and g not in story and new_lists[g]), key=lambda g: dpos(g, k))
         new_lists[pts[0]].append(k)
     # 발견 연쇄 보정: 은신처의 시작 목록에서 출발해 반경 안 장소를 방문하며 망원경으로 밝혀 나갈 때,
     # 연쇄가 끊기지 않고 반경 안의 '원래 발견 가능했던' 장소를 모두 밝힐 수 있게 한다.
     #  - 시작 목록에 방문 가능한(반경 안) 망원경 장소가 없으면 가장 가까운 망원경 장소를 시작 목록에 추가
     #  - 못 밝히는 장소는 연쇄 안의 가장 가까운 망원경 장소의 목록에 추가
-    is_tel = lambda g: g in new_lists and bool(new_lists[g]) and g not in shelters
+    is_tel = lambda g: g in new_lists and bool(new_lists[g]) and g not in shelters and g not in story
     added = 0
     for S, rS in shelters.items():
         if not new_lists.get(S):
@@ -211,7 +221,7 @@ def main():
     for g, v in new_lists.items():
         vps[g][:] = [mkguid(k) for k in v]
     vp_new = new_lists
-    print("발견 연쇄 보정으로 추가한 목록 항목: %d개" % added)
+    print("스토리 전용으로 숨긴 장소: %d곳 / 발견 연쇄 보정으로 추가한 목록 항목: %d개" % (len(story), added))
     # 은신처별 갈 수 있는 장소/시작 해금 목록 재계산
     cnts = []
     unl = []
