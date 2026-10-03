@@ -57,3 +57,12 @@
 telescopes.json 이 없으면 기존처럼 지도 데이터의 목록을 모두 진짜로 간주합니다.
 검증(이 환경): 합성 telescopes.json 으로 세인트 버나뎃/Pogo's 를 가짜로 지정 -> 목록 비움, 호스트 사용 0회, 못 밝히는 장소 0, 해금 불일치 0.
 검사 규칙의 정확도(예: 세인트 버나뎃이 실제로 '없음' 으로 판정되는지)는 해당 번들로 확인 필요.
+
+## 실제 스캔 결과 (빌드 6000.5.11f1, 사용자 PC에서 scan_telescopes.py 실행)
+telescopes.json 을 저장소에 함께 보관합니다 (shuffle_map.py 가 스크립트 폴더의 telescopes.json 을 자동으로 읽음).
+지도 데이터에 망원경 목록이 있는 장소 44곳 중 **42곳은 장면에 활성 VantagePoint 가 있고, 2곳은 없음**:
+ - CityCentre_Hospital_01_StBernadette (세인트 버나뎃 병원) - 번들 3개 모두 없음
+ - Industrial_WaterTreatmentPlant_01_WaltonCityWaterTreatment (수처리장)
+이 2곳은 목록을 비워 지도의 망원경 아이콘도 없애고, 발견 연쇄에서 제외합니다.
+검증: 이 json 으로 섞기 -> 못 밝히는 장소 0, 망원경 없는 시작 항목 0, 해금 불일치 0, 치프웨이즈 목록 원본 동일/노출 0.
+게임 업데이트 후에는 scan_telescopes.py 를 다시 실행하세요.
