@@ -15,6 +15,7 @@
 | 생존자 가방 칸 수 (38명) | 12 -> 24 | data_balancing |
 | 지도 스테이션 시작 슬롯 | 1 -> 2 | data_balancing |
 | 시체 회수 칸 수 | 12 -> 24 | data_config |
+| 미스터 베일 전용 샷건(S12 Riot) 상시 판매 | 재고 1, 가격 1600 (이벤트 때와 같은 값) | data_config |
 | 탐색 반경 (지도의 원) | x1.5 | data_levels |
 | 지도 건물 위치 섞기 | 무작위 | data_levels |
 
@@ -23,7 +24,7 @@
 영입 장소 섞기는 철폐했습니다 (영입 생존자의 원래 장소 NPC가 지워지는 게임 규칙 때문).
 
 ## 옵션 (명령줄)
-`--seed N` 지도 시드 / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
+`--seed N` 지도 시드 / `--vale S12Riot_Def,R77Rapid_Def,Crossbow_Def` 미스터 베일 전용 상품 상시 판매 (기본: S12Riot_Def만, `none` 이면 끔) / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
 
 ## 백업과 안전장치
 - `AssetBundles\_mods_backup\` 에 원본을 한 번 백업하고, 항상 거기서 다시 계산합니다 (여러 번 실행해도 배수가 쌓이지 않음).
@@ -42,3 +43,9 @@
 원인: UnityPy 의 C 가속 모듈(UnityPyBoost)이 일부 환경(Windows, Python 3.14)에서 일부 오브젝트를 읽다가 죽습니다.
 조치: 모든 스크립트가 시작할 때 가속 모듈을 끄고 순수 파이썬 읽기 경로를 사용합니다 (`read_typetree_boost = None`).
 검증(이 환경): 가속 ON/OFF 로 만든 결과 파일이 balance/levels 모두 바이트까지 동일합니다. 전체 적용 소요 시간 약 27초.
+
+## 미스터 베일 전용 상품
+미스터 베일 상점(MrVale_TraderData.m_traderStockData)의 전용 상품 3개(R77 권총 800, 석궁 1800, S12 Riot 샷건 1600)는 기본 재고가 0이고,
+`Trader_MrVale_NewItemSale_*_CycleRange` 조건이 맞는 이벤트 기간에만 재고 1개/가격이 생깁니다.
+이 도구는 지정한 상품의 기본 재고를 '이벤트 때의 재고/가격'으로 바꿔서 항상 팔게 합니다 (이벤트 때 값과 같아서 이벤트와 충돌하지 않음).
+미스터 베일은 이벤트(NewItemForSale)로 방문하는 상인이라, 상점에 접근할 수 있게 되는 시점(상인 위치 해금 등)은 바뀌지 않습니다.
