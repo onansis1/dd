@@ -3,9 +3,9 @@
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
-  --vale S12Riot_Def   미스터 베일이 이벤트 없이 항상 파는 전용 상품 (쉼표로 여러 개: S12Riot_Def,R77Rapid_Def,Crossbow_Def / 'none' 이면 끔)
+  --vale random   미스터 베일 신규 판매 품목 순서 (random=첫 품목 석궁/샷건 50:50 후 번갈아, crossbow / s12riot=첫 품목 지정, none=건드리지 않음). R77 권총은 안 나옴
   --ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2   수치 바꾸기
-적용 내용: 총알 산출량 x배수, 생존자 가방 칸 수, 지도 스테이션 시작 슬롯, 시체 회수 칸 수, 탐색 반경, 미스터 베일 전용 상품 상시 판매, (선택) 지도 위치 섞기.
+적용 내용: 총알 산출량 x배수, 생존자 가방 칸 수, 지도 스테이션 시작 슬롯, 시체 회수 칸 수, 탐색 반경, 미스터 베일 신규 판매 품목 순서(석궁/샷건 번갈아), (선택) 지도 위치 섞기.
 백업은 <AssetBundles>/_mods_backup 에 한 번만 만들고, 항상 거기서 다시 계산하므로 여러 번 실행해도 배수가 쌓이지 않는다.
 파일이 백업/이전 결과와 다르면(= 게임 업데이트) 현재 파일을 새 원본으로 인식하고 백업을 갱신한다. 게임을 끈 상태에서 실행할 것.
 """
@@ -62,7 +62,7 @@ def main():
     ap.add_argument("--corpse", type=int, default=24)
     ap.add_argument("--radius", type=float, default=1.5)
     ap.add_argument("--slots", type=int, default=2)
-    ap.add_argument("--vale", default="S12Riot_Def")
+    ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
     if not a.folder:
         sys.exit(__doc__)
@@ -155,7 +155,11 @@ def main():
                 print("경고: 장면 번들을 검사하지 못했습니다. 기존 telescopes.json 을 그대로 사용합니다 (없으면 가짜 망원경 제외 없이 진행).")
         print(run("patch_balance.py", stage, a.ammo, a.inv, a.slots).strip())
         out_cfg = os.path.join(stage, "data_config.out")
-        vale = [] if a.vale.strip().lower() in ("", "none") else [a.vale]
+        vale = []
+        if a.vale != "none":
+            import random
+            first = a.vale if a.vale != "random" else random.Random(a.seed if a.seed is not None else None).choice(["crossbow", "s12riot"])
+            vale = [first]
         print(run("patch_config.py", os.path.join(stage, "data_config"), a.corpse, out_cfg, *vale).strip())
         os.replace(out_cfg, os.path.join(stage, "data_config"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
