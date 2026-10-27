@@ -2,6 +2,9 @@ name: Build MapMod exe (Windows)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/game-ammo-recipe-mod-kknjko]
+    paths: ["mod/pack/**", ".github/workflows/build-exe.yml"]
 
 jobs:
   build:
