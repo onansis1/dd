@@ -75,9 +75,9 @@ def ensure_unitypy():
     except Exception:
         pass
     print("필요한 구성요소(UnityPy)를 설치합니다. 인터넷이 필요하고 1분 정도 걸립니다...")
-    r = subprocess.run([sys.executable, "-m", "pip", "install", "UnityPy"])
+    r = subprocess.run([sys.executable, "-m", "pip", "install", "UnityPy==1.25.3"])
     if r.returncode != 0:
-        print("설치에 실패했습니다. 인터넷 연결을 확인하거나 명령 프롬프트에서  pip install UnityPy  를 직접 실행해 보세요.")
+        print("설치에 실패했습니다. 인터넷 연결을 확인하거나 명령 프롬프트에서  pip install UnityPy==1.25.3  를 직접 실행해 보세요.")
         return False
     return True
 

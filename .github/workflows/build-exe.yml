@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install build dependencies
-        run: pip install UnityPy pyinstaller
+        run: pip install UnityPy==1.25.3 pyinstaller
       - name: Build exe
         working-directory: mod/pack
         shell: bash
