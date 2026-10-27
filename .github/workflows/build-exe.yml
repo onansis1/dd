@@ -1,0 +1,37 @@
+name: Build MapMod exe (Windows)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build dependencies
+        run: pip install UnityPy pyinstaller
+      - name: Build exe
+        working-directory: mod/pack
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --onefile --console --name ItD_MapMod \
+            --collect-all UnityPy \
+            --add-data "apply_all.py;." --add-data "launcher.py;." --add-data "patch_balance.py;." \
+            --add-data "patch_config.py;." --add-data "widen_map_radius.py;." --add-data "shuffle_map.py;." \
+            --add-data "scan_telescopes.py;." --add-data "telescopes.json;." \
+            --hidden-import launcher exe_main.py
+      - name: Smoke test (starts and shows the menu, then exits)
+        working-directory: mod/pack
+        shell: bash
+        run: |
+          ./dist/ItD_MapMod.exe --selftest
+          printf '\n\n\n' | ./dist/ItD_MapMod.exe | head -20
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ItD_MapMod
+          path: |
+            mod/pack/dist/ItD_MapMod.exe
+            mod/pack/README_SHARE.txt

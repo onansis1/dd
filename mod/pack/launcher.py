@@ -3,7 +3,8 @@
 """
 import os, re, subprocess, sys
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+FROZEN = getattr(sys, "frozen", False)
+HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))
 GAME = "Into the Dead Our Darkest Days"
 
 def pause():
@@ -67,6 +68,7 @@ def game_running():
         return False
 
 def ensure_unitypy():
+    if FROZEN: return True
     try:
         import UnityPy  # noqa
         return True
@@ -82,7 +84,7 @@ def ensure_unitypy():
 def main():
     print("=== Into the Dead: Our Darkest Days 지도 수정 (랜덤 지도 배치 + 탐색 반경 x1.5) ===\n")
     if not os.path.exists(os.path.join(HERE, "apply_all.py")):
-        print("apply_all.py 가 같은 폴더에 있어야 합니다. 압축을 완전히 푼 뒤 실행하세요."); return
+        print("apply_all.py 가 같은 폴더에 있어야 합니다. 압축을 완전히 푼 뒤 실행하세요 (exe 는 이 문제가 없습니다)."); return
     ab = find_ab()
     if ab: print("게임 폴더를 찾았습니다:\n  " + ab + "\n")
     else:
@@ -109,9 +111,11 @@ def main():
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()
-    r = subprocess.run([sys.executable, "-X", "utf8", "-u", os.path.join(HERE, "apply_all.py"), ab] + args)
+    if FROZEN: cmd = [sys.executable, "--run-script", os.path.join(HERE, "apply_all.py"), ab] + args
+    else: cmd = [sys.executable, "-X", "utf8", "-u", os.path.join(HERE, "apply_all.py"), ab] + args
+    r = subprocess.run(cmd, env=dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8"))
     if r.returncode != 0:
-        print("\n문제가 생겼습니다. 위 메시지를 캡처해서 알려주세요. (apply_all.log 파일도 같이)")
+        print("\n문제가 생겼습니다. 위 메시지를 캡처해서 알려주세요. (exe 와 같은 폴더의 apply_all.log 도 같이)")
     else:
         print("\n끝! 스팀에서 게임을 켜고 '새 게임'을 시작하세요." if c != "3" else "\n원래대로 되돌렸습니다.")
 

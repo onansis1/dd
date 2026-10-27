@@ -12,7 +12,9 @@
 """
 import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+FROZEN = getattr(sys, "frozen", False)   # PyInstaller exe
+HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))   # 스크립트/데이터가 있는 곳
+OUTDIR = os.path.dirname(sys.executable) if FROZEN else HERE                          # 로그를 남길 곳
 FILES = ["data_balancing", "data_config", "data_levels"]
 
 def sha(path):
@@ -22,7 +24,7 @@ def sha(path):
             h.update(chunk)
     return h.hexdigest()
 
-LOG = os.path.join(HERE, "apply_all.log")
+LOG = os.path.join(OUTDIR, "apply_all.log")
 KEEP_STAGE = []
 
 def log(text):
@@ -34,7 +36,10 @@ def log(text):
 
 def run(script, *args):
     """하위 단계를 실행한다. 출력은 버퍼 없이(UTF-8) 받고, 실패하면 종료 코드와 모든 출력을 보여주고 로그에 남긴다."""
-    cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
+    if FROZEN:
+        cmd = [sys.executable, "--run-script", os.path.join(HERE, script)] + [str(a) for a in args]
+    else:
+        cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
     r = subprocess.run(cmd, capture_output=True, env=env)
     out = (r.stdout or b"").decode("utf-8", errors="replace")
