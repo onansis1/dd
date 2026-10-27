@@ -1,0 +1,314 @@
+{
+ "locations": {
+  "Industrial_Office_01_HackettConstruction": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_HardwareStore_01_G&SHardware": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_Church_01_HarshawPresbyterian": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_TaxiDepot_01_WaltonTaxi": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_Residential_02_OldBallard": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_PoliceStation_01_9thPrecinct": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_FireStation_01_Station8": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_Residential_01_38IrvingDrive": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Office_01_MitchumPowellPlaza": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Office_02_RM&KComms": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_School_01_JensenElementary": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "MiddleClass_FireStation_01_Station13": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "MiddleClass_Residential_01_15IndependenceBlvd": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Arcade_01_StyxArcade": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Bar_01_TheHitchPost": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_GasStation_01_TexwayGreen": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_GasStation_02_RedMile": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Motel_02_BriarwoodMotel": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Restaurant_01_Vivaldis": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_TransportDepot_01_Chiefways": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "UpperClass_MedicalPractice_01_ElkinsFamilyClinic": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Hotel_01_TheIndigoRose": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Laundromat_01_WashAndDry": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_DistillationTowers_01_Chiefways": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_TrailerPark_01_FrontierSprings": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_Junkyard_01_BucklandAutoSalvage": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_CircuitryFactory_01_KosyaireFactory": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "MiddleClass_School_01_MercerHigh": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_Motel_01_JaysMotel": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "MiddleClass_CarDealership_01_LesterBarrAutomotive": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_Slaughterhouse_01_VictoryMeatProcessing": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_ShippingContainers_01_ContainerYard3": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Industrial_WaterTreatmentPlant_01_WaltonCityWaterTreatment": {
+   "telescope": false,
+   "checked_bundles": 3
+  },
+  "MiddleClass_Restaurant_01_PogosGreenhaven": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "LowClass_Residential_03_BottleHillRuin": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Restaurant_01_Pogos9th": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Hospital_01_StBernadette": {
+   "telescope": false,
+   "checked_bundles": 3
+  },
+  "Midtown_Barber_01_GradysBarberShop": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_BBQRestaurant_01_OlRibShack": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_BeautySalon_01_SunsetShineStyle": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_PostOffice_01_WaltonPostOffice": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "Midtown_VideoRentalShop_01_AuteurVideo": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_Restaurant_02_EasternArchHouse": {
+   "telescope": true,
+   "checked_bundles": 3
+  },
+  "CityCentre_RecordingStudio_01_SouthernSpurRecords": {
+   "telescope": true,
+   "checked_bundles": 3
+  }
+ },
+ "bundles": {
+  "multi_scene.industrial_office_01_scavenge_night_bundle_3dc453c638036d84eafed1f9c0a98589": false,
+  "multi_scene.tbd_doublebuilding_02_scavenge_common_bundle_1c5854ace766ca043ad8b835a7bcfbf3": true,
+  "multi_scene.industrial_office_01_scavenge_day_bundle_aa38f63f9c88c7c4d91cca8d14ff847f": false,
+  "multi_scene.midtown_hardwarestore_01_scavenge_night_bundle_fd11de21e6fbb734dbc9f56dfb9b5098": false,
+  "multi_scene.midtown_hardwarestore_01_bundle_ce717fdab83958044bfce7098ddc514f": true,
+  "multi_scene.midtown_hardwarestore_01_scavenge_day_bundle_cdba722eef18a5a4fbf0254a8d3b9cd5": false,
+  "multi_scene.lowclass_church_01_scavenge_night_bundle_07b9e7843b50e9247a793c808b18bacc": false,
+  "multi_scene.lowerclass_church_03_bundle_4949b9d501ce88e4d8b38a639726bde9": true,
+  "multi_scene.lowclass_church_01_scavenge_day_bundle_c53b5035e401dac46a4db1f5a098a55a": false,
+  "multi_scene.midtown_taxidepot_01_scavenge_night_bundle_6977c1e59549c3040b587888a8638814": false,
+  "multi_scene.taxi_depot_01_bundle_44398aa175ae7fa4aa7ace8a21a8b86c": true,
+  "multi_scene.midtown_taxidepot_01_scavenge_day_bundle_4b0d2542db724494cb8c7aabc408a6bf": false,
+  "multi_scene.lowclass_residential_02_scavenge_night_bundle_8f68425ecc083c5439b2dcb3f17df832": false,
+  "multi_scene.lowclass_residential_ballard_bundle_d3afe573b86bcd14c8ae1d21b26e251f": true,
+  "multi_scene.lowclass_residential_02_scavenge_day_bundle_ff59583ca5bd41f40ab28424d851d786": false,
+  "multi_scene.citycentre_policestation_01_scavenge_night_bundle_b2428106680781d409fa93e7c97416a5": false,
+  "multi_scene.citycentre_policestation_01_bundle_26ba492fe70578344a12ebcc1266e4d1": true,
+  "multi_scene.citycentre_policestation_01_scavenge_day_bundle_67611668d2cc6f34ba4f5f991c9f1c3f": false,
+  "multi_scene.industrial_firestation_01_scavenge_night_bundle_88c0addfcaa0a134c8a3c7a7c8a5e83f": false,
+  "multi_scene.industrial_firestation_01_bundle_354ed557b7fe6694cbfd5ce28843b173": true,
+  "multi_scene.industrial_firestation_01_scavenge_day_bundle_df0df432cdee20b42ae4a29f6088909f": false,
+  "multi_scene.lowclass_residential_01_scavenge_night_bundle_76616b6174951a0438078c5e0f31f05b": false,
+  "multi_scene.lowclass_residential_01_bundle_00f96983b963e2b4b95721fb8f8d9f7a": true,
+  "multi_scene.lowclass_residential_01_scavenge_day_bundle_909a196625b2b1449b25886d58e780c8": false,
+  "multi_scene.citycentre_office_01_scavenge_night_bundle_012f6a31698490946a5eed1ab94b0830": false,
+  "multi_scene.citycentre_office_test_bundle_b121a90318ef92241a6e3c0242ca34b4": true,
+  "multi_scene.citycentre_office_01_scavenge_day_bundle_8ac2b67d6036e2a4ab9c5a2d1b585b38": false,
+  "multi_scene.citycentre_office_02_scavenge_night_bundle_cfab0879ede16b443911898363053c5e": false,
+  "multi_scene.citycentre_office_02_scavenge_common_bundle_efbe7bc6799501648a8082a4c7b4486e": true,
+  "multi_scene.citycentre_office_02_scavenge_day_bundle_c6a9a1c44105112459742d5973d184b2": false,
+  "multi_scene.lowclass_school_01_scavenge_night_bundle_e264c20aca76b1d4badcbc6f79cf0302": false,
+  "multi_scene.lowclass_school_01_scavenge_common_bundle_e99d0e9a33cc68d4392e8c0322013315": true,
+  "multi_scene.lowclass_school_01_scavenge_day_bundle_0867d01586c00394cbeccf458b907a90": false,
+  "multi_scene.middleclass_firestation_01_scavenge_night_bundle_2f3c73bfbb40d504a92a90750742e957": false,
+  "multi_scene.firestation_middleclass_01_bundle_d6f722212d54950409fadaca0c01814a": true,
+  "multi_scene.middleclass_firestation_01_scavenge_day_bundle_2e8ee9ca70b8f2042bdf94f0a2e799fb": false,
+  "multi_scene.middleclass_residential_01_scavenge_night_bundle_cf2514a458b751245918fa06e1cb4e75": false,
+  "multi_scene.residential_middleclass_bundle_7e938dcd98eead847bcd7084ed831f46": true,
+  "multi_scene.middleclass_residential_01_scavenge_day_bundle_f55702cd66dc5504b96a3a52ba0a9922": false,
+  "multi_scene.midtown_arcade_01_scavenge_night_bundle_23017e6848e1a544c98e5a2c6271dee6": false,
+  "multi_scene.midtown_arcade_01_scavenge_common_bundle_271de66ff69a0fc46bfe5b66da3cea63": true,
+  "multi_scene.midtown_arcade_01_scavenge_day_bundle_0255d2e7919f7484a93cae62919a80b7": false,
+  "multi_scene.midtown_bar_01_scavenge_night_bundle_968bdafc4e8c91241bb8e36348eee59e": false,
+  "multi_scene.midtown_bar_01_scavenge_common_bundle_0c08124b46b518c4e921d12a519b7f2d": true,
+  "multi_scene.midtown_bar_01_scavenge_day_bundle_1ae988b334ec6dd4ba8cb7b9eef3defa": false,
+  "multi_scene.midtown_gasstation_01_scavenge_night_bundle_04033737e5ba0bd43b20ece0e0cf0a95": false,
+  "multi_scene.gasstation_midtown_bundle_1cba52fe86a3e7c4db56037e385bcceb": true,
+  "multi_scene.midtown_gasstation_01_scavenge_day_bundle_1c85c1b2029088149b01538b9be88159": false,
+  "multi_scene.midtown_gasstation_02_scavenge_night_bundle_1e96402914ee8dc449f271732979c893": false,
+  "multi_scene.gasstation_middleclass_bundle_a91e429cac01dc144a656566333c1c8a": true,
+  "multi_scene.midtown_gasstation_02_scavenge_day_bundle_cf6ab6ae2d8eee14abd391e4f9b06425": false,
+  "multi_scene.midtown_motel_02_scavenge_night_bundle_3b1f1cbf0fcaff644b1445edd1d1a6a4": false,
+  "multi_scene.midtown_motel_02_scavenge_common_bundle_15e9d67d2d6225d47940a01908e2e4e8": true,
+  "multi_scene.midtown_motel_02_scavenge_day_bundle_dbd6216e2cd982d4d9fd3d5fac0ced12": false,
+  "multi_scene.midtown_restaurant_01_scavenge_night_bundle_7727cd8efbcc97a4c81ad1a7c3af5159": false,
+  "multi_scene.midtown_restaurant_01_bundle_eb9f9aa5e7e174b4697e899a1d47f502": true,
+  "multi_scene.midtown_restaurant_01_scavenge_day_bundle_3a7109e87fb1abd418702a86470a7975": false,
+  "multi_scene.industrial_transportdepot_01_scavenge_night_bundle_16c51336d0ed73c4aa25c9273887df6d": false,
+  "multi_scene.industrial_transportdepot_01_scavenge_common_bundle_d608aacb5f95c0d449b9c72adfbb7f6e": true,
+  "multi_scene.industrial_transportdepot_01_scavenge_day_bundle_50bc72325b16df042838fe61cf76b745": false,
+  "multi_scene.upperclass_medicalpractice_01_scavenge_night_bundle_5164e7fef0838254d81bfe895eb0c30e": false,
+  "multi_scene.upperclass_medicalpratice_01_bundle_75607e1632e535a49b4e6e7acc452385": true,
+  "multi_scene.upperclass_medicalpractice_01_scavenge_day_bundle_855a6adf6c4cb544db73d21e259648db": false,
+  "multi_scene.citycentre_hotel_01_scavenge_night_bundle_12a7d6c8bc5050f4590c1c7873ec2739": false,
+  "multi_scene.citycentre_hotel_01_scavenge_common_bundle_86a7f54f3ea2edf4ab7209de50b63fdd": true,
+  "multi_scene.citycentre_hotel_01_scavenge_day_bundle_5cda5e7857869534c89382c352f4a7c2": false,
+  "multi_scene.midtown_laundromat_01_scavenge_night_bundle_c99e79bba058a9047af8f76f670ce787": false,
+  "multi_scene.midtown_laundromat_01_bundle_18741cd43dba20d4894530db11082804": true,
+  "multi_scene.midtown_laundromat_01_scavenge_day_bundle_946c9dd8ad056f240a3bef4bb361f855": false,
+  "multi_scene.industrial_distillationtowers_01_scavenge_night_bundle_74f010382efc89149a04ae714b33af00": false,
+  "multi_scene.industrial_distillationtowers_01_scavenge_common_bundle_5cf52f87e8e5d8942bf13be2956edebf": true,
+  "multi_scene.industrial_distillationtowers_01_scavenge_day_bundle_4202eac3208b28140ae858563ffa240e": false,
+  "multi_scene.lowclass_trailerpark_01_scavenge_night_bundle_e42d29f787ffdeb4194e988c926bfa0b": false,
+  "multi_scene.lowclass_trailerpark_01_scavenge_common_bundle_27e80a2d3f24f1948a5c1a418ef4cfea": true,
+  "multi_scene.lowclass_trailerpark_01_scavenge_day_bundle_b91e3cc4124ccf2469277b8bb5b26b4f": false,
+  "multi_scene.industrial_junkyard_01_scavenge_night_bundle_385d27b7b03577949ae864c75beacfcf": false,
+  "multi_scene.industrial_junkyard_01_scavenge_common_bundle_f3718d7d27a3e604e9df28e07b974e99": true,
+  "multi_scene.industrial_junkyard_01_scavenge_day_bundle_59cd535112df6ad4a85a80165e73ef9e": false,
+  "multi_scene.industrial_circuitryfactory_01_scavenge_night_bundle_47993d56a7082b34dbec0119d10e070b": false,
+  "multi_scene.industrial_circuitryfactory_01_scavenge_common_bundle_1a20ecd78f1c921409c963d21c6996de": true,
+  "multi_scene.industrial_circuitryfactory_01_scavenge_day_bundle_d1296a78f2df0dc4e901f3147bd0b8e5": false,
+  "multi_scene.middleclass_school_01_scavenge_night_bundle_74f74b8d0e22e2841abbfab7323b6386": false,
+  "multi_scene.highschool_middleclass_01_scavenging_bundle_95091fc808e8adf4f90f5469dcaa15ec": true,
+  "multi_scene.middleclass_school_01_scavenge_day_bundle_bbc842f8327131846a207211d501b182": false,
+  "multi_scene.midtown_motel_01_scavenge_night_bundle_69b1f70778136214a9d7e2e543f9b7b4": false,
+  "multi_scene.midtown_motel_01_scavenging_bundle_98c30d05fb6da8e4cbdb6f6312587140": true,
+  "multi_scene.midtown_motel_01_scavenge_day_bundle_07d1e88349314b94085b65054ad9ed0c": false,
+  "multi_scene.middleclass_cardealership_01_scavenge_night_bundle_9a53290735ed7934ab497e19e8c4a567": false,
+  "multi_scene.middleclass_car_dealership_01_bundle_1ff65425851863447bcaf4d035cd1741": true,
+  "multi_scene.middleclass_cardealership_01_scavenge_day_bundle_2bf85db5a8bd45544b98b01242390f7d": false,
+  "multi_scene.industrial_slaughterhouse_01_scavenge_night_bundle_e29efff1105acda45820f9a6961fef14": false,
+  "multi_scene.industrial_slaughterhouse_01_scavenge_common_bundle_5a756b69437bcbd408bbd9c0f8f75141": true,
+  "multi_scene.industrial_slaughterhouse_01_scavenge_day_bundle_0ae699a886a2a48439e7e715a9d74406": false,
+  "multi_scene.industrial_shippingcontainers_01_scavenge_night_bundle_d24afb6aad871094bab372f86e7023f8": false,
+  "multi_scene.industrial_shippingcontainers_01_scavenge_common_bundle_19f90f8fa00bc6b41a305c138cdb8153": true,
+  "multi_scene.industrial_shippingcontainers_01_scavenge_day_bundle_f8d85a81c41a8374a8b609bb47ecf904": false,
+  "multi_scene.industrial_watertreatmentplant_01_scavenge_night_bundle_16ddc9d6d60697e4cbe3ff2f82c627a9": false,
+  "multi_scene.industrial_water_treatment_plant_01_bundle_ccf37442b7ccf4a4f8b466a44dbd093a": false,
+  "multi_scene.industrial_watertreatmentplant_01_scavenge_day_bundle_b2af076d3fce21040a747e3268bbfa8e": false,
+  "multi_scene.middleclass_restaurant_01_scavenge_night_bundle_53028631eb84dc444a72ab23e4d4c06d": false,
+  "multi_scene.middleclass_restaurant_network_base_01_bundle_c3f634380304d4e4b8809ab23a05ba0d": true,
+  "multi_scene.middleclass_restaurant_01_scavenge_day_bundle_aa4f524b179884b4bb41f98a21e45e0c": false,
+  "multi_scene.lowclass_residential_03_scavenge_night_bundle_9222363edeb9e394f8edc3f5bca5ef11": false,
+  "multi_scene.lowclass_residential_03_scavenge_common_bundle_300778fe04710b8478a6007a0ebf53e3": true,
+  "multi_scene.lowclass_residential_03_scavenge_day_bundle_a6f215fb224598b48b9432e7448ae177": false,
+  "multi_scene.citycentre_restaurant_01_scavenge_night_bundle_7ee098440505b254c97cb20371336d93": false,
+  "multi_scene.citycentre_restaurant_01_scavenge_common_bundle_1c0cc83be8067cb4b8bfbde1b5f8b284": true,
+  "multi_scene.citycentre_restaurant_01_scavenge_day_bundle_faf901524883e0343a1e12a28cae29de": false,
+  "multi_scene.citycentre_hospital_01_scavenge_night_bundle_84d912b4068163243bf89781004c48fd": false,
+  "multi_scene.citycenter_hospital_01_bundle_6ce6f469b38993b4cbede778367c6093": false,
+  "multi_scene.citycentre_hospital_01_scavenge_day_bundle_d0887b65091053d43a03d16c2322c9d0": false,
+  "multi_scene.midtown_barber_01_scavenge_night_bundle_38e64f56172cff64d923d3c82b6b2fed": false,
+  "multi_scene.midtown_barber_01_scavenge_common_bundle_984fb2bb4cbcfbf4995a43e1fd09a5df": true,
+  "multi_scene.midtown_barber_01_scavenge_day_bundle_17e487c56c2474648939ef48cb41ce0f": false,
+  "multi_scene.midtown_bbqrestaurant_01_scavenge_night_bundle_74e28525c36335c4ab9a5da8aa9e8af2": false,
+  "multi_scene.midtown_bbqrestaurant_01_scavenge_common_bundle_e2729e442e0fc344aa7dd15daee8e1db": true,
+  "multi_scene.midtown_bbqrestaurant_01_scavenge_day_bundle_cc2edc7fd315c1047ac3e2cdcf189c9e": false,
+  "multi_scene.midtown_beautysalon_01_scavenge_night_bundle_a8aa13365b3c399438129bc1e59ecabd": false,
+  "multi_scene.midtown_beautysalon_01_scavenge_common_bundle_14ce1613018ec524a9c8044f6544a6f2": true,
+  "multi_scene.midtown_beautysalon_01_scavenge_day_bundle_9dd88906fb7e1604a81664b2fc13241f": false,
+  "multi_scene.midtown_postoffice_01_scavenge_night_bundle_e7f771e31c501e942b758254cdf0426c": false,
+  "multi_scene.midtown_postoffice_01_scavenge_common_bundle_5986e7e3919970444844758562d78376": true,
+  "multi_scene.midtown_postoffice_01_scavenge_day_bundle_cae3e775040420d4e874ee71641222ee": false,
+  "multi_scene.midtown_videorentalshop_01_scavenge_night_bundle_03d577188a625c041a10aca5286439e0": false,
+  "multi_scene.midtown_videorentalshop_01_scavenge_common_bundle_f4fa9064ece0be549ad6b7779d24f00f": true,
+  "multi_scene.midtown_videorentalshop_01_scavenge_day_bundle_79e6e8ac617c85941abc69855e41798d": false,
+  "multi_scene.citycentre_restaurant_02_scavenge_night_bundle_d4eea8c93bf0e9241bd3b583136717da": false,
+  "multi_scene.citycentre_restaurant_02_scavenge_common_bundle_bd51aac8ae2e5b14eb06e283b0a8a4c8": true,
+  "multi_scene.citycentre_restaurant_02_scavenge_day_bundle_dc6ba93b9d339834580971a250774f30": false,
+  "multi_scene.citycentre_recordingstudio_01_scavenge_night_bundle_90c6b5b259af06041bc6020dc85f7830": false,
+  "multi_scene.citycentre_recordingstudio_01_scavenge_common_bundle_d49622e91042c2244ae1e287c65f2f08": true,
+  "multi_scene.citycentre_recordingstudio_01_scavenge_day_bundle_874fbd5385e1cc04bad53748499634de": false
+ }
+}
