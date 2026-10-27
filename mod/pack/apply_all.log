@@ -1,0 +1,37 @@
+python 3.11.15 | UnityPy 1.25.3 | 폴더 /tmp/claude-0/-home-user-dd/fe2a6e89-3196-5bb4-9001-dc8e5c151021/scratchpad/ab4
+$ /usr/local/bin/python3 -X utf8 -X faulthandler -u /home/user/dd/mod/pack/patch_balance.py /tmp/itd_mods_k6q027rj 5 24 2
+[returncode 1]
+백업 생성: /tmp/itd_mods_k6q027rj/data_balancing.origbak
+Error parsing file '3165590154289744149' as 1: Decompression failed: corrupt input or insufficient space in destination buffer. Error code: 1181
+
+Traceback (most recent call last):
+  File "/home/user/dd/mod/pack/patch_balance.py", line 140, in <module>
+    main()
+  File "/home/user/dd/mod/pack/patch_balance.py", line 65, in main
+    env = UnityPy.load(data)
+          ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/environment.py", line 70, in __init__
+    self.load_file(file=arg)
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/environment.py", line 154, in load_file
+    f = parse_file(reader, self, name=stream_name, typ=typ, is_dependency=is_dependency)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/helpers/ImportHelper.py", line 155, in parse_file
+    raise e
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/helpers/ImportHelper.py", line 149, in parse_file
+    f = files.BundleFile(reader, parent, name=name, is_dependency=is_dependency)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/files/BundleFile.py", line 49, in __init__
+    m_DirectoryInfo, blocksReader = self.read_fs(reader)
+                                    ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/files/BundleFile.py", line 174, in read_fs
+    b"".join(
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/files/BundleFile.py", line 175, in <genexpr>
+    self.decompress_data(
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/files/BundleFile.py", line 518, in decompress_data
+    CompressionHelper.DECOMPRESSION_MAP[comp_flag](compressed_data, uncompressed_size),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/UnityPy/helpers/CompressionHelper.py", line 94, in decompress_lz4
+    return lz4.block.decompress(data, uncompressed_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_block.LZ4BlockError: Decompression failed: corrupt input or insufficient space in destination buffer. Error code: 1181
+

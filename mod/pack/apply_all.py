@@ -20,13 +20,34 @@ def sha(path):
             h.update(chunk)
     return h.hexdigest()
 
+LOG = os.path.join(HERE, "apply_all.log")
+KEEP_STAGE = []
+
+def log(text):
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+    except OSError:
+        pass
+
 def run(script, *args):
-    cmd = [sys.executable, os.path.join(HERE, script)] + [str(a) for a in args]
-    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    out = (r.stdout or "") + (r.stderr or "")
+    """하위 단계를 실행한다. 출력은 버퍼 없이(UTF-8) 받고, 실패하면 종료 코드와 모든 출력을 보여주고 로그에 남긴다."""
+    cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
+    env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
+    r = subprocess.run(cmd, capture_output=True, env=env)
+    out = (r.stdout or b"").decode("utf-8", errors="replace")
+    err = (r.stderr or b"").decode("utf-8", errors="replace")
+    log("$ " + " ".join(cmd) + "\n[returncode %s]\n%s\n%s" % (r.returncode, out, err))
     if r.returncode != 0:
-        print(out)
-        sys.exit("단계 실패: %s (파일은 아직 바뀌지 않았습니다)" % script)
+        print("\n===== 단계 실패: %s (종료 코드 %s) =====" % (script, r.returncode))
+        print(out.strip() or "(표준 출력 없음)")
+        print(err.strip() or "(오류 출력 없음 - 프로그램이 오류 문구 없이 갑자기 종료된 것입니다)")
+        print("=====")
+        print("전체 기록: " + LOG)
+        if KEEP_STAGE:
+            print("작업 폴더(지우지 않음): " + KEEP_STAGE[0])
+            print("이 단계만 직접 실행해 보려면 명령 프롬프트에서:  " + " ".join('"%s"' % c if " " in c else c for c in [sys.executable, os.path.join(HERE, script)] + [str(a) for a in args]))
+        sys.exit("단계 실패: %s (설치된 게임 파일은 바뀌지 않았습니다)" % script)
     return out
 
 def main():
@@ -44,6 +65,16 @@ def main():
     if not a.folder:
         sys.exit(__doc__)
     ab = a.folder
+    try:
+        open(LOG, "w", encoding="utf-8").close()
+    except OSError:
+        pass
+    try:
+        import UnityPy
+        uv = getattr(UnityPy, "__version__", "?")
+    except Exception as e:
+        uv = "import 실패: %r" % (e,)
+    log("python %s | UnityPy %s | 폴더 %s" % (sys.version.split()[0], uv, ab))
     for f in FILES:
         if not os.path.isfile(os.path.join(ab, f)):
             sys.exit("%s 를 찾을 수 없습니다: %s" % (f, os.path.join(ab, f)))
@@ -85,6 +116,8 @@ def main():
 
     # 2) 임시 작업 폴더에 원본을 복사해서 각 도구를 돌린다 (낡은 백업이 섞일 일이 없다)
     stage = tempfile.mkdtemp(prefix="itd_mods_")
+    KEEP_STAGE.append(stage)
+    ok_done = False
     try:
         for f in FILES:
             shutil.copy2(os.path.join(bdir, f), os.path.join(stage, f))
@@ -138,8 +171,10 @@ def main():
             man[f]["out"] = sha(os.path.join(ab, f))
         json.dump(man, open(mpath, "w", encoding="utf-8"), indent=1)
         print("\n완료. 이제 스팀에서 게임을 켜고 새 게임을 시작하세요.")
+        ok_done = True
     finally:
-        shutil.rmtree(stage, ignore_errors=True)
+        if ok_done:
+            shutil.rmtree(stage, ignore_errors=True)
 
 if __name__ == "__main__":
     main()
