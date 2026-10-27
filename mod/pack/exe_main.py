@@ -1,6 +1,12 @@
 """PyInstaller 진입점. exe 하나로 메뉴(launcher)와 하위 스크립트 실행(--run-script)을 모두 처리한다."""
 import argparse, hashlib, json, math, os, random, re, runpy, shutil, struct, subprocess, sys, tempfile  # 하위 스크립트가 쓰는 표준 모듈을 번들에 포함
 import UnityPy, UnityPy.helpers.TypeTreeHelper, UnityPy.helpers.TypeTreeNode, UnityPy.streams, UnityPy.files  # noqa
+for _st in (sys.stdout, sys.stderr, sys.stdin):   # 파이프/리다이렉트일 때 cp1252 등으로 한글이 깨지거나 죽는 것 방지
+    try:
+        if _st is not None and (_st.encoding or "").lower().replace("-", "") != "utf8":
+            _st.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 try:
     import winreg  # noqa
 except ImportError:
