@@ -1,6 +1,7 @@
 """Into the Dead: Our Darkest Days - 모든 수정을 한 번에 적용한다 (게임 업데이트 후에도 같은 명령으로 다시 적용 가능).
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
+  --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
   --vale random   미스터 베일 신규 판매 품목 순서 (random=첫 품목 석궁/샷건 50:50 후 번갈아, crossbow / s12riot=첫 품목 지정, none=건드리지 않음). R77 권총은 안 나옴
@@ -62,6 +63,7 @@ def main():
     ap.add_argument("--corpse", type=int, default=24)
     ap.add_argument("--radius", type=float, default=1.5)
     ap.add_argument("--slots", type=int, default=2)
+    ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
     if not a.folder:
@@ -153,15 +155,17 @@ def main():
                 if keep is not None:
                     open(tj, "wb").write(keep)
                 print("경고: 장면 번들을 검사하지 못했습니다. 기존 telescopes.json 을 그대로 사용합니다 (없으면 가짜 망원경 제외 없이 진행).")
-        print(run("patch_balance.py", stage, a.ammo, a.inv, a.slots).strip())
-        out_cfg = os.path.join(stage, "data_config.out")
-        vale = []
-        if a.vale != "none":
-            import random
-            first = a.vale if a.vale != "random" else random.Random(a.seed if a.seed is not None else None).choice(["crossbow", "s12riot"])
-            vale = [first]
-        print(run("patch_config.py", os.path.join(stage, "data_config"), a.corpse, out_cfg, *vale).strip())
-        os.replace(out_cfg, os.path.join(stage, "data_config"))
+        if not a.only_map:
+            print(run("patch_balance.py", stage, a.ammo, a.inv, a.slots).strip())
+        if not a.only_map:
+            out_cfg = os.path.join(stage, "data_config.out")
+            vale = []
+            if a.vale != "none":
+                import random
+                first = a.vale if a.vale != "random" else random.Random(a.seed if a.seed is not None else None).choice(["crossbow", "s12riot"])
+                vale = [first]
+            print(run("patch_config.py", os.path.join(stage, "data_config"), a.corpse, out_cfg, *vale).strip())
+            os.replace(out_cfg, os.path.join(stage, "data_config"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:
             args = [stage] + ([a.seed] if a.seed is not None else [])
