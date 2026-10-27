@@ -36,3 +36,9 @@
 - 새 빌드에서 번들 읽기/수정 모두 동작, 바뀐 오브젝트는 의도한 것만 (balancing 49 = 생존자 38 + 총알 10 + 지도 스테이션 1, config 1바이트, levels = MapData 1개).
 - 1회/2회 실행 동일(배수 누적 없음), 복원은 업데이트 직후 원본과 바이트까지 동일, 이전 빌드 파일로 '업데이트' 모사도 정상.
 - 지도: 못 밝히는 장소 0, 망원경 없는 시작 항목 0, 치프웨이즈 원본 목록 보존. 게임 안에서의 실제 동작은 확인하지 못했습니다.
+
+## Windows + Python 3.14 에서의 접근 위반(access violation) 대응
+증상: `단계 실패: patch_balance.py (종료 코드 3221225477)` + `Windows fatal exception: access violation` + `TypeTreeHelper.py ... in read_typetree`.
+원인: UnityPy 의 C 가속 모듈(UnityPyBoost)이 일부 환경(Windows, Python 3.14)에서 일부 오브젝트를 읽다가 죽습니다.
+조치: 모든 스크립트가 시작할 때 가속 모듈을 끄고 순수 파이썬 읽기 경로를 사용합니다 (`read_typetree_boost = None`).
+검증(이 환경): 가속 ON/OFF 로 만든 결과 파일이 balance/levels 모두 바이트까지 동일합니다. 전체 적용 소요 시간 약 27초.

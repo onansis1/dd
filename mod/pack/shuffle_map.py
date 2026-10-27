@@ -19,6 +19,13 @@ def _pb(cls, reader, version):
     return _orig(cls, reader, version)
 T.TypeTreeNode.parse_blob = classmethod(_pb)
 
+# Windows + Python 3.14 에서 UnityPy 의 C 가속 모듈(UnityPyBoost)이 접근 위반(access violation)으로 죽는 문제 대응:
+# 가속 모듈을 끄고 순수 파이썬 읽기 경로를 쓴다 (느리지만 결과는 같다).
+try:
+    import UnityPy.helpers.TypeTreeHelper as _TTH
+    _TTH.read_typetree_boost = None
+except Exception:
+    pass
 import UnityPy
 from UnityPy.files import ObjectReader as _ORcls
 from UnityPy.streams import EndianBinaryReader
