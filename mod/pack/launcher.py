@@ -82,7 +82,7 @@ def ensure_unitypy():
     return True
 
 def main():
-    print("=== Into the Dead: Our Darkest Days 지도 수정 (랜덤 지도 배치 + 탐색 반경 x1.5) ===\n")
+    print("=== Into the Dead: Our Darkest Days 간편 도구 (지도 랜덤 배치 + 반경 x1.5 / 시나리오 프리셋) ===\n")
     if not os.path.exists(os.path.join(HERE, "apply_all.py")):
         print("apply_all.py 가 같은 폴더에 있어야 합니다. 압축을 완전히 푼 뒤 실행하세요 (exe 는 이 문제가 없습니다)."); return
     ab = find_ab()
@@ -93,8 +93,14 @@ def main():
     print("1) 적용 (지도 랜덤 배치 + 반경 x1.5)   * 새 게임 시작 전에만!")
     print("2) 적용 - 시드 지정 (같은 숫자면 같은 지도, 친구와 같은 지도로 하고 싶을 때)")
     print("3) 원래대로 되돌리기")
+    print("4) 사용자 지정 시나리오 프리셋 (내 설정 저장 / 게임의 프리셋 칸에 넣기)")
     print("0) 종료")
     c = input("\n번호: ").strip()
+    if c == "4":
+        if not ensure_unitypy(): return
+        import preset_tool
+        preset_tool.menu(ab, game_running)
+        return
     if c not in ("1", "2", "3"): return
     if game_running():
         print("\n게임이 실행 중입니다. 게임과 스팀을 완전히 끄고 다시 실행하세요."); return
