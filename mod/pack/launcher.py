@@ -147,13 +147,15 @@ def main():
         o["traders"] = yn("상인(마와 파/베일/리키)이 처음 나오는 시점을 사이클 10 -> 게임 시작부터로 앞당기기", o.get("traders", False))
         o["posts"] = yn("모든 거점에서 교역소 5곳이 '갈 수 있는 장소'에 들어가게 하기 (상인이 나올 수 있는 조건)", o.get("posts", False))
         o["romance"] = yn("공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 하기 (원래는 정확히 2명일 때만)", o.get("romance", False))
+        if o["romance"]:
+            o["romance_all"] = yn("   -> 가족 관계 / 나이대 / 이미 연애 중 조건도 모두 풀기 (2명 이상이기만 하면 사용 가능)", o.get("romance_all", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
         if o["leads"]: args += ["--leads", "1"]
         if o["traders"]: args += ["--trader-start", "0"]
         if o["posts"]: args += ["--posts"]
-        if o["romance"]: args += ["--romance"]
+        if o["romance"]: args += ["--romance-all" if o.get("romance_all") else "--romance"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
         print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 조기 등장" if o["traders"] else "") + (" / 모든 거점에 교역소 포함" if o["posts"] else "") + (" / 로맨스 아이템 3명 이상" if o["romance"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
