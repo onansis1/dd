@@ -28,7 +28,7 @@
 영입 장소 섞기는 철폐했습니다 (영입 생존자의 원래 장소 NPC가 지워지는 게임 규칙 때문).
 
 ## 옵션 (명령줄)
-`--seed N` 지도 시드 / `--vale random|crossbow|s12riot|none` 미스터 베일 신규 판매 품목 순서 (기본 random: 첫 품목 석궁/샷건 50:50, `none` 이면 끔) / `--romance` 공용구역 로맨스 아이템 3명 이상 허용 / `--romance-all` 거기에 가족·나이대·연애 중 조건까지 해제 / `--posts` 모든 거점에서 교역소 5곳 도달 가능 / `--trader-start 0` 상인 첫 등장을 사이클 10 -> 게임 시작부터 / `--leads 1` 탈출 퀘스트 필요 단서 수 (run_all.bat 기본 1, `--leads 3` 이면 원래대로) / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
+`--seed N` 지도 시드 / `--vale random|crossbow|s12riot|none` 미스터 베일 신규 판매 품목 순서 (기본 random: 첫 품목 석궁/샷건 50:50, `none` 이면 끔) / `--romance` 공용구역 로맨스 아이템 3명 이상 허용 / `--romance-all` 거기에 가족·나이대·연애 중 조건과 연애 호환성 속성(나이대/성적 지향/실연/입냄새)까지 해제 (연애 가능 대상 여부·관계 단계는 유지) / `--posts` 모든 거점에서 교역소 5곳 도달 가능 / `--trader-start 0` 상인 첫 등장을 사이클 10 -> 게임 시작부터 / `--leads 1` 탈출 퀘스트 필요 단서 수 (run_all.bat 기본 1, `--leads 3` 이면 원래대로) / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
 
 ## 백업과 안전장치
 - `AssetBundles\_mods_backup\` 에 원본을 한 번 백업하고, 항상 거기서 다시 계산합니다 (여러 번 실행해도 배수가 쌓이지 않음).

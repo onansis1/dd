@@ -148,7 +148,7 @@ def main():
         o["posts"] = yn("모든 거점에서 교역소 5곳이 '갈 수 있는 장소'에 들어가게 하기 (상인이 나올 수 있는 조건)", o.get("posts", False))
         o["romance"] = yn("공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 하기 (원래는 정확히 2명일 때만)", o.get("romance", False))
         if o["romance"]:
-            o["romance_all"] = yn("   -> 가족 관계 / 나이대 / 이미 연애 중 조건도 모두 풀기 (2명 이상이기만 하면 사용 가능)", o.get("romance_all", False))
+            o["romance_all"] = yn("   -> 가족 관계 / 나이대 / 이미 연애 중 조건과 호환성(나이대·성적 지향·실연·입냄새)도 모두 풀기", o.get("romance_all", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]

@@ -15,7 +15,7 @@ except ImportError:
 
 if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "telescopes.json"]
+    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "telescopes.json"]
     miss = [n for n in need if not os.path.exists(os.path.join(base, n))]
     print("UnityPy", getattr(UnityPy, "__version__", "?"), "| 누락 파일:", miss or "없음")
     sys.exit(1 if miss else 0)
