@@ -145,7 +145,7 @@ def main():
             o["vale_start"] = int(s) if s in ("0", "10", "20") else o.get("vale_start", 20)
         o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
         o["traders"] = yn("상인(마와 파/베일/리키)이 처음 나오는 시점을 사이클 10 -> 게임 시작부터로 앞당기기", o.get("traders", False))
-        o["posts"] = yn("모든 거점의 탐색 반경 안에 교역소가 최소 1곳 들어가게 하기 (모자란 거점만 반경이 늘어남. 상인이 나올 수 있는 조건)", o.get("posts", False))
+        o["posts"] = yn("모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 하기 (모자란 거점만 반경이 늘어남. 상인이 나올 수 있는 조건)", o.get("posts", False))
         o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]

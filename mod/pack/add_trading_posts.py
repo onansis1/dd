@@ -1,5 +1,5 @@
-"""data_levels: 모든 거점(은신처)의 탐색 반경(지도의 원) 안에 교역소가 최소 N곳(기본 1) 들어가게 한다.
-사용: python add_trading_posts.py <작업 폴더(data_levels, data_config 가 들어 있는 곳)> [최소 교역소 수=1]
+"""data_levels: 모든 거점(은신처)의 탐색 반경(지도의 원) 안에 교역소가 최소 N곳(기본 2) 들어가게 한다.
+사용: python add_trading_posts.py <작업 폴더(data_levels, data_config 가 들어 있는 곳)> [최소 교역소 수=2]
  - 상인이 나오려면 AvailableTradingPostExists 조건(= 교역소 5곳 중 현재 거점에서 도달 가능한 곳이 있을 것)이 맞아야 한다.
    교역소 목록은 data_config 의 AvailableTradingPostExists.m_locationFilter 에서 읽는다.
  - 원 안에 교역소가 N곳 미만인 거점만, 그 거점의 반경(m_scavengeRadius)을 N번째로 가까운 교역소에 닿을 만큼(+3%) 늘리고,
@@ -79,7 +79,7 @@ def main():
     if target is None:
         sys.exit("MapData 를 찾지 못했습니다 (게임 업데이트로 구조가 바뀌었을 수 있습니다).")
     o, tt = target
-    min_posts = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+    min_posts = int(sys.argv[2]) if len(sys.argv) > 2 else 2
     names = {}
     for x in env.objects:
         if x.type.name != "MonoBehaviour":
