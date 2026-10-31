@@ -2,6 +2,7 @@
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
+  --trader-start 0  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 10=원래)
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
@@ -72,6 +73,7 @@ def main():
     ap.add_argument("--slots", type=int, default=2)
     ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--leads", type=int, default=3)
+    ap.add_argument("--trader-start", type=int, default=10, choices=[0, 10])
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
@@ -178,6 +180,10 @@ def main():
         if a.leads != 3:
             out_bal = os.path.join(stage, "data_balancing.out")
             print(run("patch_leads.py", os.path.join(stage, "data_balancing"), a.leads, out_bal).strip())
+            os.replace(out_bal, os.path.join(stage, "data_balancing"))
+        if a.trader_start == 0:
+            out_bal = os.path.join(stage, "data_balancing.out")
+            print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal).strip())
             os.replace(out_bal, os.path.join(stage, "data_balancing"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:

@@ -16,6 +16,7 @@
 | 지도 스테이션 시작 슬롯 | 1 -> 2 | data_balancing |
 | 시체 회수 칸 수 | 12 -> 24 | data_config |
 | 미스터 베일 전용 샷건(S12 Riot) 상시 판매 | 재고 1, 가격 1600 (이벤트 때와 같은 값) | data_config |
+| 상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (선택) | 사이클 10 -> 0 | data_balancing |
 | 탈출 퀘스트 해금에 필요한 단서(조사 장소) 수 (탈출 계획 7개 전부) | 3 -> 1 | data_balancing |
 | 탐색 반경 (지도의 원) | x1.5 | data_levels |
 | 지도 건물 위치 섞기 | 무작위 | data_levels |
@@ -25,7 +26,7 @@
 영입 장소 섞기는 철폐했습니다 (영입 생존자의 원래 장소 NPC가 지워지는 게임 규칙 때문).
 
 ## 옵션 (명령줄)
-`--seed N` 지도 시드 / `--vale random|crossbow|s12riot|none` 미스터 베일 신규 판매 품목 순서 (기본 random: 첫 품목 석궁/샷건 50:50, `none` 이면 끔) / `--leads 1` 탈출 퀘스트 필요 단서 수 (run_all.bat 기본 1, `--leads 3` 이면 원래대로) / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
+`--seed N` 지도 시드 / `--vale random|crossbow|s12riot|none` 미스터 베일 신규 판매 품목 순서 (기본 random: 첫 품목 석궁/샷건 50:50, `none` 이면 끔) / `--trader-start 0` 상인 첫 등장을 사이클 10 -> 게임 시작부터 / `--leads 1` 탈출 퀘스트 필요 단서 수 (run_all.bat 기본 1, `--leads 3` 이면 원래대로) / `--no-shuffle` 반경만 / `--ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2` 수치 변경 / `--restore` 복원
 
 ## 백업과 안전장치
 - `AssetBundles\_mods_backup\` 에 원본을 한 번 백업하고, 항상 거기서 다시 계산합니다 (여러 번 실행해도 배수가 쌓이지 않음).
