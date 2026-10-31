@@ -183,6 +183,48 @@ def main():
     if len(movable) < 6:
         sys.exit("옮길 수 있는 장소가 너무 적습니다.")
 
+    # (선택) 교역소 5곳을 지도 중앙부로 옮겨, 모든 거점의 탐색 반경(원) 안에 교역소가 1곳 이상 들어가게 한다.
+    #  - 교역소가 놓일 '자리'를 (옮길 수 있는 장소들의 자리 + 교역소 원래 자리) 중에서 5곳 고르고,
+    #    그 자리에 있게 되는 장소와 교역소의 위치를 서로 맞바꾼다. 위치 집합은 그대로인 순열이라 나머지 로직은 변하지 않는다.
+    #  - 기존 시드 결과가 달라지지 않도록 별도 난수를 쓴다. 환경변수 ITD_MOVE_POSTS=1 일 때만 동작한다.
+    post_target = {}
+    post_gs = [g for g in locs if "Trader" in names.get(g, "")]
+    if os.environ.get("ITD_MOVE_POSTS") == "1" and not keep_mode:
+        if len(post_gs) != 5:
+            print("교역소 이동: 교역소를 %d곳 찾아 예상(5곳)과 달라 건너뜁니다." % len(post_gs))
+        else:
+            pool = {allpos[g]: "slot" for g in movable}
+            pool.update({allpos[p]: "post" for p in post_gs})
+            sh_list = [(allpos[sg], r["data"]["m_scavengeRadius"]) for sg, r in shelters.items()]
+            cover = {c: [i for i, (sp, R_) in enumerate(sh_list) if math.hypot(c[0] - sp[0], c[1] - sp[1]) <= R_] for c in pool}
+            best = None
+            for t in range(600):
+                r2 = random.Random(seed * 7919 + t)
+                chosen, cnt = [], [0] * len(sh_list)
+                for _ in range(5):
+                    c = min((c for c in pool if c not in chosen),
+                            key=lambda c: (-sum(1 for i in cover[c] if cnt[i] == 0), -len(cover[c]), r2.random()))
+                    chosen.append(c)
+                    for i in cover[c]:
+                        cnt[i] += 1
+                if min(cnt) >= 1:
+                    sc = (min(cnt), sum(cnt))
+                    if best is None or sc > best[0]:
+                        best = (sc, chosen)
+            if best is None:
+                print("교역소 이동: 모든 거점이 교역소를 갖는 배치를 찾지 못해 건너뜁니다.")
+            else:
+                chosen = list(best[1])
+                stay = [p for p in post_gs if allpos[p] in chosen]
+                for p in stay:
+                    post_target[p] = allpos[p]
+                    chosen.remove(allpos[p])
+                for p in [p for p in post_gs if p not in stay]:
+                    c = min(chosen, key=lambda c: math.hypot(c[0] - allpos[p][0], c[1] - allpos[p][1]))
+                    post_target[p] = c
+                    chosen.remove(c)
+                print("교역소 이동: 교역소 5곳을 모든 거점이 반경 안에 1곳 이상 갖는 자리로 옮깁니다 (원 안 교역소 수 최소 %d, 합계 %d)." % best[0])
+
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
@@ -198,6 +240,12 @@ def main():
             newpos = dict(allpos)
             for g, p in zip(movable, perm):
                 newpos[g] = p
+            if post_target:
+                owner = {newpos[g]: g for g in movable}
+                for p, c in post_target.items():
+                    if c != allpos[p]:
+                        L = owner[c]
+                        newpos[p], newpos[L] = newpos[L], newpos[p]
             ok = True
             for sg, r in shelters.items():
                 R = r["data"]["m_scavengeRadius"]
@@ -211,7 +259,7 @@ def main():
         else:
             sys.exit("조건을 만족하는 배치를 찾지 못했습니다. 다른 시드로 다시 시도하세요.")
 
-    for g in movable:
+    for g in movable + (post_gs if post_target else []):
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
     # 망원경 목록 재구성: 각 망원경 장소가 보여주는 개수는 유지하고 새 좌표 기준 가까운 장소로 채운다.
     # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.

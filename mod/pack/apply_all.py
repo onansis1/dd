@@ -6,6 +6,7 @@
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
   --romance-all   연애의 모든 제한을 푼다 (정확히 2명일 때. --romance 와 같이 쓰면 2명 이상) (가족/나이대/연애 중/호환성 6종/관계 단계 + 성공 확률 구성 값 최대)
+  --move-posts    교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 들어가게 한다 (지도 섞기를 켠 경우에만, 반경은 모두 동일)
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
@@ -77,6 +78,7 @@ def main():
     ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--leads", type=int, default=3)
     ap.add_argument("--posts", action="store_true")
+    ap.add_argument("--move-posts", action="store_true")
     ap.add_argument("--posts-min", type=int, default=2)
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
@@ -203,8 +205,12 @@ def main():
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:
             args = [stage] + ([a.seed] if a.seed is not None else [])
+            if a.move_posts:
+                os.environ["ITD_MOVE_POSTS"] = "1"
             lines = run("shuffle_map.py", *args).strip().splitlines()
-            print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes"))))
+            print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes", "교역소"))))
+        if a.move_posts and a.no_shuffle:
+            print("안내: 교역소 이동은 지도 섞기를 켠 경우에만 동작합니다 (이번에는 건너뜀).")
         if a.posts:
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         # 3) 결과를 설치 폴더에 반영
