@@ -4,6 +4,7 @@
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
   --trader-start 0  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 10=원래)
   --posts         모든 거점의 '갈 수 있는 장소'에 교역소 5곳을 포함시킨다 (상인 등장 조건 AvailableTradingPostExists 충족)
+  --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (정확히 2명 -> 2명 이상)
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
@@ -75,6 +76,7 @@ def main():
     ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--leads", type=int, default=3)
     ap.add_argument("--posts", action="store_true")
+    ap.add_argument("--romance", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=[0, 10])
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
@@ -183,6 +185,10 @@ def main():
             out_bal = os.path.join(stage, "data_balancing.out")
             print(run("patch_leads.py", os.path.join(stage, "data_balancing"), a.leads, out_bal).strip())
             os.replace(out_bal, os.path.join(stage, "data_balancing"))
+        if a.romance:
+            out_cfg2 = os.path.join(stage, "data_config.out")
+            print(run("patch_romance.py", os.path.join(stage, "data_config"), out_cfg2).strip())
+            os.replace(out_cfg2, os.path.join(stage, "data_config"))
         if a.trader_start == 0:
             out_bal = os.path.join(stage, "data_balancing.out")
             print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal).strip())
