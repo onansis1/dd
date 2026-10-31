@@ -5,6 +5,7 @@
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
+  --vale-start 0  미스터 베일의 첫 신규 품목(석궁/샷건)이 열리는 시점 (0=게임 시작부터, 10, 20=원래)
   --vale random   미스터 베일 신규 판매 품목 순서 (random=첫 품목 석궁/샷건 50:50 후 번갈아, crossbow / s12riot=첫 품목 지정, none=건드리지 않음). R77 권총은 안 나옴
   --ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2   수치 바꾸기
 적용 내용: 총알 산출량 x배수, 생존자 가방 칸 수, 지도 스테이션 시작 슬롯, 시체 회수 칸 수, 탐색 반경, 미스터 베일 신규 판매 품목 순서(석궁/샷건 번갈아), (선택) 지도 위치 섞기.
@@ -71,6 +72,7 @@ def main():
     ap.add_argument("--slots", type=int, default=2)
     ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--leads", type=int, default=3)
+    ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
     if not a.folder:
@@ -170,7 +172,7 @@ def main():
             if a.vale != "none":
                 import random
                 first = a.vale if a.vale != "random" else random.Random(a.seed if a.seed is not None else None).choice(["crossbow", "s12riot"])
-                vale = [first]
+                vale = [first, str(a.vale_start)]
             print(run("patch_config.py", os.path.join(stage, "data_config"), a.corpse, out_cfg, *vale).strip())
             os.replace(out_cfg, os.path.join(stage, "data_config"))
         if a.leads != 3:

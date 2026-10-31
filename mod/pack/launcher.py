@@ -140,11 +140,15 @@ def main():
         o = load_opts()
         o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
         o["bal"] = yn("총알 산출량 x5 / 생존자 가방 24칸 / 지도 스테이션 2칸 / 시체 회수 24칸 / 미스터 베일 신규 품목 순서", o.get("bal", False))
+        if o["bal"]:
+            s = input("미스터 베일의 첫 석궁/샷건이 열리는 시점 - 0=게임 시작부터, 10, 20=원래 [%s]: " % o.get("vale_start", 20)).strip()
+            o["vale_start"] = int(s) if s in ("0", "10", "20") else o.get("vale_start", 20)
         o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
         if o["leads"]: args += ["--leads", "1"]
+        if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
         print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return

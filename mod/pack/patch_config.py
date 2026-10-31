@@ -1,5 +1,5 @@
 """data_config 수정.
-사용: python patch_config.py <원본 data_config> <시체 회수 칸수> <출력 파일> [crossbow|s12riot]
+사용: python patch_config.py <원본 data_config> <시체 회수 칸수> <출력 파일> [crossbow|s12riot [시작 사이클 0|10|20]]
  - 시체 회수 칸 수(InventoryData_EmptyWithCapacity.m_maxSize)를 바꾼다.
  - 미스터 베일의 신규 판매 품목 순서를 바꾼다. 마지막 인자가 '첫 번째로 열릴 품목'이고, 이후는 석궁/샷건(S12 Riot)이 번갈아 열린다.
    R77 권총은 나오지 않는다. 인자를 생략하면 미스터 베일은 건드리지 않는다.
@@ -22,6 +22,8 @@ import UnityPy
 from UnityPy.streams import EndianBinaryReader
 SRC,NEW,OUT=sys.argv[1],int(sys.argv[2]),sys.argv[3]
 FIRST=sys.argv[4].lower() if len(sys.argv)>4 and sys.argv[4].lower() in ('crossbow','s12riot') else None
+START=int(sys.argv[5]) if len(sys.argv)>5 else 20
+if START not in (0,10,20): sys.exit('베일 시작 사이클은 0, 10, 20 중 하나여야 합니다')
 env=UnityPy.load(SRC); bundle=env.file
 sfs={n:f for n,f in bundle.files.items() if hasattr(f,'types')}
 assert len(sfs)==1,list(bundle.files)
@@ -71,7 +73,10 @@ if FIRST:
     sk="Trader_MrVale_R77RapidFire_%s_SharedKnowledgeValueComparison"
     plan=[(CR(X),[w[0],w[2],pid(H)]),(H,[w[4],w[6],w[8]]),(CR(Y),[w[1],w[3],w[5]]),
           ("Trader_MrVale_NewItemSale_R77RapidFirePistol_PrepareForSale",None),
-          ("Trader_MrVale_CrossbowBolt_CycleRange",[pid("IsCycleGreaterOrEqual20")])]
+          ("Trader_MrVale_CrossbowBolt_CycleRange",[pid("IsCycleGreaterOrEqual20" if START==20 else "IsCycleGreaterOrEqual10")])]
+    # 첫 구간(CycleBetween20AND40, 베일 전용)의 시작을 앞당긴다: 10 -> [>=10, <40],  0 -> [<40, <40] (= 처음부터 40 미만)
+    if START==10: plan.append(("CycleBetween20AND40",[pid("IsCycleGreaterOrEqual10"),pid("IsCycleLessThan40")]))
+    elif START==0: plan.append(("CycleBetween20AND40",[pid("IsCycleLessThan40"),pid("IsCycleLessThan40")]))
     nb=0
     for n,ids in plan:
         if n.endswith("_PrepareForSale"):   # R77 이벤트는 '이미 판매 중(Available)' 일 때만 -> 영영 안 일어남
@@ -88,6 +93,7 @@ if FIRST:
                 cv["m_conditionalObject"]["AmountOnHand"]=0; hit+=1
     assert hit==1,"R77 재고 항목을 찾지 못함"
     new=o.save_typetree(tt); assert len(new)==len(seg); raw[st:st+len(seg)]=new
-    print("미스터 베일 신규 판매 순서: 사이클 20-40 %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, 140-160 %s, (160-180 신규 없음), 180 이후 %s 상시 (R77 권총 없음)" % (X,Y,X,Y,X,Y,X,X))
+    first_lbl = {20:"20-40",10:"10-40",0:"0-40 (게임 시작부터)"}[START]
+    print("미스터 베일 신규 판매 순서: 사이클 %s %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, 140-160 %s, (160-180 신규 없음), 180 이후 %s 상시 (R77 권총 없음)" % (first_lbl,X,Y,X,Y,X,Y,X,X))
 r=EndianBinaryReader(bytes(raw)); r.flags=flags; bundle.files[name]=r
 open(OUT,"wb").write(bundle.save(packer="lz4"))
