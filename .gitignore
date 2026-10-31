@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+launcher_options.json
+apply_all.log
+mod/pack/presets/

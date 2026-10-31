@@ -1,11 +1,33 @@
 """Into the Dead: Our Darkest Days - 지도 랜덤 배치 + 탐색 반경 x1.5 (공유용 간편 실행기).
 메뉴에서 번호만 고르면 됩니다. 게임 폴더는 자동으로 찾고, 못 찾으면 직접 붙여넣게 합니다.
 """
-import os, re, subprocess, sys
+import json, os, re, subprocess, sys
 
 FROZEN = getattr(sys, "frozen", False)
 HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))
 GAME = "Into the Dead Our Darkest Days"
+
+def _opts_path():
+    root = os.path.dirname(sys.executable) if FROZEN else HERE
+    return os.path.join(root, "launcher_options.json")
+
+def load_opts():
+    try:
+        with open(_opts_path(), encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_opts(o):
+    try:
+        with open(_opts_path(), "w", encoding="utf-8") as f:
+            json.dump(o, f, ensure_ascii=False, indent=1)
+    except OSError:
+        pass
+
+def yn(q, default):
+    s = input("%s [%s]: " % (q, "Y/n" if default else "y/N")).strip().lower()
+    return default if not s else s in ("y", "yes", "ㅇ")
 
 def pause():
     try: input("\n엔터를 누르면 닫힙니다...")
@@ -90,7 +112,7 @@ def main():
     else:
         ab = ask_ab()
         if not ab: print("취소했습니다."); return
-    print("1) 적용 (지도 랜덤 배치 + 반경 x1.5)   * 새 게임 시작 전에만!")
+    print("1) 적용 (항목을 골라서)   * 새 게임 시작 전에만!   - 탐색 반경 x1.5 는 항상 포함")
     print("2) 적용 - 시드 지정 (같은 숫자면 같은 지도, 친구와 같은 지도로 하고 싶을 때)")
     print("3) 원래대로 되돌리기")
     print("4) 사용자 지정 시나리오 프리셋 (내 설정 저장 / 게임의 프리셋 칸에 넣기)")
@@ -113,9 +135,17 @@ def main():
             if not s.isdigit(): print("숫자만 입력하세요."); return
             args += ["--seed", s]
         print("\n주의: 새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).")
-        args += ["--only-map"]
-        if input("탈출 퀘스트를 열기 위한 조사 장소(단서) 수를 3곳 -> 1곳으로 줄일까요? (y/n): ").strip().lower() == "y":
-            args += ["--leads", "1"]
+        print("\n적용할 항목을 고르세요. (엔터 = [ ] 안의 기본값, 기본값은 지난번에 고른 것)")
+        print("!! 이 도구는 항상 원본에서 다시 계산합니다. 이번에 'n' 으로 둔 항목은, 전에 적용했더라도 원래대로 돌아갑니다.")
+        o = load_opts()
+        o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
+        o["bal"] = yn("총알 산출량 x5 / 생존자 가방 24칸 / 지도 스테이션 2칸 / 시체 회수 24칸 / 미스터 베일 신규 품목 순서", o.get("bal", False))
+        o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
+        save_opts(o)
+        if not o["bal"]: args += ["--only-map"]
+        if not o["map"]: args += ["--no-shuffle"]
+        if o["leads"]: args += ["--leads", "1"]
+        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()
