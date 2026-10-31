@@ -1,8 +1,10 @@
 """data_config: 공용구역에서 '로맨스 아이템'을 쓸 수 있는 인원 조건을 '정확히 2명' -> '2명 이상' 으로 바꾼다.
-사용: python patch_romance.py <data_config 파일> <출력 파일> [all]
+사용: python patch_romance.py <data_config 파일> <출력 파일> [all|keep2]
  - RomanceCommunalAreaItemComponent.m_communalUseConditions 에서 ExactlyTwoSlotsOccupied(정확히 2칸 차 있음)를
    InteractableHasTwoSlotsOccupied(2칸 이상 차 있음)로 바꾼다. (포인터 하나만 바뀌므로 오브젝트 크기는 변하지 않는다.)
  - 가족 관계 쌍 없음 / 모든 쌍의 나이대 일치 / 이미 연애 중인 사람 없음 조건은 그대로다 (인원이 늘면 쌍이 늘어 더 까다로워진다).
+ - 마지막 인자가 keep2 이면 '정확히 2칸' 조건은 그대로 두고 나머지 세 조건(가족/나이대/연애 중)만 푼다.
+   (3명 이상일 때 연애 시도는 게임 코드가 처리하지 못해 아이템만 소모될 수 있기 때문)
  - 마지막 인자에 all 을 주면 나머지 세 조건(가족 쌍 없음 / 모든 쌍 나이대 일치 / 이미 연애 중인 사람 없음)도 풀어서,
    '2칸 이상 차 있을 것' 하나만 남긴다 (조건 3개가 같은 '2칸 이상' 조건을 가리키게 바꾼다).
  - 로비 일지(RobbieJournal) 아이템은 건드리지 않는다.
@@ -24,7 +26,9 @@ import UnityPy
 from UnityPy.streams import EndianBinaryReader
 
 SRC, OUT = sys.argv[1], sys.argv[2]
-ALL = len(sys.argv) > 3 and sys.argv[3].lower() == "all"
+MODE = sys.argv[3].lower() if len(sys.argv) > 3 else ""
+ALL = MODE == "all"
+KEEP2 = MODE == "keep2"
 env = UnityPy.load(SRC)
 bundle = env.file
 sfs = {n: f for n, f in bundle.files.items() if hasattr(f, "types")}
@@ -53,7 +57,11 @@ old, new_id = ids["ExactlyTwoSlotsOccupied"], ids["InteractableHasTwoSlotsOccupi
 hits = [c for c in tt["m_communalUseConditions"] if c["m_PathID"] == old]
 if len(hits) != 1:
     sys.exit("바꿀 조건을 찾지 못했습니다 (이미 바뀌었거나 구조가 달라졌습니다)")
-hits[0]["m_PathID"] = new_id
+if not KEEP2:
+    hits[0]["m_PathID"] = new_id
+if KEEP2:
+    for c in tt["m_communalUseConditions"]:
+        c["m_PathID"] = old   # 가족/나이대/연애 중 조건 해제, '정확히 2칸'만 남김
 if ALL:
     for c in tt["m_communalUseConditions"]:
         c["m_PathID"] = new_id   # 가족 쌍 없음 / 나이대 일치 / 연애 중 아님 -> 모두 '2칸 이상 차 있음' 으로 대체
@@ -62,10 +70,10 @@ seg = bytes(raw[st:st + o.byte_size])
 new = o.save_typetree(tt)
 assert len(new) == len(seg), "크기가 달라짐"
 d = [i for i in range(len(seg)) if seg[i] != new[i]]
-assert d and len(d) <= (32 if ALL else 8), "예상과 다른 변경 범위"
+assert d and len(d) <= (32 if (ALL or KEEP2) else 8), "예상과 다른 변경 범위"
 raw[st:st + len(seg)] = new
 r = EndianBinaryReader(bytes(raw))
 r.flags = flags
 bundle.files[name] = r
 open(OUT, "wb").write(bundle.save(packer="lz4"))
-print("로맨스 아이템 사용 조건: 정확히 2명 -> 2명 이상 (공용구역)" + (" / 가족·나이대·연애 중 조건 해제" if ALL else ""))
+print("로맨스 아이템 사용 조건: " + ("정확히 2명 유지 / 가족·나이대·연애 중 조건 해제" if KEEP2 else "정확히 2명 -> 2명 이상 (공용구역)" + (" / 가족·나이대·연애 중 조건 해제" if ALL else "")))
