@@ -1,12 +1,14 @@
-"""data_levels: 모든 거점(은신처)의 '갈 수 있는 장소'(m_reachableLocations)에 교역소 5곳을 추가한다.
-사용: python add_trading_posts.py <작업 폴더(data_levels, data_config 가 들어 있는 곳)>
+"""data_levels: 모든 거점(은신처)의 탐색 반경(지도의 원) 안에 교역소가 최소 N곳(기본 1) 들어가게 한다.
+사용: python add_trading_posts.py <작업 폴더(data_levels, data_config 가 들어 있는 곳)> [최소 교역소 수=1]
  - 상인이 나오려면 AvailableTradingPostExists 조건(= 교역소 5곳 중 현재 거점에서 도달 가능한 곳이 있을 것)이 맞아야 한다.
    교역소 목록은 data_config 의 AvailableTradingPostExists.m_locationFilter 에서 읽는다.
- - 이미 들어 있는 교역소는 그대로 두고, 빠진 것만 목록 끝에 추가한다. 다른 목록/좌표는 건드리지 않는다.
- - 지도 섞기(shuffle_map.py)가 이 목록을 다시 계산하므로 반드시 섞기/반경 단계 '뒤'에 실행해야 한다.
+ - 원 안에 교역소가 N곳 미만인 거점만, 그 거점의 반경(m_scavengeRadius)을 N번째로 가까운 교역소에 닿을 만큼(+3%) 늘리고,
+   새 반경 안의 장소를 '갈 수 있는 장소' 목록에 추가한다. 원 밖의 먼 교역소는 목록에 넣지 않는다 (게임이 원 밖 교역소를 뽑는 것을 막기 위해).
+ - 스토리 전용으로 숨긴 장소(이름에 chiefways 포함)는 새로 목록에 넣지 않는다.
+ - 지도 섞기(shuffle_map.py)가 목록을 다시 계산하므로 반드시 섞기/반경 단계 '뒤'에 실행해야 한다.
  - 목록이 길어져 MapData 오브젝트 크기가 바뀌므로, 오브젝트 표/파일 크기를 함께 고친다 (shuffle_map.py 와 같은 방식).
 """
-import os, struct, sys
+import math, os, struct, sys
 import UnityPy.helpers.TypeTreeNode as T
 _orig = T.TypeTreeNode.parse_blob.__func__
 def _pb(cls, reader, version):
@@ -77,19 +79,52 @@ def main():
     if target is None:
         sys.exit("MapData 를 찾지 못했습니다 (게임 업데이트로 구조가 바뀌었을 수 있습니다).")
     o, tt = target
-    nsh, nadd, before_full, after_full = 0, 0, 0, 0
-    for r in tt["references"]["RefIds"]:
+    min_posts = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+    names = {}
+    for x in env.objects:
+        if x.type.name != "MonoBehaviour":
+            continue
+        try:
+            t2 = x.read_typetree()
+        except Exception:
+            continue
+        if isinstance(t2.get("m_guid"), dict) and "m_guid" in t2["m_guid"]:
+            names[gid(t2["m_guid"])] = t2.get("m_Name", "")
+    hidden = lambda k: "chiefways" in names.get(k, "").lower()
+    refs = tt["references"]["RefIds"]
+    pos = {}
+    for r in refs:
         dd = r["data"]
-        if "m_reachableLocations" not in dd or not dd["m_reachableLocations"]:
-            continue   # 거점(은신처)만 갈 수 있는 장소 목록을 가진다
+        if "m_locationReference" in dd and "m_position" in dd:
+            pos[gid(dd["m_locationReference"])] = (dd["m_position"]["x"], dd["m_position"]["y"])
+    posts = [p for p in posts if p in pos]
+    nsh, widened, added = 0, [], 0
+    for r in refs:
+        if r["type"]["class"] != "MapShelterLocationData":
+            continue
+        dd = r["data"]
         nsh += 1
-        have = {gid(g) for g in dd["m_reachableLocations"]}
-        missing = [p for p in posts if p not in have]
-        before_full += not missing
-        for p in missing:
-            dd["m_reachableLocations"].append(mkguid(p))
-        nadd += len(missing)
-        after_full += 1
+        me = gid(dd["m_locationReference"])
+        px, py = pos[me]
+        dist = lambda k: math.hypot(pos[k][0] - px, pos[k][1] - py)
+        R = dd["m_scavengeRadius"]
+        ordered = sorted(posts, key=dist)
+        need = min(min_posts, len(ordered))
+        newR = R
+        if need and dist(ordered[need - 1]) > R:
+            newR = math.ceil(dist(ordered[need - 1]) * 1.03 * 10) / 10
+        have = {gid(x) for x in dd["m_reachableLocations"]}
+        if newR > R:
+            dd["m_scavengeRadius"] = newR
+            widened.append((names.get(me, "?")[:40], R, newR))
+        # 반경 안에 있는 교역소/장소가 목록에 빠져 있으면 채운다 (숨김 장소는 제외)
+        within = [k for k in pos if dist(k) <= dd["m_scavengeRadius"] and k not in have and not hidden(k)]
+        for k in sorted(within, key=dist):
+            dd["m_reachableLocations"].append(mkguid(k))
+            added += 1
+    if not widened and not added:
+        print("모든 거점의 탐색 반경 안에 교역소가 이미 %d곳 이상 있습니다. 바꿀 것이 없습니다." % min_posts)
+        return
     new = bytes(o.save_typetree(tt))
     A = 16
     up = lambda n: (n + A - 1) // A * A
@@ -119,7 +154,9 @@ def main():
     with open(tmp, "wb") as f:
         f.write(bundle.save(packer="lz4"))
     os.replace(tmp, lv_p)
-    print("교역소 %d곳을 거점 %d곳의 '갈 수 있는 장소'에 추가: 추가한 항목 %d개 (원래 5곳 모두 포함이던 거점 %d곳)" % (len(posts), nsh, nadd, before_full))
+    print("교역소 포함: 거점 %d곳 중 반경을 늘린 곳 %d곳, 목록에 추가한 장소 %d개 (원 안에 교역소 최소 %d곳)" % (nsh, len(widened), added, min_posts))
+    for n_, r0, r1 in widened:
+        print("  %s : 반경 %.0f -> %.0f" % (n_, r0, r1))
 
 if __name__ == "__main__":
     main()
