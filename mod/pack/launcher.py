@@ -114,6 +114,8 @@ def main():
             args += ["--seed", s]
         print("\n주의: 새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).")
         args += ["--only-map"]
+        if input("탈출 퀘스트를 열기 위한 조사 장소(단서) 수를 3곳 -> 1곳으로 줄일까요? (y/n): ").strip().lower() == "y":
+            args += ["--leads", "1"]
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()

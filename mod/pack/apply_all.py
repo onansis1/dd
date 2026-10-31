@@ -1,6 +1,7 @@
 """Into the Dead: Our Darkest Days - 모든 수정을 한 번에 적용한다 (게임 업데이트 후에도 같은 명령으로 다시 적용 가능).
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
+  --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
@@ -69,6 +70,7 @@ def main():
     ap.add_argument("--radius", type=float, default=1.5)
     ap.add_argument("--slots", type=int, default=2)
     ap.add_argument("--only-map", action="store_true")
+    ap.add_argument("--leads", type=int, default=3)
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
     if not a.folder:
@@ -171,6 +173,10 @@ def main():
                 vale = [first]
             print(run("patch_config.py", os.path.join(stage, "data_config"), a.corpse, out_cfg, *vale).strip())
             os.replace(out_cfg, os.path.join(stage, "data_config"))
+        if a.leads != 3:
+            out_bal = os.path.join(stage, "data_balancing.out")
+            print(run("patch_leads.py", os.path.join(stage, "data_balancing"), a.leads, out_bal).strip())
+            os.replace(out_bal, os.path.join(stage, "data_balancing"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:
             args = [stage] + ([a.seed] if a.seed is not None else [])

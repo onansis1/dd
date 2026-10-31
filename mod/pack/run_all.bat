@@ -15,14 +15,14 @@ if not exist "%~dp0apply_all.py" goto noscript
 tasklist 2>nul | find /I "IntoTheDead" >nul && goto running
 
 echo.
-echo This applies ALL mods (ammo x5, bag 24, map station 2, corpse 24, radius x1.5) and SHUFFLES the map.
+echo This applies ALL mods (ammo x5, bag 24, map station 2, corpse 24, radius x1.5, escape quest leads 3 -> 1) and SHUFFLES the map.
 echo Use it BEFORE starting a NEW game. Do NOT run it in the middle of a save you want to keep.
 echo It is also the right thing to run again after every game update.
 choice /C YN /M "Apply now"
 if errorlevel 2 goto cancelled
 
 echo.
-%PY% "%~dp0apply_all.py" "%AB%" %*
+%PY% "%~dp0apply_all.py" "%AB%" --leads 1 %*
 if errorlevel 1 goto failed
 goto end
 

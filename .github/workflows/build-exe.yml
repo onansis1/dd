@@ -24,7 +24,7 @@ jobs:
             --collect-all UnityPy \
             --add-data "apply_all.py;." --add-data "launcher.py;." --add-data "patch_balance.py;." \
             --add-data "patch_config.py;." --add-data "widen_map_radius.py;." --add-data "shuffle_map.py;." \
-            --add-data "scan_telescopes.py;." --add-data "preset_tool.py;." --add-data "telescopes.json;." \
+            --add-data "scan_telescopes.py;." --add-data "preset_tool.py;." --add-data "patch_leads.py;." --add-data "telescopes.json;." \
             --hidden-import launcher --hidden-import preset_tool exe_main.py
       - name: Smoke test (starts and shows the menu, then exits)
         working-directory: mod/pack
