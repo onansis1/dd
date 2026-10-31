@@ -3,6 +3,7 @@
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
   --trader-start 0  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 10=원래)
+  --posts         모든 거점의 '갈 수 있는 장소'에 교역소 5곳을 포함시킨다 (상인 등장 조건 AvailableTradingPostExists 충족)
   --only-map      지도 섞기 + 탐색 반경만 적용 (총알/가방/슬롯/시체/미스터 베일은 건드리지 않음)
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
@@ -73,6 +74,7 @@ def main():
     ap.add_argument("--slots", type=int, default=2)
     ap.add_argument("--only-map", action="store_true")
     ap.add_argument("--leads", type=int, default=3)
+    ap.add_argument("--posts", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=[0, 10])
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
@@ -190,6 +192,8 @@ def main():
             args = [stage] + ([a.seed] if a.seed is not None else [])
             lines = run("shuffle_map.py", *args).strip().splitlines()
             print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes"))))
+        if a.posts:
+            print(run("add_trading_posts.py", stage).strip())
         # 3) 결과를 설치 폴더에 반영
         for f in FILES:
             tmp = os.path.join(ab, f + ".tmp")

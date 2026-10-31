@@ -145,13 +145,15 @@ def main():
             o["vale_start"] = int(s) if s in ("0", "10", "20") else o.get("vale_start", 20)
         o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
         o["traders"] = yn("상인(마와 파/베일/리키)이 처음 나오는 시점을 사이클 10 -> 게임 시작부터로 앞당기기", o.get("traders", False))
+        o["posts"] = yn("모든 거점에서 교역소 5곳이 '갈 수 있는 장소'에 들어가게 하기 (상인이 나올 수 있는 조건)", o.get("posts", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
         if o["leads"]: args += ["--leads", "1"]
         if o["traders"]: args += ["--trader-start", "0"]
+        if o["posts"]: args += ["--posts"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
-        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 조기 등장" if o["traders"] else ""))
+        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 조기 등장" if o["traders"] else "") + (" / 모든 거점에 교역소 포함" if o["posts"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()
