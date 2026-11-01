@@ -71,12 +71,23 @@ if FIRST:
        "CycleBetween120AND140","CycleBetween140AND160","CycleBetween160AND180","IsCycleGreaterOrEqual180"]
     w=[pid(n) for n in W]
     sk="Trader_MrVale_R77RapidFire_%s_SharedKnowledgeValueComparison"
-    plan=[(CR(X),[w[0],w[2],pid(H)]),(H,[w[4],w[6],w[8]]),(CR(Y),[w[1],w[3],w[5]]),
-          ("Trader_MrVale_NewItemSale_R77RapidFirePistol_PrepareForSale",None),
-          ("Trader_MrVale_CrossbowBolt_CycleRange",[pid("IsCycleGreaterOrEqual20" if START==20 else "IsCycleGreaterOrEqual10")])]
-    # 첫 구간(CycleBetween20AND40, 베일 전용)의 시작을 앞당긴다: 10 -> [>=10, <40],  0 -> [<40, <40] (= 처음부터 40 미만)
-    if START==10: plan.append(("CycleBetween20AND40",[pid("IsCycleGreaterOrEqual10"),pid("IsCycleLessThan40")]))
-    elif START==0: plan.append(("CycleBetween20AND40",[pid("IsCycleLessThan40"),pid("IsCycleLessThan40")]))
+    if START==20:
+        # 원래 일정: 구간 20-40(X) 40-60(Y) 60-80(X) 80-100(Y) 100-120(X) 120-140(Y) 140-160(X) 160-180(없음) 180+(X)
+        x_ids=[w[0],w[2],pid(H)]; h_ids=[w[4],w[6],w[8]]; y_ids=[w[1],w[3],w[5]]
+        sched="20-40 %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, 140-160 %s, (160-180 신규 없음), 180 이후 %s 상시"%(X,Y,X,Y,X,Y,X,X)
+        crossbow_first=20 if X=="Crossbow" else 40
+    else:
+        # 일정을 앞당긴다: 첫 구간을 [0,20) (또는 [10,20)) 으로 하고 두 번째 품목이 바로 20-40 에 나오게 한다.
+        # '사이클 20 미만' 같은 기본 조건 객체는 구간 목록(OrCondition)에 그대로 넣을 수 있어서 새 구간 객체가 필요 없다.
+        first_id=pid("IsCycleLessThan20") if START==0 else pid("CycleBetween10AND20")
+        x_ids=[first_id,w[1],pid(H)]; h_ids=[w[3],w[5],w[8]]; y_ids=[w[0],w[2],w[4]]
+        sched="%s %s, 20-40 %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, (140-180 신규 없음), 180 이후 %s 상시"%("0-20" if START==0 else "10-20",X,Y,X,Y,X,Y,X,X)
+        crossbow_first=START if X=="Crossbow" else 20
+    plan=[(CR(X),x_ids),(H,h_ids),(CR(Y),y_ids),
+          ("Trader_MrVale_NewItemSale_R77RapidFirePistol_PrepareForSale",None)]
+    # 석궁 볼트: 석궁이 처음 팔리기 시작하는 시점부터 판다 (석궁보다 먼저 볼트만 팔리는 일이 없게). 원래는 사이클 40.
+    if crossbow_first<40:
+        plan.append(("Trader_MrVale_CrossbowBolt_CycleRange",[pid("IsCycleGreaterOrEqual20" if crossbow_first>=20 else "IsCycleGreaterOrEqual10")]))
     nb=0
     for n,ids in plan:
         if n.endswith("_PrepareForSale"):   # R77 이벤트는 '이미 판매 중(Available)' 일 때만 -> 영영 안 일어남
@@ -93,7 +104,6 @@ if FIRST:
                 cv["m_conditionalObject"]["AmountOnHand"]=0; hit+=1
     assert hit==1,"R77 재고 항목을 찾지 못함"
     new=o.save_typetree(tt); assert len(new)==len(seg); raw[st:st+len(seg)]=new
-    first_lbl = {20:"20-40",10:"10-40",0:"0-40 (게임 시작부터)"}[START]
-    print("미스터 베일 신규 판매 순서: 사이클 %s %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, 140-160 %s, (160-180 신규 없음), 180 이후 %s 상시 (R77 권총 없음)" % (first_lbl,X,Y,X,Y,X,Y,X,X))
+    print("미스터 베일 신규 판매 순서: 사이클 %s (R77 권총 없음) / 석궁 볼트는 사이클 %s 부터" % (sched, "40(원래)" if crossbow_first>=40 else ("20" if crossbow_first>=20 else "10")))
 r=EndianBinaryReader(bytes(raw)); r.flags=flags; bundle.files[name]=r
 open(OUT,"wb").write(bundle.save(packer="lz4"))
