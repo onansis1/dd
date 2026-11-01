@@ -2,7 +2,7 @@
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
-  --trader-start 0  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 10=원래)
+  --trader-start 7  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 7, 10=원래)
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
   --romance-all   연애의 모든 제한을 푼다 (정확히 2명일 때. --romance 와 같이 쓰면 2명 이상) (가족/나이대/연애 중/호환성 6종/관계 단계 + 성공 확률 구성 값 최대)
@@ -82,7 +82,7 @@ def main():
     ap.add_argument("--posts-min", type=int, default=2)
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
-    ap.add_argument("--trader-start", type=int, default=10, choices=[0, 10])
+    ap.add_argument("--trader-start", type=int, default=10, choices=[0, 7, 10])
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
     a = ap.parse_args()
@@ -198,9 +198,9 @@ def main():
             out_cfg2 = os.path.join(stage, "data_config.out")
             print(run("patch_romance.py", os.path.join(stage, "data_config"), out_cfg2, *((["all"] if a.romance else ["keep2"]) if a.romance_all else [])).strip())
             os.replace(out_cfg2, os.path.join(stage, "data_config"))
-        if a.trader_start == 0:
+        if a.trader_start in (0, 7):
             out_bal = os.path.join(stage, "data_balancing.out")
-            print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal).strip())
+            print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal, a.trader_start).strip())
             os.replace(out_bal, os.path.join(stage, "data_balancing"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:
