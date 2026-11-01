@@ -147,6 +147,7 @@ def main():
         s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 7, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
         o["trader_start"] = int(s) if s in ("0", "7", "10") else o.get("trader_start", 10)
         o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
+        o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
         o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
@@ -154,9 +155,10 @@ def main():
         if o["leads"]: args += ["--leads", "1"]
         if o.get("trader_start", 10) != 10: args += ["--trader-start", str(o["trader_start"])]
         if o["move_posts"]: args += ["--move-posts"]
+        if o["shuffle_shelters"]: args += ["--shuffle-shelters"]
         if o["romance_all"]: args += ["--romance-all"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
-        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 %d사이클부터" % o["trader_start"] if o.get("trader_start", 10) != 10 else "") + (" / 교역소 중앙부로 이동" if o["move_posts"] else "") + (" / 연애 제한 해제" if o["romance_all"] else ""))
+        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 %d사이클부터" % o["trader_start"] if o.get("trader_start", 10) != 10 else "") + (" / 교역소 중앙부로 이동" if o["move_posts"] else "") + (" / 거점 섞기(실험적)" if o["shuffle_shelters"] else "") + (" / 연애 제한 해제" if o["romance_all"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()
