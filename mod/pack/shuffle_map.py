@@ -225,6 +225,19 @@ def main():
                     chosen.remove(c)
                 print("교역소 이동: 교역소 5곳을 모든 거점이 반경 안에 1곳 이상 갖는 자리로 옮깁니다 (원 안 교역소 수 최소 %d, 합계 %d)." % best[0])
 
+    # (선택) 거점(은신처)끼리 위치를 서로 주고받는다. 메사냉방/치프웨이즈 같은 특수 거점은 제자리에 고정한다.
+    #  - 거점이 놓이는 '자리'의 집합은 그대로이고 어느 거점이 어느 자리에 오는지만 바뀌는 순열이다.
+    #  - 환경변수 ITD_SHUFFLE_SHELTERS=1 일 때만 동작한다. 기존 시드 결과가 달라지지 않도록 별도 난수를 쓴다.
+    SHELTER_FIXED_PATS = ("highmesa", "chiefways")
+    sh_movable = []
+    if os.environ.get("ITD_SHUFFLE_SHELTERS") == "1" and not keep_mode:
+        sh_movable = [g for g in shelters if g not in story and not any(p in names.get(g, "").lower() for p in SHELTER_FIXED_PATS)]
+        if len(sh_movable) < 4:
+            print("거점 섞기: 옮길 수 있는 거점이 너무 적어 건너뜁니다.")
+            sh_movable = []
+        else:
+            print("거점 섞기: 거점 %d곳을 서로 바꿉니다 (고정: %d곳)." % (len(sh_movable), len(shelters) - len(sh_movable)))
+
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
@@ -240,6 +253,15 @@ def main():
             newpos = dict(allpos)
             for g, p in zip(movable, perm):
                 newpos[g] = p
+            if sh_movable:
+                r3 = random.Random(seed * 104729 + attempt)
+                sh_slots = [allpos[g] for g in sh_movable]
+                sh_perm = sh_slots[:]
+                r3.shuffle(sh_perm)
+                if any(a == b for a, b in zip(sh_slots, sh_perm)):
+                    continue
+                for g, p in zip(sh_movable, sh_perm):
+                    newpos[g] = p
             if post_target:
                 owner = {newpos[g]: g for g in movable}
                 for p, c in post_target.items():
@@ -261,6 +283,8 @@ def main():
 
     for g in movable + (post_gs if post_target else []):
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
+    for g in sh_movable:
+        shelters[g]["data"]["m_position"]["x"], shelters[g]["data"]["m_position"]["y"] = newpos[g]
     # 망원경 목록 재구성: 각 망원경 장소가 보여주는 개수는 유지하고 새 좌표 기준 가까운 장소로 채운다.
     # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.
     vps = {g: r["data"]["m_vantagePointObservableLocations"] for g, r in {**locs, **shelters}.items()}
