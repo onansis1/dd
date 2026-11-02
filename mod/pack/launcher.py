@@ -149,7 +149,7 @@ def main():
         o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
         o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
         o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
-        o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% (좀비 진영에게 죽은 경우/처음 떠난 생존자는 예외로 그대로)", o.get("zombie", False))
+        o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + '처음 떠난 생존자는 좀비가 되지 않음' 제한 해제 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
