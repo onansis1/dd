@@ -113,7 +113,7 @@ def main():
     else:
         ab = ask_ab()
         if not ab: print("취소했습니다."); return
-    print("1) 적용 (항목을 골라서)   * 새 게임 시작 전에만!   - 탐색 반경 x1.5 는 항상 포함")
+    print("1) 적용   * 새 게임 시작 전에만!" if MAPONLY else "1) 적용 (항목을 골라서)   * 새 게임 시작 전에만!   - 탐색 반경 x1.5 는 항상 포함")
     print("2) 적용 - 시드 지정 (같은 숫자면 같은 지도, 친구와 같은 지도로 하고 싶을 때)")
     print("3) 원래대로 되돌리기")
     if not MAPONLY: print("4) 사용자 지정 시나리오 프리셋 (내 설정 저장 / 게임의 프리셋 칸에 넣기)")
@@ -136,16 +136,19 @@ def main():
             if not s.isdigit(): print("숫자만 입력하세요."); return
             args += ["--seed", s]
         print("\n주의: 새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).")
-        print("\n적용할 항목을 고르세요. (엔터 = [ ] 안의 기본값, 기본값은 지난번에 고른 것)")
-        print("!! 이 도구는 항상 원본에서 다시 계산합니다. 이번에 'n' 으로 둔 항목은, 전에 적용했더라도 원래대로 돌아갑니다.")
+        if MAPONLY: print("\n적용 내용(고정): 지도 건물 위치 랜덤 섞기 + 교역소 중앙부 이동 + 탐색 반경 x1.5")
+        else:
+            print("\n적용할 항목을 고르세요. (엔터 = [ ] 안의 기본값, 기본값은 지난번에 고른 것)")
+            print("!! 이 도구는 항상 원본에서 다시 계산합니다. 이번에 'n' 으로 둔 항목은, 전에 적용했더라도 원래대로 돌아갑니다.")
         o = load_opts()
-        o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
         if MAPONLY:
+            # 지도 전용 배포판: 선택 없이 고정 (지도 섞기 + 교역소 중앙 이동 + 반경 x1.5)
+            o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = False
             o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
             o["trader_start"] = 10
-            o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
-            o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
         else:
+            o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
+        if not MAPONLY:
             o["bal"] = yn("총알 산출량 x5 / 생존자 가방 24칸 / 지도 스테이션 2칸 / 시체 회수 24칸 / 미스터 베일 신규 품목 순서", o.get("bal", False))
             if o["bal"]:
                 s = input("미스터 베일의 첫 석궁/샷건이 열리는 시점 - 0=게임 시작부터, 10, 20=원래 [%s]: " % o.get("vale_start", 20)).strip()
