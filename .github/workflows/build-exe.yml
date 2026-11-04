@@ -31,12 +31,12 @@ jobs:
         shell: bash
         run: |
           pyinstaller --noconfirm --onefile --console --name ItD_MapOnly \
-            --specpath build_maponly --distpath dist_maponly --workpath build_maponly/work \
+            --distpath dist_maponly --workpath build_maponly \
             --collect-all UnityPy \
-            --add-data "$PWD/apply_all.py;." --add-data "$PWD/launcher.py;." --add-data "$PWD/patch_balance.py;." \
-            --add-data "$PWD/patch_config.py;." --add-data "$PWD/widen_map_radius.py;." --add-data "$PWD/shuffle_map.py;." \
-            --add-data "$PWD/scan_telescopes.py;." --add-data "$PWD/preset_tool.py;." --add-data "$PWD/patch_leads.py;." --add-data "$PWD/patch_traders.py;." --add-data "$PWD/add_trading_posts.py;." --add-data "$PWD/patch_romance.py;." --add-data "$PWD/patch_romance_compat.py;." --add-data "$PWD/patch_zombie.py;." --add-data "$PWD/telescopes.json;." \
-            --add-data "$PWD/edition_map.txt;." \
+            --add-data "apply_all.py;." --add-data "launcher.py;." --add-data "patch_balance.py;." \
+            --add-data "patch_config.py;." --add-data "widen_map_radius.py;." --add-data "shuffle_map.py;." \
+            --add-data "scan_telescopes.py;." --add-data "preset_tool.py;." --add-data "patch_leads.py;." --add-data "patch_traders.py;." --add-data "add_trading_posts.py;." --add-data "patch_romance.py;." --add-data "patch_romance_compat.py;." --add-data "patch_zombie.py;." --add-data "telescopes.json;." \
+            --add-data "edition_map.txt;." \
             --hidden-import launcher --hidden-import preset_tool exe_main.py
       - name: Smoke test (starts and shows the menu, then exits)
         working-directory: mod/pack
