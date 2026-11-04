@@ -26,15 +26,35 @@ jobs:
             --add-data "patch_config.py;." --add-data "widen_map_radius.py;." --add-data "shuffle_map.py;." \
             --add-data "scan_telescopes.py;." --add-data "preset_tool.py;." --add-data "patch_leads.py;." --add-data "patch_traders.py;." --add-data "add_trading_posts.py;." --add-data "patch_romance.py;." --add-data "patch_romance_compat.py;." --add-data "patch_zombie.py;." --add-data "telescopes.json;." \
             --hidden-import launcher --hidden-import preset_tool exe_main.py
+      - name: Build map-only exe
+        working-directory: mod/pack
+        shell: bash
+        run: |
+          pyinstaller --noconfirm --onefile --console --name ItD_MapOnly \
+            --specpath build_maponly --distpath dist_maponly --workpath build_maponly/work \
+            --collect-all UnityPy \
+            --add-data "$PWD/apply_all.py;." --add-data "$PWD/launcher.py;." --add-data "$PWD/patch_balance.py;." \
+            --add-data "$PWD/patch_config.py;." --add-data "$PWD/widen_map_radius.py;." --add-data "$PWD/shuffle_map.py;." \
+            --add-data "$PWD/scan_telescopes.py;." --add-data "$PWD/preset_tool.py;." --add-data "$PWD/patch_leads.py;." --add-data "$PWD/patch_traders.py;." --add-data "$PWD/add_trading_posts.py;." --add-data "$PWD/patch_romance.py;." --add-data "$PWD/patch_romance_compat.py;." --add-data "$PWD/patch_zombie.py;." --add-data "$PWD/telescopes.json;." \
+            --add-data "$PWD/edition_map.txt;." \
+            --hidden-import launcher --hidden-import preset_tool exe_main.py
       - name: Smoke test (starts and shows the menu, then exits)
         working-directory: mod/pack
         shell: bash
         run: |
           ./dist/ItD_MapMod.exe --selftest
           printf '\n\n\n' | ./dist/ItD_MapMod.exe | head -20
+          ./dist_maponly/ItD_MapOnly.exe --selftest
+          printf '\n\n\n' | ./dist_maponly/ItD_MapOnly.exe | head -20
       - uses: actions/upload-artifact@v4
         with:
           name: ItD_MapMod
           path: |
             mod/pack/dist/ItD_MapMod.exe
             mod/pack/README_SHARE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ItD_MapOnly
+          path: |
+            mod/pack/dist_maponly/ItD_MapOnly.exe
+            mod/pack/README_SHARE_MAP.txt

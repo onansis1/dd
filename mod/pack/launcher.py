@@ -6,6 +6,7 @@ import json, os, re, subprocess, sys
 FROZEN = getattr(sys, "frozen", False)
 HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))
 GAME = "Into the Dead Our Darkest Days"
+MAPONLY = os.path.exists(os.path.join(HERE, "edition_map.txt"))   # 지도 전용 배포판 표시 파일 (있으면 지도 관련 항목만 보여줌)
 
 def _opts_path():
     root = os.path.dirname(sys.executable) if FROZEN else HERE
@@ -104,7 +105,7 @@ def ensure_unitypy():
     return True
 
 def main():
-    print("=== Into the Dead: Our Darkest Days 간편 도구 (지도 랜덤 배치 + 반경 x1.5 / 시나리오 프리셋) ===\n")
+    print("=== Into the Dead: Our Darkest Days 지도 도구 (지도 랜덤 배치 + 반경 x1.5) ===\n" if MAPONLY else "=== Into the Dead: Our Darkest Days 간편 도구 (지도 랜덤 배치 + 반경 x1.5 / 시나리오 프리셋) ===\n")
     if not os.path.exists(os.path.join(HERE, "apply_all.py")):
         print("apply_all.py 가 같은 폴더에 있어야 합니다. 압축을 완전히 푼 뒤 실행하세요 (exe 는 이 문제가 없습니다)."); return
     ab = find_ab()
@@ -115,10 +116,10 @@ def main():
     print("1) 적용 (항목을 골라서)   * 새 게임 시작 전에만!   - 탐색 반경 x1.5 는 항상 포함")
     print("2) 적용 - 시드 지정 (같은 숫자면 같은 지도, 친구와 같은 지도로 하고 싶을 때)")
     print("3) 원래대로 되돌리기")
-    print("4) 사용자 지정 시나리오 프리셋 (내 설정 저장 / 게임의 프리셋 칸에 넣기)")
+    if not MAPONLY: print("4) 사용자 지정 시나리오 프리셋 (내 설정 저장 / 게임의 프리셋 칸에 넣기)")
     print("0) 종료")
     c = input("\n번호: ").strip()
-    if c == "4":
+    if c == "4" and not MAPONLY:
         if not ensure_unitypy(): return
         import preset_tool
         preset_tool.menu(ab, game_running)
@@ -139,17 +140,23 @@ def main():
         print("!! 이 도구는 항상 원본에서 다시 계산합니다. 이번에 'n' 으로 둔 항목은, 전에 적용했더라도 원래대로 돌아갑니다.")
         o = load_opts()
         o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
-        o["bal"] = yn("총알 산출량 x5 / 생존자 가방 24칸 / 지도 스테이션 2칸 / 시체 회수 24칸 / 미스터 베일 신규 품목 순서", o.get("bal", False))
-        if o["bal"]:
-            s = input("미스터 베일의 첫 석궁/샷건이 열리는 시점 - 0=게임 시작부터, 10, 20=원래 [%s]: " % o.get("vale_start", 20)).strip()
-            o["vale_start"] = int(s) if s in ("0", "10", "20") else o.get("vale_start", 20)
-        o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
-        s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 7, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
-        o["trader_start"] = int(s) if s in ("0", "7", "10") else o.get("trader_start", 10)
-        o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
-        o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
-        o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
-        o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
+        if MAPONLY:
+            o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
+            o["trader_start"] = 10
+            o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
+            o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
+        else:
+            o["bal"] = yn("총알 산출량 x5 / 생존자 가방 24칸 / 지도 스테이션 2칸 / 시체 회수 24칸 / 미스터 베일 신규 품목 순서", o.get("bal", False))
+            if o["bal"]:
+                s = input("미스터 베일의 첫 석궁/샷건이 열리는 시점 - 0=게임 시작부터, 10, 20=원래 [%s]: " % o.get("vale_start", 20)).strip()
+                o["vale_start"] = int(s) if s in ("0", "10", "20") else o.get("vale_start", 20)
+            o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
+            s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 7, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
+            o["trader_start"] = int(s) if s in ("0", "7", "10") else o.get("trader_start", 10)
+            o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
+            o["shuffle_shelters"] = yn("[실험적] 메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
+            o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
+            o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
