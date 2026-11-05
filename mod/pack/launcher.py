@@ -160,6 +160,10 @@ def main():
             o["shuffle_shelters"] = yn("메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
             o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
             o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
+        if not MAPONLY:
+            o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
+        else:
+            o["quiet"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
@@ -169,8 +173,9 @@ def main():
         if o["shuffle_shelters"]: args += ["--shuffle-shelters"]
         if o["romance_all"]: args += ["--romance-all"]
         if o["zombie"]: args += ["--zombie"]
+        if o["quiet"]: args += ["--quiet-steps"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
-        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 %d사이클부터" % o["trader_start"] if o.get("trader_start", 10) != 10 else "") + (" / 교역소 중앙부로 이동" if o["move_posts"] else "") + (" / 거점 섞기" if o["shuffle_shelters"] else "") + (" / 연애 제한 해제" if o["romance_all"] else "") + (" / 좀비화 100%" if o["zombie"] else ""))
+        print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 %d사이클부터" % o["trader_start"] if o.get("trader_start", 10) != 10 else "") + (" / 교역소 중앙부로 이동" if o["move_posts"] else "") + (" / 거점 섞기" if o["shuffle_shelters"] else "") + (" / 연애 제한 해제" if o["romance_all"] else "") + (" / 좀비화 100%" if o["zombie"] else "") + (" / 발소리 없음" if o["quiet"] else ""))
     if input("진행할까요? (y/n): ").strip().lower() != "y": print("취소했습니다. 아무것도 바꾸지 않았습니다."); return
     if c != "3" and not ensure_unitypy(): return
     print()
