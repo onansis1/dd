@@ -6,6 +6,7 @@
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
+  --hod-start     어둠의 심연 해금에 필요한 단서 수를 0으로 (시작부터 열리게 하는 시도. 게임 내 동작 미확인. --leads 와 같이 쓰면 이쪽이 우선)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
   --romance-all   연애의 모든 제한을 푼다 (정확히 2명일 때. --romance 와 같이 쓰면 2명 이상) (가족/나이대/연애 중/호환성 6종/관계 단계 + 성공 확률 구성 값 최대)
   --move-posts    교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 들어가게 한다 (지도 섞기를 켠 경우에만, 반경은 모두 동일)
@@ -85,6 +86,7 @@ def main():
     ap.add_argument("--shuffle-shelters", action="store_true")
     ap.add_argument("--posts-min", type=int, default=2)
     ap.add_argument("--zombie", action="store_true")
+    ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
@@ -196,6 +198,10 @@ def main():
             out_bal = os.path.join(stage, "data_balancing.out")
             print(run("patch_leads.py", os.path.join(stage, "data_balancing"), a.leads, out_bal).strip())
             os.replace(out_bal, os.path.join(stage, "data_balancing"))
+        if a.hod_start:
+            out_bal5 = os.path.join(stage, "data_balancing.out")
+            print(run("patch_hod.py", os.path.join(stage, "data_balancing"), out_bal5).strip())
+            os.replace(out_bal5, os.path.join(stage, "data_balancing"))
         if a.romance_all:
             out_bal2 = os.path.join(stage, "data_balancing.out")
             print(run("patch_romance_compat.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal2).strip())
