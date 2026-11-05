@@ -161,7 +161,7 @@ def main():
             o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
             o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         if not MAPONLY:
-            o["hod_start"] = yn("[시도] 어둠의 심연 퀘스트를 단서 없이 시작부터 열기 (게임 코드가 이 값을 그렇게 처리하는지 확인 못 함. 효과가 없을 수 있음)", o.get("hod_start", False))
+            o["hod_start"] = yn("[시도] 어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함. 효과가 없거나 이상할 수 있음)", o.get("hod_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
             o["quiet"] = False; o["hod_start"] = False
