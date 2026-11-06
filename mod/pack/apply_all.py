@@ -231,6 +231,11 @@ def main():
                 os.environ["ITD_SHUFFLE_SHELTERS"] = "1"
             lines = run("shuffle_map.py", *args).strip().splitlines()
             print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes", "교역소", "거점"))))
+            hod = [l.split() for l in lines if l.startswith("어둠의심연거점")]
+            if hod and a.shuffle_shelters:
+                out_bal6 = os.path.join(stage, "data_balancing.out")
+                print(run("patch_hod_shelters.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), hod[0][1], hod[0][2], out_bal6).strip())
+                os.replace(out_bal6, os.path.join(stage, "data_balancing"))
         if a.move_posts and a.no_shuffle:
             print("안내: 교역소 이동은 지도 섞기를 켠 경우에만 동작합니다 (이번에는 건너뜀).")
         if a.posts:

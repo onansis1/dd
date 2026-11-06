@@ -228,7 +228,7 @@ def main():
     # (선택) 거점(은신처)끼리 위치를 서로 주고받는다. 메사냉방/치프웨이즈 같은 특수 거점은 제자리에 고정한다.
     #  - 거점이 놓이는 '자리'의 집합은 그대로이고 어느 거점이 어느 자리에 오는지만 바뀌는 순열이다.
     #  - 환경변수 ITD_SHUFFLE_SHELTERS=1 일 때만 동작한다. 기존 시드 결과가 달라지지 않도록 별도 난수를 쓴다.
-    SHELTER_FIXED_PATS = ("highmesa", "chiefways", "valuerecords", "bestelectronics")   # + 어둠의 심연 '사우스버러로 이동' 퀘스트가 요구하는 두 거점
+    SHELTER_FIXED_PATS = ("highmesa", "chiefways")
     sh_movable = []
     if os.environ.get("ITD_SHUFFLE_SHELTERS") == "1" and not keep_mode:
         sh_movable = [g for g in shelters if g not in story and not any(p in names.get(g, "").lower() for p in SHELTER_FIXED_PATS)]
@@ -431,6 +431,16 @@ def main():
         sys.exit("파일을 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요. 새 파일은 " + tmp + " 에 있습니다.")
     print("시드: %s / 위치를 섞은 장소: %d곳 / 고정: %d곳 / 은신처 %d곳의 갈 수 있는 장소 수: 최소 %d, 평균 %.1f / 시작 해금(=은신처 망원경 목록) 평균 %.1f곳" % (
         "keep(섞지 않음)" if keep_mode else seed, len(movable), len(fixed), len(shelters), min(cnts), sum(cnts) / len(cnts), sum(unl) / len(unl)))
+    # 어둠의 심연 '사우스버러로 이동' 퀘스트는 밸류 레코드/베스트 일렉트로닉스 거점에 있어야 달성된다.
+    # 거점이 섞여도 그 두 '자리'에 오게 된 거점이 조건을 만족하도록, 두 자리의 새 주인을 알린다 (apply_all 이 조건을 고쳐 쓴다).
+    try:
+        rv = next(g for g in shelters if "valuerecords" in names.get(g, "").lower())
+        be = next(g for g in shelters if "bestelectronics" in names.get(g, "").lower())
+        own = lambda slot: next(g for g in shelters if newpos[g] == slot)
+        o1, o2 = own(allpos[rv]), own(allpos[be])
+        print("어둠의심연거점 %s %s %s %s" % (o1.hex(), o2.hex(), names.get(o1, "?"), names.get(o2, "?")))
+    except StopIteration:
+        pass
     moved = [g for g in movable if allpos[g] != newpos[g]]
     for g in moved[:8]:
         print("  %s : (%.0f, %.0f) -> (%.0f, %.0f)" % (names.get(g, "?")[:44], *allpos[g], *newpos[g]))
