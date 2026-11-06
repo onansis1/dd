@@ -157,7 +157,7 @@ def main():
             s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 1~9, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
             o["trader_start"] = int(s) if s.isdigit() and 0 <= int(s) <= 10 else o.get("trader_start", 10)
             o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
-            o["shuffle_shelters"] = yn("메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
+            o["shuffle_shelters"] = yn("메사냉방/치프웨이즈/밸류레코드/베스트일렉트로닉스(어둠의 심연 퀘스트 필요 거점)를 뺀 거점 14곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
             o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
             o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         if not MAPONLY:

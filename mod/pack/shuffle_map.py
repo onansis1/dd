@@ -228,7 +228,7 @@ def main():
     # (선택) 거점(은신처)끼리 위치를 서로 주고받는다. 메사냉방/치프웨이즈 같은 특수 거점은 제자리에 고정한다.
     #  - 거점이 놓이는 '자리'의 집합은 그대로이고 어느 거점이 어느 자리에 오는지만 바뀌는 순열이다.
     #  - 환경변수 ITD_SHUFFLE_SHELTERS=1 일 때만 동작한다. 기존 시드 결과가 달라지지 않도록 별도 난수를 쓴다.
-    SHELTER_FIXED_PATS = ("highmesa", "chiefways")
+    SHELTER_FIXED_PATS = ("highmesa", "chiefways", "valuerecords", "bestelectronics")   # + 어둠의 심연 '사우스버러로 이동' 퀘스트가 요구하는 두 거점
     sh_movable = []
     if os.environ.get("ITD_SHUFFLE_SHELTERS") == "1" and not keep_mode:
         sh_movable = [g for g in shelters if g not in story and not any(p in names.get(g, "").lower() for p in SHELTER_FIXED_PATS)]
