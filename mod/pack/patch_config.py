@@ -21,7 +21,7 @@ except Exception:
 import UnityPy
 from UnityPy.streams import EndianBinaryReader
 SRC,NEW,OUT=sys.argv[1],int(sys.argv[2]),sys.argv[3]
-FIRST=sys.argv[4].lower() if len(sys.argv)>4 and sys.argv[4].lower() in ('crossbow','s12riot') else None
+FIRST=sys.argv[4].lower() if len(sys.argv)>4 and sys.argv[4].lower() in ('crossbow','s12riot','s12only') else None
 START=int(sys.argv[5]) if len(sys.argv)>5 else 20
 if START not in (0,10,20): sys.exit('베일 시작 사이클은 0, 10, 20 중 하나여야 합니다')
 env=UnityPy.load(SRC); bundle=env.file
@@ -49,7 +49,7 @@ if FIRST:
         try: tt=o.read_typetree()
         except: continue
         n=tt.get("m_Name")
-        if n and n.startswith(("CycleBetween","IsCycle","Trader_MrVale_","MrVale_TraderData")): objs.setdefault(n,o)
+        if n and n.startswith(("CycleBetween","IsCycle","Trader_MrVale_","Trader_FeatureFlag","MrVale_TraderData")): objs.setdefault(n,o)
     def need(n):
         if n not in objs: sys.exit("미스터 베일 데이터에서 %s 를 찾지 못했습니다 (게임 업데이트로 구조가 바뀌었을 수 있음)" % n)
         return objs[n]
@@ -64,7 +64,7 @@ if FIRST:
             assert len(tt["m_conditions"])==len(ids)
             for c,p in zip(tt["m_conditions"],ids): c["m_PathID"]=p
         return f
-    X,Y={"crossbow":("Crossbow","S12Riot"),"s12riot":("S12Riot","Crossbow")}[FIRST]
+    X,Y={"crossbow":("Crossbow","S12Riot"),"s12riot":("S12Riot","Crossbow"),"s12only":("S12Riot","Crossbow")}[FIRST]
     CR=lambda k:"Trader_MrVale_NewItemSale_%s_CycleRange"%k
     H=CR("R77RapidFirePistol")
     W=["CycleBetween20AND40","CycleBetween40AND60","CycleBetween60AND80","CycleBetween80AND100","CycleBetween100AND120",
@@ -83,10 +83,20 @@ if FIRST:
         x_ids=[first_id,w[1],pid(H)]; h_ids=[w[3],w[5],w[8]]; y_ids=[w[0],w[2],w[4]]
         sched="%s %s, 20-40 %s, 40-60 %s, 60-80 %s, 80-100 %s, 100-120 %s, 120-140 %s, (140-180 신규 없음), 180 이후 %s 상시"%("0-20" if START==0 else "10-20",X,Y,X,Y,X,Y,X,X)
         crossbow_first=START if X=="Crossbow" else 20
+    if FIRST=="s12only":
+        # S12 샷건만 판다: S12 구간은 시작 시점부터 계속 참, 석궁/R77/석궁 볼트 구간은 계속 거짓.
+        #  항상 거짓 = Trader_FeatureFlagDefinedCondition_Inverted, 항상 참 = Trader_FeatureFlagDefinedCondition (둘 다 기존 객체)
+        t=pid("Trader_FeatureFlagDefinedCondition"); f_=pid("Trader_FeatureFlagDefinedCondition_Inverted")
+        s_id={0:t,10:pid("IsCycleGreaterOrEqual10"),20:pid("IsCycleGreaterOrEqual20")}[START]
+        x_ids=[s_id,s_id,s_id]; h_ids=[f_,f_,f_]; y_ids=[f_,f_,f_]
+        sched="%s 사이클부터 S12Riot 만 계속 판매 (석궁/R77 없음)"%START
+        crossbow_first=99
     plan=[(CR(X),x_ids),(H,h_ids),(CR(Y),y_ids),
           ("Trader_MrVale_NewItemSale_R77RapidFirePistol_PrepareForSale",None)]
+    if FIRST=="s12only":
+        plan.append(("Trader_MrVale_CrossbowBolt_CycleRange",[pid("Trader_FeatureFlagDefinedCondition_Inverted")]))
     # 석궁 볼트: 석궁이 처음 팔리기 시작하는 시점부터 판다 (석궁보다 먼저 볼트만 팔리는 일이 없게). 원래는 사이클 40.
-    if crossbow_first<40:
+    if FIRST!="s12only" and crossbow_first<40:
         plan.append(("Trader_MrVale_CrossbowBolt_CycleRange",[pid("IsCycleGreaterOrEqual20" if crossbow_first>=20 else "IsCycleGreaterOrEqual10")]))
     nb=0
     for n,ids in plan:
@@ -104,6 +114,9 @@ if FIRST:
                 cv["m_conditionalObject"]["AmountOnHand"]=0; hit+=1
     assert hit==1,"R77 재고 항목을 찾지 못함"
     new=o.save_typetree(tt); assert len(new)==len(seg); raw[st:st+len(seg)]=new
-    print("미스터 베일 신규 판매 순서: 사이클 %s (R77 권총 없음) / 석궁 볼트는 사이클 %s 부터" % (sched, "40(원래)" if crossbow_first>=40 else ("20" if crossbow_first>=20 else "10")))
+    if FIRST=="s12only":
+        print("미스터 베일 신규 판매: 사이클 %d 부터 S12 라이엇(샷건)만 계속 판매, 석궁/석궁 볼트/R77 권총은 판매 안 함" % START)
+    else:
+        print("미스터 베일 신규 판매 순서: 사이클 %s (R77 권총 없음) / 석궁 볼트는 사이클 %s 부터" % (sched, ("판매 안 함" if FIRST=="s12only" else "40(원래)") if crossbow_first>=40 else ("20" if crossbow_first>=20 else "10")))
 r=EndianBinaryReader(bytes(raw)); r.flags=flags; bundle.files[name]=r
 open(OUT,"wb").write(bundle.save(packer="lz4"))

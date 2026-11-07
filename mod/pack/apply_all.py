@@ -16,7 +16,7 @@
   --no-shuffle    지도 위치는 섞지 않고 탐색 반경만 넓힌다
   --restore       모든 수정을 되돌린다 (백업으로 복원)
   --vale-start 0  미스터 베일의 첫 신규 품목(석궁/샷건)이 열리는 시점 (0=게임 시작부터, 10, 20=원래)
-  --vale random   미스터 베일 신규 판매 품목 순서 (random=첫 품목 석궁/샷건 50:50 후 번갈아, crossbow / s12riot=첫 품목 지정, none=건드리지 않음). R77 권총은 안 나옴
+  --vale random   미스터 베일 신규 판매 품목 순서 (random=첫 품목 석궁/샷건 50:50 후 번갈아, crossbow / s12riot=첫 품목 지정, s12only=샷건 S12 만 계속 판매(석궁/볼트 없음), none=건드리지 않음). R77 권총은 안 나옴
   --ammo 5 --inv 24 --corpse 24 --radius 1.5 --slots 2   수치 바꾸기
 적용 내용: 총알 산출량 x배수, 생존자 가방 칸 수, 지도 스테이션 시작 슬롯, 시체 회수 칸 수, 탐색 반경, 미스터 베일 신규 판매 품목 순서(석궁/샷건 번갈아), (선택) 지도 위치 섞기.
 백업은 <AssetBundles>/_mods_backup 에 한 번만 만들고, 항상 거기서 다시 계산하므로 여러 번 실행해도 배수가 쌓이지 않는다.
@@ -94,7 +94,7 @@ def main():
     ap.add_argument("--romance-all", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
-    ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "none"])
+    ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "s12only", "none"])
     a = ap.parse_args()
     if not a.folder:
         sys.exit(__doc__)
