@@ -1,5 +1,5 @@
 """data_balancing: 어둠의 심연(Heart of Darkness) 단서를 게임 시작부터 얻은 상태로 만든다 (시도).
-사용: python patch_hod.py <data_balancing 파일> <data_config 파일> <출력 파일>
+사용: python patch_hod.py <data_balancing 파일> <data_config 파일> <출력 파일> [hod] [spillzone]   (기본 hod)
  - 어둠의 심연의 기존 '지식 얻기' 동작 3개(HoD_Leads_Unlock_Attempt_01/02, HoD_Leads_Unlocked)가 가리키는 지식을
    HoD_Lead_01, 02, 03 (단서 3개)으로 바꾼다. (같은 크기 포인터 교체)
  - 은신처 이벤트 두 개(Opening_Hellhole_ShelterEventData, Onboarding_01_Phases_ShelterEventData; 둘 다 매 사이클 앞부분에 조건이 약하고
@@ -33,8 +33,19 @@ def _fr(cls, assets_file, reader):
 _ORcls.from_reader = classmethod(_fr)
 
 SRC, CFG, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
-LEADS = ["HoD_Lead_01", "HoD_Lead_02", "HoD_Lead_03"]
-ACTIONS = ["HoD_Leads_Unlock_Attempt_01_AcquireSharedKnowledgeAction", "HoD_Leads_Unlock_Attempt_02_AcquireSharedKnowledgeAction", "HoD_Leads_Unlocked_AcquireSharedKnowledgeAction"]
+PLANS = sys.argv[4:] or ["hod"]
+PLAN_DEF = {
+    "hod": (["HoD_Lead_01", "HoD_Lead_02", "HoD_Lead_03"],
+            ["HoD_Leads_Unlock_Attempt_01_AcquireSharedKnowledgeAction", "HoD_Leads_Unlock_Attempt_02_AcquireSharedKnowledgeAction", "HoD_Leads_Unlocked_AcquireSharedKnowledgeAction"]),
+    # 유출구역: 해금 시도 4~6 단계의 '지식 얻기' 동작 세 개를 단서 01~03 지급용으로 재지정 (해금 시도 장치는 단서를 직접 주므로 필요 없어짐)
+    "spillzone": (["Spillzone_Lead_01", "Spillzone_Lead_02", "Spillzone_Lead_03"],
+                  ["Spillzone_Leads_Unlock_Attempt_04_AcquireSharedKnowledgeAction", "Spillzone_Leads_Unlock_Attempt_05_AcquireSharedKnowledgeAction", "Spillzone_Leads_Unlock_Attempt_06_AcquireSharedKnowledgeAction"]),
+}
+for p_ in PLANS:
+    if p_ not in PLAN_DEF:
+        sys.exit("알 수 없는 계획: %s" % p_)
+LEADS = [x for p_ in PLANS for x in PLAN_DEF[p_][0]]
+ACTIONS = [x for p_ in PLANS for x in PLAN_DEF[p_][1]]
 EVENTS = ["Opening_Hellhole_ShelterEventData", "Onboarding_01_Phases_ShelterEventData"]
 
 cfg_ids = {}
@@ -123,4 +134,4 @@ r_ = EndianBinaryReader(bytes(out))
 r_.flags = sf.flags
 bundle.files[name] = r_
 open(OUT, "wb").write(bundle.save(packer="lz4"))
-print("어둠의 심연 단서 3개를 시작부터 지급 (시도, 게임 내 동작 미확인): 이벤트 %d개 크기 증가" % len(EVENTS))
+print("%s 단서 3개씩을 시작부터 지급 (시도, 게임 내 동작 미확인): 이벤트 %d개 크기 증가" % ("/".join({"hod": "어둠의 심연", "spillzone": "유출구역"}[p_] for p_ in PLANS), len(EVENTS)))
