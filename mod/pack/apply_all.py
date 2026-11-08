@@ -9,7 +9,6 @@
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식, 시도. 게임 내 동작 미확인)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 (시도. 게임 내 동작 미확인)
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
-  --no-threat-growth 시간이 지나도 지도 장소의 위협(해골 표시)이 오르지 않게 한다 (사이클 20/40/60/80 의 출현 난이도 증가를 없앰. 모든 장소에 적용)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
   --romance-all   연애의 모든 제한을 푼다 (정확히 2명일 때. --romance 와 같이 쓰면 2명 이상) (가족/나이대/연애 중/호환성 6종/관계 단계 + 성공 확률 구성 값 최대)
   --move-posts    교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 들어가게 한다 (지도 섞기를 켠 경우에만, 반경은 모두 동일)
@@ -89,7 +88,6 @@ def main():
     ap.add_argument("--shuffle-shelters", action="store_true")
     ap.add_argument("--posts-min", type=int, default=2)
     ap.add_argument("--zombie", action="store_true")
-    ap.add_argument("--no-threat-growth", action="store_true")
     ap.add_argument("--june-lockpick", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
@@ -208,10 +206,6 @@ def main():
             out_bal7 = os.path.join(stage, "data_balancing.out")
             print(run("patch_june.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal7).strip())
             os.replace(out_bal7, os.path.join(stage, "data_balancing"))
-        if a.no_threat_growth:
-            out_bal8 = os.path.join(stage, "data_balancing.out")
-            print(run("patch_threat.py", os.path.join(stage, "data_balancing"), out_bal8).strip())
-            os.replace(out_bal8, os.path.join(stage, "data_balancing"))
         if a.hod_start or a.spillzone_start:
             out_bal5 = os.path.join(stage, "data_balancing.out")
             plans_ = (["hod"] if a.hod_start else []) + (["spillzone"] if a.spillzone_start else [])
