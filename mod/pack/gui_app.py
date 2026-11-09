@@ -32,9 +32,6 @@ class App:
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
         self.var_seed = tk.StringVar(value="")
-        self.var_posts = tk.BooleanVar(value=self.opts.get("gui_posts", True))
-        self.var_shelters = tk.BooleanVar(value=self.opts.get("gui_shelters", True))
-        self.var_spill = tk.BooleanVar(value=self.opts.get("gui_spill", True))
         self.status = tk.StringVar(value="준비되었습니다.")
         self.seed_shown = tk.StringVar(value="")
         self._style()
@@ -88,11 +85,9 @@ class App:
         ttk.Button(row, text="찾아보기", style="Small.TButton", command=self._browse).pack(side="left", padx=(8, 0))
         ttk.Label(c1, text="자동으로 찾지 못하면 '찾아보기'로 ...\\StreamingAssets\\AssetBundles 폴더를 골라 주세요.", style="Muted.TLabel").pack(anchor="w", pady=(6, 0))
 
-        c2 = self._card(outer, "적용 내용")
-        ttk.Label(c2, text="항상 적용: 지도 건물 위치 랜덤 섞기 (페어윈드 비행장 포함) + 탐색 반경 x1.5", style="Card.TLabel").pack(anchor="w", pady=(0, 6))
-        ttk.Checkbutton(c2, text="교역소 5곳을 지도 중앙부로 이동 (모든 거점의 원 안에 교역소가 1곳 이상)", variable=self.var_posts).pack(anchor="w", pady=2)
-        ttk.Checkbutton(c2, text="거점(은신처) 위치 섞기 (메사냉방과 치프웨이즈 운영 센터는 제자리)", variable=self.var_shelters).pack(anchor="w", pady=2)
-        ttk.Checkbutton(c2, text="유출구역 세트(치프웨이즈 계열 5곳)를 배치 그대로 통째로 다른 곳으로 이동", variable=self.var_spill).pack(anchor="w", pady=2)
+        c2 = self._card(outer, "적용 내용 (고정)")
+        for t in ("지도 건물 위치 랜덤 섞기 (페어윈드 비행장 포함)", "교역소 5곳을 지도 중앙부로 이동", "거점(은신처) 위치 섞기 (메사냉방, 치프웨이즈 운영 센터는 제자리)", "유출구역 세트(치프웨이즈 계열 5곳)를 배치 그대로 통째로 이동", "탐색 반경 x1.5"):
+            ttk.Label(c2, text="  \u2022 " + t, style="Card.TLabel").pack(anchor="w", pady=1)
 
         c3 = self._card(outer, "지도 번호 (시드)")
         row3 = ttk.Frame(c3, style="Card.TFrame")
@@ -147,8 +142,7 @@ class App:
         return ab
 
     def _save(self):
-        self.opts.update({"gui_ab": self.var_ab.get().strip(), "gui_posts": self.var_posts.get(),
-                          "gui_shelters": self.var_shelters.get(), "gui_spill": self.var_spill.get()})
+        self.opts.update({"gui_ab": self.var_ab.get().strip()})
         launcher.save_opts(self.opts)
 
     def _set_busy(self, b):
@@ -175,12 +169,7 @@ class App:
         args = ["--only-map"]
         if seed:
             args += ["--seed", seed]
-        if self.var_posts.get():
-            args.append("--move-posts")
-        if self.var_shelters.get():
-            args.append("--shuffle-shelters")
-        if self.var_spill.get():
-            args.append("--move-spillzone")
+        args += ["--move-posts", "--shuffle-shelters", "--move-spillzone"]
         self._save()
         self._run(ab, args, "적용")
 
