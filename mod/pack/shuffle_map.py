@@ -441,24 +441,6 @@ def main():
             hosts = sorted((v for v in K if is_tel(v) and inC(v) and v != L), key=lambda v: dpos(v, L))
             new_lists[hosts[0]].append(L)
             added += 1
-    # 스토리 전용 장소(유출구역 세트의 운송 차고)가 원본에서 어느 목록(서티식스 바 거점)에 들어 있던 경우,
-    # 위치가 바뀐 뒤에도 어딘가의 시작 해금/망원경 목록에서 나올 수 있게 한다: 원래 목록에서 빼고, 그 장소를 반경 안에 둔 가장 가까운 거점의 목록에 넣는다.
-    entry_story = []
-    for g, v in old_lists.items():
-        if g in story:
-            continue
-        for k in v:
-            if k in story and k in newpos:
-                entry_story.append(k)
-                if g in new_lists and k in new_lists[g]:
-                    new_lists[g].remove(k)
-    for k in dict.fromkeys(entry_story):
-        hosts = sorted((S for S in shelters if S in new_lists and new_lists[S]), key=lambda S: dpos(S, k))
-        inr = [S for S in hosts if dpos(S, k) <= shelters[S]["data"]["m_scavengeRadius"]]
-        if hosts:
-            H_ = (inr or hosts)[0]
-            new_lists[H_].append(k)
-            print("유출구역 입구 장소 %s: 가장 가까운 거점(%s)의 시작 해금 목록에 넣었습니다 (거리 %.0f, 반경 안: %s)." % (names.get(k, "?"), names.get(H_, "?"), dpos(H_, k), "예" if inr else "아니오"))
     for g, v in new_lists.items():
         vps[g][:] = [mkguid(k) for k in v]
     for g in fake_hosts:
