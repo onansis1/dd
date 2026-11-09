@@ -184,6 +184,7 @@ class App:
         self._shadow_text(cv, 24, Y + 274, "", "#d9d4c4", 10, bold=False, var=self.status)
         self.prog = ttk.Progressbar(cv, mode="indeterminate", style="Blood.Horizontal.TProgressbar")
         self._prog_item = cv.create_window(24, Y + 300, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
+        self._shadow_text(cv, W - 16, self.H - 18, "Made by 줿", "#b9b39d", 9, anchor="e")
         self._cv = cv
         self.log = None
 
