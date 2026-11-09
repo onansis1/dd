@@ -274,6 +274,17 @@ def main():
         solid_pts = [allpos[g] for g in shelters if g not in cluster] + [allpos[g] for g in locs if g in fixed and g not in cluster] + [allpos[g] for g in post_gs]
         solid_pts += list(post_target.values())
 
+    # 유출구역 입구: 원본에서 세트 밖의 어느 목록(서티식스 바 거점의 망원경/시작 목록)에 들어 있는 세트 장소는, 그 전용 목록 그대로 둔다.
+    # 옮겨진 뒤에도 그 거점의 반경 안에 있어야 갈 수 있으므로, 배치를 고를 때 이 조건을 만족하는 배치만 받는다.
+    entry_pairs = []
+    if cluster:
+        for h_, r_ in {**locs, **shelters}.items():
+            if h_ in cluster:
+                continue
+            for x_ in (r_["data"].get("m_vantagePointObservableLocations") or []):
+                if gid(x_) in cluster:
+                    entry_pairs.append((h_, gid(x_)))
+
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
@@ -346,6 +357,11 @@ def main():
                 if n < MIN_REACH:
                     ok = False
                     break
+            if ok and cluster:
+                for h_, k_ in entry_pairs:
+                    if h_ in shelters and math.hypot(newpos[h_][0] - newpos[k_][0], newpos[h_][1] - newpos[k_][1]) > shelters[h_]["data"]["m_scavengeRadius"]:
+                        ok = False
+                        break
             if ok:
                 break
         else:
@@ -441,24 +457,11 @@ def main():
             hosts = sorted((v for v in K if is_tel(v) and inC(v) and v != L), key=lambda v: dpos(v, L))
             new_lists[hosts[0]].append(L)
             added += 1
-    # 스토리 전용 장소(유출구역 세트의 운송 차고)가 원본에서 어느 목록(서티식스 바 거점)에 들어 있던 경우,
-    # 위치가 바뀐 뒤에도 어딘가의 시작 해금/망원경 목록에서 나올 수 있게 한다: 원래 목록에서 빼고, 그 장소를 반경 안에 둔 가장 가까운 거점의 목록에 넣는다.
-    entry_story = []
-    for g, v in old_lists.items():
-        if g in story:
-            continue
-        for k in v:
-            if k in story and k in newpos:
-                entry_story.append(k)
-                if g in new_lists and k in new_lists[g]:
-                    new_lists[g].remove(k)
-    for k in dict.fromkeys(entry_story):
-        hosts = sorted((S for S in shelters if S in new_lists and new_lists[S]), key=lambda S: dpos(S, k))
-        inr = [S for S in hosts if dpos(S, k) <= shelters[S]["data"]["m_scavengeRadius"]]
-        if hosts:
-            H_ = (inr or hosts)[0]
-            new_lists[H_].append(k)
-            print("유출구역 입구 장소 %s: 가장 가까운 거점(%s)의 시작 해금 목록에 넣었습니다 (거리 %.0f, 반경 안: %s)." % (names.get(k, "?"), names.get(H_, "?"), dpos(H_, k), "예" if inr else "아니오"))
+    # 유출구역 입구(운송 차고)는 원본의 전용 목록(그 거점)에 그대로 둔다. 거점 목록 재구성에서 빠졌으므로 다시 넣는다.
+    for h_, k_ in dict.fromkeys(entry_pairs):
+        if h_ in new_lists and k_ not in new_lists[h_]:
+            new_lists[h_].append(k_)
+            print("유출구역 입구 장소 %s: 원본의 전용 목록(%s)에 그대로 둡니다 (거리 %.0f, 반경 %.0f)." % (names.get(k_, "?"), names.get(h_, "?"), dpos(h_, k_), shelters[h_]["data"]["m_scavengeRadius"] if h_ in shelters else 0))
     for g, v in new_lists.items():
         vps[g][:] = [mkguid(k) for k in v]
     for g in fake_hosts:
