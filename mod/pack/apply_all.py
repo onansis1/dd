@@ -9,6 +9,7 @@
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식, 시도. 게임 내 동작 미확인)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 (시도. 게임 내 동작 미확인)
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
+  --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
@@ -95,6 +96,7 @@ def main():
     ap.add_argument("--june-lockpick", action="store_true")
     ap.add_argument("--repair-any-level", action="store_true")
     ap.add_argument("--dismantle-any-level", action="store_true")
+    ap.add_argument("--peek-standing", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
@@ -120,6 +122,11 @@ def main():
     for f in FILES:
         if not os.path.isfile(os.path.join(ab, f)):
             sys.exit("%s 를 찾을 수 없습니다: %s" % (f, os.path.join(ab, f)))
+    # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)은 절대 건드리지 않는다.
+    dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
+    use_dll = not os.path.exists(os.path.join(HERE, "edition_map.txt"))
+    if a.peek_standing and use_dll and not a.restore:
+        print(run("patch_peek.py", "check", dll).strip())     # 쓰기 전에 적용할 수 있는지 먼저 확인 (안 되면 아무것도 바꾸지 않고 중단)
     bdir = os.path.join(ab, "_mods_backup")
     mpath = os.path.join(bdir, "manifest.json")
     os.makedirs(bdir, exist_ok=True)
@@ -154,6 +161,10 @@ def main():
             man[f]["out"] = None
         json.dump(man, open(mpath, "w", encoding="utf-8"), indent=1)
         print("모든 수정을 되돌렸습니다 (원본 백업으로 복원).")
+        if use_dll:
+            out_ = run("patch_peek.py", "revert", dll).strip()
+            if out_:
+                print(out_)
         return
 
     # 2) 임시 작업 폴더에 원본을 복사해서 각 도구를 돌린다 (낡은 백업이 섞일 일이 없다)
@@ -272,6 +283,15 @@ def main():
                 sys.exit("%s 를 교체하지 못했습니다. 게임/스팀이 실행 중이면 끄고 다시 시도하세요." % f)
             man[f]["out"] = sha(os.path.join(ab, f))
         json.dump(man, open(mpath, "w", encoding="utf-8"), indent=1)
+        if use_dll:
+            # 항상 '원본에서 다시 계산'하는 규칙을 실행 파일에도 적용: 켰으면 적용, 껐는데 이전에 적용돼 있으면 되돌린다
+            try:
+                out_ = run("patch_peek.py", "apply" if a.peek_standing else "revert", dll).strip()
+                if out_:
+                    print(out_)
+            except SystemExit as e:
+                sys.exit("지도/데이터 수정은 적용되었지만 서서 문 엿보기(게임 실행 파일) 처리에 실패했습니다: %s\n"
+                         "GameAssembly.dll 상태를 확인하세요 (GameAssembly.dll.bak 으로 복원하거나 스팀 '게임 파일 무결성 검사')." % (e,))
         print("\n완료. 이제 스팀에서 게임을 켜고 새 게임을 시작하세요.")
         ok_done = True
     finally:
