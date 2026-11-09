@@ -42,8 +42,8 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        root.geometry("900x760" if FULL else "700x700")
-        root.minsize(640, 700)
+        root.geometry("900x760" if FULL else "560x390")
+        root.minsize(*((640, 700) if FULL else (520, 300)))
         self.opts = launcher.load_opts()
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
@@ -133,13 +133,16 @@ class App:
 
         ttk.Label(outer, textvariable=self.seed_shown, foreground=ACCENT, font=("Segoe UI", 11, "bold")).pack(anchor="w")
         ttk.Label(outer, textvariable=self.status, style="Sub.TLabel").pack(anchor="w", pady=(0, 6))
-        logf = ttk.Frame(outer)
-        logf.pack(fill="both", expand=True)
-        self.log = tk.Text(logf, height=8, bg=PANEL, fg=FG, insertbackground=FG, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
-        sb = ttk.Scrollbar(logf, command=self.log.yview)
-        self.log.configure(yscrollcommand=sb.set)
-        sb.pack(side="right", fill="y")
-        self.log.pack(side="left", fill="both", expand=True)
+        self.log = None
+        if FULL:
+            logf = ttk.Frame(outer)
+            logf.pack(fill="both", expand=True)
+            self.log = tk.Text(logf, height=8, bg=PANEL, fg=FG, insertbackground=FG, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
+            sb = ttk.Scrollbar(logf, command=self.log.yview)
+            self.log.configure(yscrollcommand=sb.set)
+            sb.pack(side="right", fill="y")
+            self.log.pack(side="left", fill="both", expand=True)
+
 
     # ------------------------------------------------------------------ 동작
     def _detect(self):
@@ -158,6 +161,8 @@ class App:
         self.status.set(msg)
 
     def _log(self, text):
+        if self.log is None:
+            return
         self.log.configure(state="normal")
         self.log.insert("end", text.rstrip("\n") + "\n")
         self.log.see("end")
@@ -255,9 +260,10 @@ class App:
     def _run(self, ab, args, label):
         self._set_busy(True)
         self.seed_shown.set("")
-        self.log.configure(state="normal")
-        self.log.delete("1.0", "end")
-        self.log.configure(state="disabled")
+        if self.log is not None:
+            self.log.configure(state="normal")
+            self.log.delete("1.0", "end")
+            self.log.configure(state="disabled")
         self._say("%s 중입니다. 1~2분 걸릴 수 있습니다..." % label)
         threading.Thread(target=self._worker, args=(ab, args, label), daemon=True).start()
 
@@ -301,7 +307,8 @@ class App:
             self._log("---- 오류 내용 (마지막 줄) ----")
             for l in lines[-14:]:
                 self._log(l)
-            messagebox.showerror("문제가 생겼습니다", "작업에 실패했습니다.\n창의 아래 내용과, exe 와 같은 폴더의 apply_all.log 를 알려 주세요.\n(게임 파일은 바뀌지 않았습니다)")
+            tail = "" if FULL else "\n\n" + "\n".join(lines[-6:])
+            messagebox.showerror("문제가 생겼습니다", "작업에 실패했습니다.\n" + ("창의 아래 내용과, " if FULL else "") + "exe 와 같은 폴더의 apply_all.log 를 알려 주세요.\n(게임 파일은 바뀌지 않았습니다)" + tail)
 
 
 def main():
