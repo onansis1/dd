@@ -30,11 +30,15 @@ OPTS = [
     ("spillzone_start", "[시도] 유출구역 단서 시작부터 보유", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
 ]
-BG = "#14181f"
-PANEL = "#1c222c"
-FG = "#e8ecf5"
-MUTED = "#8a94ab"
-ACCENT = "#ff7a45"
+BG = "#0c0e0b"          # 어두운 검정-이끼색
+PANEL = "#151911"       # 카드 배경
+EDGE = "#3b1114"        # 카드 테두리 (마른 핏빛)
+FG = "#d9d4c4"          # 뼈 색 글자
+MUTED = "#7f8a6b"       # 칙칙한 이끼색
+ACCENT = "#b3121a"      # 피
+ACCENT_HI = "#d8222c"
+TOXIC = "#9ad24a"       # 독성 녹색 (강조)
+FONT = "Malgun Gothic"
 
 
 class App:
@@ -42,8 +46,8 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        root.geometry("900x760" if FULL else "560x390")
-        root.minsize(*((640, 700) if FULL else (520, 300)))
+        root.geometry("900x820" if FULL else "580x470")
+        root.minsize(*((640, 760) if FULL else (540, 430)))
         self.opts = launcher.load_opts()
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
@@ -65,37 +69,78 @@ class App:
             st.theme_use("clam")
         except tk.TclError:
             pass
-        st.configure(".", background=BG, foreground=FG)
+        st.configure(".", background=BG, foreground=FG, font=(FONT, 10))
         st.configure("TFrame", background=BG)
         st.configure("Card.TFrame", background=PANEL)
         st.configure("TLabel", background=BG, foreground=FG)
         st.configure("Card.TLabel", background=PANEL, foreground=FG)
+        st.configure("Head.TLabel", background=PANEL, foreground=TOXIC, font=(FONT, 10, "bold"))
         st.configure("Muted.TLabel", background=PANEL, foreground=MUTED)
-        st.configure("Title.TLabel", background=BG, foreground=FG, font=("Segoe UI", 17, "bold"))
         st.configure("Sub.TLabel", background=BG, foreground=MUTED)
-        st.configure("Warn.TLabel", background=BG, foreground="#ffcf6b")
+        st.configure("Seed.TLabel", background=BG, foreground=TOXIC, font=(FONT, 11, "bold"))
         st.configure("TCheckbutton", background=PANEL, foreground=FG)
-        st.map("TCheckbutton", background=[("active", PANEL)])
-        st.configure("Go.TButton", background=ACCENT, foreground="#1a1006", font=("Segoe UI", 12, "bold"), padding=10, borderwidth=0)
-        st.map("Go.TButton", background=[("active", "#ff9468"), ("disabled", "#5a4a42")])
-        st.configure("Back.TButton", background="#2a3242", foreground=FG, font=("Segoe UI", 11), padding=10, borderwidth=0)
-        st.map("Back.TButton", background=[("active", "#3a4560"), ("disabled", "#232a37")])
-        st.configure("TCombobox", fieldbackground="#ffffff", foreground="#111111", background="#2a3242")
-        st.map("TCombobox", fieldbackground=[("readonly", "#ffffff")], foreground=[("readonly", "#111111")])
-        st.configure("Small.TButton", background="#2a3242", foreground=FG, padding=4, borderwidth=0)
-        st.map("Small.TButton", background=[("active", "#3a4560")])
+        st.map("TCheckbutton", background=[("active", PANEL)], foreground=[("active", TOXIC)])
+        st.configure("TEntry", fieldbackground="#0a0c08", foreground=FG, insertcolor=TOXIC, bordercolor=EDGE, lightcolor=EDGE, darkcolor=EDGE, padding=5)
+        st.map("TEntry", bordercolor=[("focus", ACCENT)], lightcolor=[("focus", ACCENT)], darkcolor=[("focus", ACCENT)])
+        st.configure("Go.TButton", background=ACCENT, foreground="#f4eadb", font=(FONT, 13, "bold"), padding=11, borderwidth=0, focuscolor=ACCENT)
+        st.map("Go.TButton", background=[("active", ACCENT_HI), ("disabled", "#3a1013")], foreground=[("disabled", "#7a5a5c")])
+        st.configure("Back.TButton", background="#232a1c", foreground=FG, font=(FONT, 11), padding=11, borderwidth=0, focuscolor="#232a1c")
+        st.map("Back.TButton", background=[("active", "#323c28"), ("disabled", "#171b12")], foreground=[("disabled", "#5c6650")])
+        st.configure("Small.TButton", background="#232a1c", foreground=FG, padding=5, borderwidth=0, focuscolor="#232a1c")
+        st.map("Small.TButton", background=[("active", "#323c28")])
+        st.configure("TCombobox", fieldbackground="#0a0c08", foreground=FG, background="#232a1c", arrowcolor=TOXIC, bordercolor=EDGE)
+        st.map("TCombobox", fieldbackground=[("readonly", "#0a0c08"), ("disabled", "#0a0c08")], foreground=[("readonly", FG)],
+               selectbackground=[("readonly", "#0a0c08")], selectforeground=[("readonly", FG)], background=[("active", "#323c28")])
+        self.root.option_add("*TCombobox*Listbox.background", "#0a0c08")
+        self.root.option_add("*TCombobox*Listbox.foreground", FG)
+        self.root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
+        st.configure("Blood.Horizontal.TProgressbar", troughcolor="#1a0c0e", background=ACCENT, bordercolor=BG, lightcolor=ACCENT, darkcolor=ACCENT)
 
     def _card(self, parent, title):
-        wrap = ttk.Frame(parent, style="Card.TFrame", padding=(14, 10))
-        wrap.pack(fill="x", pady=(0, 10))
-        ttk.Label(wrap, text=title, style="Card.TLabel", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 6))
+        border = tk.Frame(parent, bg=EDGE)
+        border.pack(fill="x", pady=(0, 10))
+        wrap = ttk.Frame(border, style="Card.TFrame", padding=(14, 10))
+        wrap.pack(fill="x", padx=1, pady=1)
+        ttk.Label(wrap, text=title, style="Head.TLabel").pack(anchor="w", pady=(0, 6))
         return wrap
 
+    def _header(self, parent):
+        import random
+        cv = tk.Canvas(parent, height=116, bg=BG, highlightthickness=0)
+        cv.pack(fill="x")
+        title = "지도 도구" if not FULL else "간편 도구"
+
+        def draw(_e=None):
+            cv.delete("all")
+            w = max(cv.winfo_width(), 300)
+            for i in range(0, 70, 5):                       # 위쪽으로 갈수록 붉게 번지는 안개
+                t = i / 70.0
+                col = "#%02x%02x%02x" % (int(12 + 26 * (1 - t)), int(14 + 2 * (1 - t)), int(11 + 3 * (1 - t)))
+                cv.create_rectangle(0, i, w, i + 5, fill=col, outline=col)
+            for x0 in range(-40, w, 150):                    # 할퀸 자국
+                for k in range(3):
+                    cv.create_line(x0 + 70 + k * 9, 6, x0 + 100 + k * 9, 60, fill="#2a0c0f", width=2)
+            cv.create_text(22, 36, text=title, anchor="w", fill="#3a0a0d", font=(FONT, 25, "bold"))
+            cv.create_text(20, 34, text=title, anchor="w", fill=FG, font=(FONT, 25, "bold"))
+            cv.create_text(22, 66, text="INTO THE DEAD  :  OUR DARKEST DAYS", anchor="w", fill=MUTED, font=(FONT, 9, "bold"))
+            cv.create_rectangle(0, 78, w, 84, fill="#7e0d13", outline="")   # 피 웅덩이 띠
+            cv.create_rectangle(0, 78, w, 80, fill="#a5121a", outline="")
+            rnd = random.Random(7)
+            x = 14
+            while x < w:                                    # 흘러내리는 핏방울
+                ln = rnd.choice((10, 18, 28, 40, 52, 22))
+                wd = rnd.choice((4, 5, 6))
+                cv.create_rectangle(x, 82, x + wd, 84 + ln, fill="#7e0d13", outline="")
+                cv.create_oval(x - 1, 82 + ln, x + wd + 1, 88 + ln, fill="#7e0d13", outline="")
+                x += rnd.randint(26, 64)
+        cv.bind("<Configure>", draw)
+        draw()
+        return cv
+
     def _build(self):
-        outer = ttk.Frame(self.root, padding=(18, 14))
+        self._header(self.root)
+        outer = ttk.Frame(self.root, padding=(18, 10))
         outer.pack(fill="both", expand=True)
-        ttk.Label(outer, text=("간편 도구" if FULL else "지도 도구"), style="Title.TLabel").pack(anchor="w")
-        ttk.Frame(outer, height=8).pack()
 
         c1 = self._card(outer, "게임 폴더 (AssetBundles)")
         row = ttk.Frame(c1, style="Card.TFrame")
@@ -131,13 +176,15 @@ class App:
         self.btn_back = ttk.Button(btns, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
         self.btn_back.pack(side="left", padx=(10, 0))
 
-        ttk.Label(outer, textvariable=self.seed_shown, foreground=ACCENT, font=("Segoe UI", 11, "bold")).pack(anchor="w")
+        self.prog = ttk.Progressbar(outer, mode="indeterminate", style="Blood.Horizontal.TProgressbar", length=200)
+        ttk.Label(outer, textvariable=self.seed_shown, style="Seed.TLabel").pack(anchor="w")
         ttk.Label(outer, textvariable=self.status, style="Sub.TLabel").pack(anchor="w", pady=(0, 6))
+        self.prog_pack = dict(fill="x", pady=(0, 6))
         self.log = None
         if FULL:
             logf = ttk.Frame(outer)
             logf.pack(fill="both", expand=True)
-            self.log = tk.Text(logf, height=8, bg=PANEL, fg=FG, insertbackground=FG, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
+            self.log = tk.Text(logf, height=8, bg="#0a0c08", fg=TOXIC, insertbackground=TOXIC, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
             sb = ttk.Scrollbar(logf, command=self.log.yview)
             self.log.configure(yscrollcommand=sb.set)
             sb.pack(side="right", fill="y")
@@ -189,6 +236,15 @@ class App:
         st = "disabled" if b else "normal"
         self.btn_go.configure(state=st)
         self.btn_back.configure(state=st)
+        try:
+            if b:
+                self.prog.pack(**self.prog_pack)
+                self.prog.start(12)
+            else:
+                self.prog.stop()
+                self.prog.pack_forget()
+        except Exception:
+            pass
 
     def _apply(self):
         if self.busy:
