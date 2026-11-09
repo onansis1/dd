@@ -41,6 +41,26 @@ TOXIC = "#9ad24a"       # 독성 녹색 (강조)
 FONT = "Malgun Gothic"
 
 
+def _load_font():
+    """같이 들어 있는 글꼴 파일(부산단디고딕M)을 이 프로그램에서만 쓰도록 불러온다. 실패하면 맑은 고딕 그대로."""
+    global FONT
+    path = os.path.join(launcher.HERE, "assets", "BusanDandiGothicM.ttf")
+    if not os.path.exists(path):
+        return
+    try:
+        if os.name == "nt":
+            import ctypes
+            if ctypes.windll.gdi32.AddFontResourceExW(path, 0x10, 0):    # FR_PRIVATE: 설치 없이 이 프로세스에서만
+                FONT = "BusanDandiGothicM"
+        else:
+            FONT = "BusanDandiGothicM"       # 리눅스 등: 시스템에 설치돼 있으면 쓰이고, 없으면 기본 글꼴로 대체됨
+    except Exception:
+        pass
+
+
+_load_font()
+
+
 class App:
     def __init__(self, root):
         self.root = root
