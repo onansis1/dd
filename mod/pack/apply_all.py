@@ -9,6 +9,7 @@
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식, 시도. 게임 내 동작 미확인)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 (시도. 게임 내 동작 미확인)
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
+  --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
   --romance-all   연애의 모든 제한을 푼다 (정확히 2명일 때. --romance 와 같이 쓰면 2명 이상) (가족/나이대/연애 중/호환성 6종/관계 단계 + 성공 확률 구성 값 최대)
   --move-posts    교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 들어가게 한다 (지도 섞기를 켠 경우에만, 반경은 모두 동일)
@@ -88,6 +89,7 @@ def main():
     ap.add_argument("--shuffle-shelters", action="store_true")
     ap.add_argument("--posts-min", type=int, default=2)
     ap.add_argument("--zombie", action="store_true")
+    ap.add_argument("--move-spillzone", action="store_true")
     ap.add_argument("--june-lockpick", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
@@ -238,8 +240,10 @@ def main():
                 os.environ["ITD_MOVE_POSTS"] = "1"
             if a.shuffle_shelters:
                 os.environ["ITD_SHUFFLE_SHELTERS"] = "1"
+            if a.move_spillzone:
+                os.environ["ITD_MOVE_SPILLZONE"] = "1"
             lines = run("shuffle_map.py", *args).strip().splitlines()
-            print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes", "교역소", "거점"))))
+            print("\n".join(l for l in lines if l.startswith(("시드", "스토리", "telescopes", "교역소", "거점", "유출구역"))))
             hod = [l.split() for l in lines if l.startswith("어둠의심연거점")]
             if hod and a.shuffle_shelters:
                 out_bal6 = os.path.join(stage, "data_balancing.out")

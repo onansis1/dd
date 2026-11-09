@@ -177,7 +177,7 @@ def main():
         if g in story:
             return True
         n = names.get(g, "")
-        return ("Trader" in n) or n.startswith("Midtown_FieldHospital_01") or n.startswith("Midtown_Stadium_01") or n.startswith("Midtown_Airfield") 
+        return ("Trader" in n) or n.startswith("Midtown_FieldHospital_01") or n.startswith("Midtown_Stadium_01")
     fixed = set(g for g in locs if special(g))
     movable = [g for g in locs if g not in fixed]
     if len(movable) < 6:
@@ -238,6 +238,42 @@ def main():
         else:
             print("거점 섞기: 거점 %d곳을 서로 바꿉니다 (고정: %d곳)." % (len(sh_movable), len(shelters) - len(sh_movable)))
 
+    # (선택) 유출구역 세트(치프웨이즈 계열 스토리 장소 + 치프웨이즈 운영 센터 은신처)를 상대 배치 그대로 통째로 평행이동한다.
+    #  - 환경변수 ITD_MOVE_SPILLZONE=1 일 때만 동작. 별도 난수를 쓰며, 새 자리는 지도 범위(원래 장소들의 볼록 껍질) 안이고
+    #    다른 모든 장소와 CLEAR 이상 떨어진 곳이다. 세트 안의 거리/방향이 그대로라 은신처 반경과 스토리 연쇄가 그대로 유지된다.
+    cluster = [g for g in {**locs, **shelters} if g in story and "chiefways" in names.get(g, "").lower()] if os.environ.get("ITD_MOVE_SPILLZONE") == "1" and not keep_mode else []
+    if os.environ.get("ITD_MOVE_SPILLZONE") == "1" and not keep_mode and len(cluster) < 3:
+        print("유출구역 세트 이동: 해당 장소를 %d곳만 찾아 건너뜁니다." % len(cluster))
+        cluster = []
+    CLEAR = 230.0
+    def _hull(pts):
+        pts = sorted(set(pts))
+        def cross(o, a, b): return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+        lo, up = [], []
+        for q in pts:
+            while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0: lo.pop()
+            lo.append(q)
+        for q in reversed(pts):
+            while len(up) >= 2 and cross(up[-2], up[-1], q) <= 0: up.pop()
+            up.append(q)
+        return lo[:-1] + up[:-1]
+    def _inside(poly, q):
+        sgn = None
+        for i in range(len(poly)):
+            a, b = poly[i], poly[(i + 1) % len(poly)]
+            c = (b[0]-a[0])*(q[1]-a[1]) - (b[1]-a[1])*(q[0]-a[0])
+            if c < 0: return False
+        return True
+    cl_ok = None
+    cl_t = None
+    if cluster:
+        hpoly = _hull([allpos[k] for k in allpos])
+        hxs = [q[0] for q in hpoly]; hys = [q[1] for q in hpoly]
+        ccx = sum(allpos[g][0] for g in cluster) / len(cluster)
+        ccy = sum(allpos[g][1] for g in cluster) / len(cluster)
+        solid_pts = [allpos[g] for g in shelters if g not in cluster] + [allpos[g] for g in locs if g in fixed and g not in cluster] + [allpos[g] for g in post_gs]
+        solid_pts += list(post_target.values())
+
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
@@ -246,8 +282,37 @@ def main():
         newpos = dict(allpos)
     else:
         for attempt in range(500):
-            perm = slots[:]
-            rnd.shuffle(perm)
+            cl_new, blocked = {}, set()
+            if cluster:
+                # 세트를 놓을 자리를 고른다: 지도 범위 안, 은신처/고정 장소/교역소 목표 자리와 CLEAR 이상 떨어짐,
+                # 일반 장소의 자리는 최대 len(cluster)곳까지 막을 수 있다 (그 장소들은 세트가 비운 자리로 옮겨 간다).
+                rc = random.Random(seed * 15485863 + attempt)
+                for _ in range(300):
+                    t = (rc.uniform(min(hxs), max(hxs)) - ccx, rc.uniform(min(hys), max(hys)) - ccy)
+                    if math.hypot(*t) < 900:
+                        continue
+                    newc = {g: (allpos[g][0] + t[0], allpos[g][1] + t[1]) for g in cluster}
+                    if not all(_inside(hpoly, q) for q in newc.values()):
+                        continue
+                    if min(math.hypot(q[0] - o[0], q[1] - o[1]) for q in newc.values() for o in solid_pts) < CLEAR:
+                        continue
+                    bl = {sl for sl in slots if min(math.hypot(q[0] - sl[0], q[1] - sl[1]) for q in newc.values()) < CLEAR}
+                    if len(bl) > len(cluster):
+                        continue
+                    cl_new, blocked, cl_t = newc, bl, t
+                    break
+                if not cl_new:
+                    continue
+            if cluster:
+                pool_ = [sl for sl in slots if sl not in blocked] + [allpos[g] for g in cluster]
+                req = [c for pp, c in post_target.items() if c != allpos[pp]]      # 교역소가 차지할 자리에는 반드시 일반 장소가 있어야 맞바꿀 수 있다
+                rest = [sl for sl in pool_ if sl not in req]
+                rnd.shuffle(rest)
+                perm = req + rest[:len(movable) - len(req)]
+                rnd.shuffle(perm)
+            else:
+                perm = slots[:]
+                rnd.shuffle(perm)
             if any(a == b for a, b in zip(slots, perm)):
                 continue
             newpos = dict(allpos)
@@ -268,11 +333,16 @@ def main():
                     if c != allpos[p]:
                         L = owner[c]
                         newpos[p], newpos[L] = newpos[L], newpos[p]
+            if cluster:
+                for g, q in cl_new.items():
+                    newpos[g] = q
             ok = True
             for sg, r in shelters.items():
+                if cluster and sg in cluster:
+                    continue
                 R = r["data"]["m_scavengeRadius"]
                 px, py = newpos[sg]
-                n = sum(1 for k in newpos if math.hypot(newpos[k][0] - px, newpos[k][1] - py) <= R)
+                n = sum(1 for k in newpos if k not in cluster and math.hypot(newpos[k][0] - px, newpos[k][1] - py) <= R)
                 if n < MIN_REACH:
                     ok = False
                     break
@@ -285,6 +355,11 @@ def main():
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
     for g in sh_movable:
         shelters[g]["data"]["m_position"]["x"], shelters[g]["data"]["m_position"]["y"] = newpos[g]
+    for g in cluster:
+        tgt = locs[g] if g in locs else shelters[g]
+        tgt["data"]["m_position"]["x"], tgt["data"]["m_position"]["y"] = newpos[g]
+    if cluster and cl_t:
+        print("유출구역 세트 이동: 치프웨이즈 계열 %d곳을 (%.0f, %.0f)만큼 통째로 옮겼습니다." % (len(cluster), cl_t[0], cl_t[1]))
     # 망원경 목록 재구성: 각 망원경 장소가 보여주는 개수는 유지하고 새 좌표 기준 가까운 장소로 채운다.
     # 원래 어딘가에서 보이던 장소가 어떤 목록에도 없게 되면 가장 가까운 망원경 장소에 추가해 발견 가능성을 유지한다.
     vps = {g: r["data"]["m_vantagePointObservableLocations"] for g, r in {**locs, **shelters}.items()}

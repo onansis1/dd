@@ -136,14 +136,14 @@ def main():
             if not s.isdigit(): print("숫자만 입력하세요."); return
             args += ["--seed", s]
         print("\n주의: 새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).")
-        if MAPONLY: print("\n적용 내용(고정): 지도 건물 위치 랜덤 섞기 + 교역소 중앙부 이동 + 거점 위치 섞기 + 탐색 반경 x1.5")
+        if MAPONLY: print("\n적용 내용(고정): 지도 건물 위치 랜덤 섞기 + 교역소 중앙부 이동 + 거점 위치 섞기 + 유출구역 세트 이동 + 탐색 반경 x1.5")
         else:
             print("\n적용할 항목을 고르세요. (엔터 = [ ] 안의 기본값, 기본값은 지난번에 고른 것)")
             print("!! 이 도구는 항상 원본에서 다시 계산합니다. 이번에 'n' 으로 둔 항목은, 전에 적용했더라도 원래대로 돌아갑니다.")
         o = load_opts()
         if MAPONLY:
             # 지도 전용 배포판: 선택 없이 고정 (지도 섞기 + 교역소 중앙 이동 + 거점 섞기 + 반경 x1.5)
-            o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = True
+            o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = True; o["move_spillzone"] = True
             o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
             o["trader_start"] = 10
         else:
@@ -159,6 +159,7 @@ def main():
             o["trader_start"] = int(s) if s.isdigit() and 0 <= int(s) <= 10 else o.get("trader_start", 10)
             o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
             o["shuffle_shelters"] = yn("메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
+            o["move_spillzone"] = yn("유출구역 세트(치프웨이즈 계열 5곳)를 배치 그대로 통째로 다른 곳으로 옮기기 (지도 섞기를 켠 경우에만)", o.get("move_spillzone", False))
             o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
             o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         if not MAPONLY:
@@ -175,6 +176,7 @@ def main():
         if o.get("trader_start", 10) != 10: args += ["--trader-start", str(o["trader_start"])]
         if o["move_posts"]: args += ["--move-posts"]
         if o["shuffle_shelters"]: args += ["--shuffle-shelters"]
+        if o.get("move_spillzone"): args += ["--move-spillzone"]
         if o["romance_all"]: args += ["--romance-all"]
         if o["zombie"]: args += ["--zombie"]
         if o["quiet"]: args += ["--quiet-steps"]

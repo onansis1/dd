@@ -15,7 +15,11 @@ except ImportError:
 
 if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "telescopes.json"]
+    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "telescopes.json", "gui_app.py"]
+    try:
+        import tkinter, gui_app  # noqa
+    except Exception as e:
+        print("GUI 모듈 오류:", repr(e)); sys.exit(1)
     miss = [n for n in need if not os.path.exists(os.path.join(base, n))]
     print("UnityPy", getattr(UnityPy, "__version__", "?"), "| 누락 파일:", miss or "없음")
     sys.exit(1 if miss else 0)
@@ -27,6 +31,17 @@ else:
     import multiprocessing
     multiprocessing.freeze_support()
     import launcher, preset_tool  # noqa
+    if launcher.MAPONLY:   # 지도 전용 배포판: 창 + 버튼
+        import gui_app
+        try:
+            gui_app.main()
+        except Exception as e:
+            try:
+                import tkinter.messagebox as mb
+                mb.showerror("오류", "예상치 못한 오류: %r" % (e,))
+            except Exception:
+                pass
+        sys.exit(0)
     try:
         launcher.main()
     except KeyboardInterrupt:
