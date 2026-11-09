@@ -74,8 +74,7 @@ class App:
         outer = ttk.Frame(self.root, padding=(18, 14))
         outer.pack(fill="both", expand=True)
         ttk.Label(outer, text="지도 도구", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(outer, text="지도 건물 위치를 랜덤으로 섞고, 탐색 반경을 1.5배로 넓힙니다.", style="Sub.TLabel").pack(anchor="w", pady=(0, 10))
-        ttk.Label(outer, text="새 게임을 시작하기 전에만 사용하세요. 게임과 스팀을 완전히 끈 상태에서 눌러 주세요.", style="Warn.TLabel").pack(anchor="w", pady=(0, 10))
+        ttk.Frame(outer, height=8).pack()
 
         c1 = self._card(outer, "게임 폴더 (AssetBundles)")
         row = ttk.Frame(c1, style="Card.TFrame")
@@ -83,17 +82,11 @@ class App:
         ent = ttk.Entry(row, textvariable=self.var_ab)
         ent.pack(side="left", fill="x", expand=True)
         ttk.Button(row, text="찾아보기", style="Small.TButton", command=self._browse).pack(side="left", padx=(8, 0))
-        ttk.Label(c1, text="자동으로 찾지 못하면 '찾아보기'로 ...\\StreamingAssets\\AssetBundles 폴더를 골라 주세요.", style="Muted.TLabel").pack(anchor="w", pady=(6, 0))
 
-        c2 = self._card(outer, "적용 내용 (고정)")
-        for t in ("지도 건물 위치 랜덤 섞기 (페어윈드 비행장 포함)", "교역소 5곳을 지도 중앙부로 이동", "거점(은신처) 위치 섞기 (메사냉방, 치프웨이즈 운영 센터는 제자리)", "유출구역 세트(치프웨이즈 계열 5곳)를 배치 그대로 통째로 이동", "탐색 반경 x1.5"):
-            ttk.Label(c2, text="  \u2022 " + t, style="Card.TLabel").pack(anchor="w", pady=1)
-
-        c3 = self._card(outer, "지도 번호 (시드)")
+        c3 = self._card(outer, "시드 (비우면 무작위)")
         row3 = ttk.Frame(c3, style="Card.TFrame")
         row3.pack(fill="x")
         ttk.Entry(row3, textvariable=self.var_seed, width=18).pack(side="left")
-        ttk.Label(row3, text="  비워 두면 무작위. 같은 숫자를 넣으면 같은 지도가 나옵니다.", style="Muted.TLabel").pack(side="left")
 
         btns = ttk.Frame(outer)
         btns.pack(fill="x", pady=(2, 8))
