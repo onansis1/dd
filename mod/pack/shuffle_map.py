@@ -294,32 +294,14 @@ def main():
     else:
         for attempt in range(500):
             cl_new, blocked = {}, set()
-            sh_perm = None
-            if sh_movable:
-                r3 = random.Random(seed * 104729 + attempt)
-                sh_slots = [allpos[g] for g in sh_movable]
-                sh_perm = sh_slots[:]
-                r3.shuffle(sh_perm)
             if cluster:
                 # 세트를 놓을 자리를 고른다: 지도 범위 안, 은신처/고정 장소/교역소 목표 자리와 CLEAR 이상 떨어짐,
                 # 일반 장소의 자리는 최대 len(cluster)곳까지 막을 수 있다 (그 장소들은 세트가 비운 자리로 옮겨 간다).
                 rc = random.Random(seed * 15485863 + attempt)
-                ent = None
-                for h_, k_ in entry_pairs:
-                    if h_ in shelters:
-                        hp = dict(zip(sh_movable, sh_perm)).get(h_, allpos[h_]) if sh_perm else allpos[h_]
-                        ent = (hp, k_, math.hypot(allpos[h_][0] - allpos[k_][0], allpos[h_][1] - allpos[k_][1]))
-                        break
                 for _ in range(300):
-                    if ent:
-                        # 입구 장소(운송 차고)를 그 전용 거점(서티식스 바 역할)에서 원본과 비슷한 거리(85~115%)에 둔다. 방향은 무작위.
-                        ang_ = rc.uniform(0, 2 * math.pi)
-                        rad_ = ent[2] * rc.uniform(0.85, 1.15)
-                        t = (ent[0][0] + rad_ * math.cos(ang_) - allpos[ent[1]][0], ent[0][1] + rad_ * math.sin(ang_) - allpos[ent[1]][1])
-                    else:
-                        t = (rc.uniform(min(hxs), max(hxs)) - ccx, rc.uniform(min(hys), max(hys)) - ccy)
-                        if math.hypot(*t) < 900:
-                            continue
+                    t = (rc.uniform(min(hxs), max(hxs)) - ccx, rc.uniform(min(hys), max(hys)) - ccy)
+                    if math.hypot(*t) < 900:
+                        continue
                     newc = {g: (allpos[g][0] + t[0], allpos[g][1] + t[1]) for g in cluster}
                     if not all(_inside(hpoly, q) for q in newc.values()):
                         continue
@@ -348,6 +330,10 @@ def main():
             for g, p in zip(movable, perm):
                 newpos[g] = p
             if sh_movable:
+                r3 = random.Random(seed * 104729 + attempt)
+                sh_slots = [allpos[g] for g in sh_movable]
+                sh_perm = sh_slots[:]
+                r3.shuffle(sh_perm)
                 if any(a == b for a, b in zip(sh_slots, sh_perm)):
                     continue
                 for g, p in zip(sh_movable, sh_perm):
