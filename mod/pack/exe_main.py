@@ -15,7 +15,7 @@ except ImportError:
 
 if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "telescopes.json", "gui_app.py", "assets/bg_map.png", "assets/bg_full.png", "assets/BusanDandiGothicM.ttf"]
+    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "patch_repair.py", "telescopes.json", "gui_app.py", "assets/bg_map.png", "assets/bg_full.png", "assets/BusanDandiGothicM.ttf"]
     try:
         import tkinter, gui_app  # noqa
     except Exception as e:
