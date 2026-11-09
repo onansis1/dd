@@ -43,7 +43,6 @@ jobs:
         shell: bash
         run: |
           ./dist/ItD_MapMod.exe --selftest
-          printf '\n\n\n' | ./dist/ItD_MapMod.exe | head -20
           ./dist_maponly/ItD_MapOnly.exe --selftest
           # 지도 전용판은 창 프로그램이라 메뉴 파이프 테스트는 하지 않음 (--selftest 가 tkinter 와 gui_app 가져오기를 확인)
       - uses: actions/upload-artifact@v4

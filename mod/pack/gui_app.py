@@ -14,6 +14,22 @@ from tkinter import filedialog, messagebox, ttk
 import launcher
 
 SHOW = ("시드", "교역소", "거점", "유출구역", "어둠의 심연", "탐색 반경", "스토리", "완료", "되돌렸", "실패", "오류", "문제", "원본", "백업", "게임 파일")
+FULL = not launcher.MAPONLY
+OPTS = [
+    ("map", "지도 건물 위치 랜덤 섞기", True),
+    ("move_posts", "교역소 5곳을 지도 중앙부로 이동", False),
+    ("shuffle_shelters", "거점(은신처) 위치 섞기", False),
+    ("move_spillzone", "유출구역 세트(치프웨이즈) 통째 이동", False),
+    ("bal", "총알 x5 / 가방·스테이션·시체 24칸 / 베일", False),
+    ("vale_s12only", "베일 샷건만 판매 (위 항목 켠 경우)", False),
+    ("leads", "탈출 퀘스트 조사 장소 3곳 -> 1곳", False),
+    ("romance_all", "연애 제한 모두 해제", False),
+    ("zombie", "죽은 생존자 좀비화 100%", False),
+    ("quiet", "걷기/달리기 발소리 없음", False),
+    ("hod_start", "[시도] 어둠의 심연 단서 시작부터 보유", False),
+    ("spillzone_start", "[시도] 유출구역 단서 시작부터 보유", False),
+    ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
+]
 BG = "#14181f"
 PANEL = "#1c222c"
 FG = "#e8ecf5"
@@ -26,12 +42,15 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        root.geometry("700x700")
-        root.minsize(620, 640)
+        root.geometry("900x760" if FULL else "700x700")
+        root.minsize(640, 700)
         self.opts = launcher.load_opts()
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
         self.var_seed = tk.StringVar(value="")
+        self.ov = {k: tk.BooleanVar(value=bool(self.opts.get(k, d))) for k, _l, d in OPTS}
+        self.var_vale = tk.StringVar(value=str(self.opts.get("vale_start", 20)))
+        self.var_trader = tk.StringVar(value=str(self.opts.get("trader_start", 10)))
         self.status = tk.StringVar(value="준비되었습니다.")
         self.seed_shown = tk.StringVar(value="")
         self._style()
@@ -61,6 +80,8 @@ class App:
         st.map("Go.TButton", background=[("active", "#ff9468"), ("disabled", "#5a4a42")])
         st.configure("Back.TButton", background="#2a3242", foreground=FG, font=("Segoe UI", 11), padding=10, borderwidth=0)
         st.map("Back.TButton", background=[("active", "#3a4560"), ("disabled", "#232a37")])
+        st.configure("TCombobox", fieldbackground="#ffffff", foreground="#111111", background="#2a3242")
+        st.map("TCombobox", fieldbackground=[("readonly", "#ffffff")], foreground=[("readonly", "#111111")])
         st.configure("Small.TButton", background="#2a3242", foreground=FG, padding=4, borderwidth=0)
         st.map("Small.TButton", background=[("active", "#3a4560")])
 
@@ -73,7 +94,7 @@ class App:
     def _build(self):
         outer = ttk.Frame(self.root, padding=(18, 14))
         outer.pack(fill="both", expand=True)
-        ttk.Label(outer, text="지도 도구", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(outer, text=("간편 도구" if FULL else "지도 도구"), style="Title.TLabel").pack(anchor="w")
         ttk.Frame(outer, height=8).pack()
 
         c1 = self._card(outer, "게임 폴더 (AssetBundles)")
@@ -83,14 +104,29 @@ class App:
         ent.pack(side="left", fill="x", expand=True)
         ttk.Button(row, text="찾아보기", style="Small.TButton", command=self._browse).pack(side="left", padx=(8, 0))
 
+        if FULL:
+            c2 = self._card(outer, "적용할 항목  (탐색 반경 x1.5 는 항상 적용)")
+            grid = ttk.Frame(c2, style="Card.TFrame")
+            grid.pack(fill="x")
+            for i, (k, lab, _d) in enumerate(OPTS):
+                ttk.Checkbutton(grid, text=lab, variable=self.ov[k]).grid(row=i // 2, column=i % 2, sticky="w", pady=1, padx=(0, 14))
+            sub = ttk.Frame(c2, style="Card.TFrame")
+            sub.pack(fill="x", pady=(8, 0))
+            ttk.Label(sub, text="미스터 베일 첫 석궁/샷건 시점 (0=시작부터, 20=원래)", style="Card.TLabel").grid(row=0, column=0, sticky="w")
+            ttk.Combobox(sub, textvariable=self.var_vale, values=["0", "10", "20"], width=5, state="readonly").grid(row=0, column=1, padx=8)
+            ttk.Label(sub, text="상인 첫 등장 사이클 (0=시작부터, 10=원래)", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 0))
+            ttk.Combobox(sub, textvariable=self.var_trader, values=[str(i) for i in range(11)], width=5, state="readonly").grid(row=1, column=1, padx=8, pady=(4, 0))
+
         c3 = self._card(outer, "시드 (비우면 무작위)")
         row3 = ttk.Frame(c3, style="Card.TFrame")
         row3.pack(fill="x")
         ttk.Entry(row3, textvariable=self.var_seed, width=18).pack(side="left")
 
+        if FULL:
+            ttk.Button(outer, text="프리셋 도구 (새 창)", style="Small.TButton", command=self._preset).pack(anchor="w", pady=(0, 8))
         btns = ttk.Frame(outer)
         btns.pack(fill="x", pady=(2, 8))
-        self.btn_go = ttk.Button(btns, text="새 지도 적용", style="Go.TButton", command=self._apply)
+        self.btn_go = ttk.Button(btns, text=("적용" if FULL else "새 지도 적용"), style="Go.TButton", command=self._apply)
         self.btn_go.pack(side="left", fill="x", expand=True)
         self.btn_back = ttk.Button(btns, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
         self.btn_back.pack(side="left", padx=(10, 0))
@@ -136,6 +172,11 @@ class App:
 
     def _save(self):
         self.opts.update({"gui_ab": self.var_ab.get().strip()})
+        if FULL:
+            for k, v in self.ov.items():
+                self.opts[k] = v.get()
+            self.opts["vale_start"] = int(self.var_vale.get() or 20)
+            self.opts["trader_start"] = int(self.var_trader.get() or 10)
         launcher.save_opts(self.opts)
 
     def _set_busy(self, b):
@@ -159,12 +200,44 @@ class App:
             return
         if not messagebox.askyesno("적용", "새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).\n\n지금 새 지도를 적용할까요?"):
             return
-        args = ["--only-map"]
+        if FULL:
+            args = self._full_args()
+        else:
+            args = ["--only-map", "--move-posts", "--shuffle-shelters", "--move-spillzone"]
         if seed:
             args += ["--seed", seed]
-        args += ["--move-posts", "--shuffle-shelters", "--move-spillzone"]
         self._save()
         self._run(ab, args, "적용")
+
+    def _full_args(self):
+        o = {k: v.get() for k, v in self.ov.items()}
+        vale, trader = int(self.var_vale.get() or 20), int(self.var_trader.get() or 10)
+        a = []
+        if not o["bal"]: a += ["--only-map"]
+        if not o["map"]: a += ["--no-shuffle"]
+        if o["leads"]: a += ["--leads", "1"]
+        if trader != 10: a += ["--trader-start", str(trader)]
+        for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
+                     ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick")):
+            if o[k]: a.append(f)
+        if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
+        if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]
+        return a
+
+    def _preset(self):
+        ab = self._valid_ab()
+        if not ab:
+            return
+        flags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0) if os.name == "nt" else 0
+        if launcher.FROZEN:
+            cmd = [sys.executable, "--preset-menu", ab]
+        else:
+            cmd = [sys.executable, "-c", "import sys; sys.path.insert(0, %r); import preset_tool, launcher; preset_tool.menu(sys.argv[1], launcher.game_running); launcher.pause()" % launcher.HERE, ab]
+        try:
+            subprocess.Popen(cmd, creationflags=flags)
+        except Exception as e:  # noqa: BLE001
+            messagebox.showerror("프리셋 도구", "열지 못했습니다: %r" % (e,))
 
     def _restore(self):
         if self.busy:
@@ -205,7 +278,7 @@ class App:
                 m = re.search(r"시드:\s*(\d+)", line)
                 if m:
                     seed = m.group(1)
-                if line.strip() and any(k in line for k in SHOW):
+                if line.strip() and (FULL or any(k in line for k in SHOW)):
                     self.root.after(0, self._log, line)
             rc = p.wait()
         except Exception as e:  # noqa: BLE001
@@ -216,7 +289,7 @@ class App:
     def _done(self, rc, label, seed, lines):
         self._set_busy(False)
         if rc == 0:
-            if label == "적용":
+            if label != "되돌리기":
                 self.seed_shown.set("이번 지도 번호(시드): %s   (같은 지도를 다시 만들려면 이 숫자를 입력하세요)" % seed if seed else "")
                 self._say("끝! 스팀에서 게임을 켜고 '새 게임'을 시작하세요.")
                 messagebox.showinfo("완료", "적용이 끝났습니다.\n스팀에서 게임을 켜고 '새 게임'을 시작하세요.")

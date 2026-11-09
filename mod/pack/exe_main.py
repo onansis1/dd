@@ -27,11 +27,26 @@ elif len(sys.argv) > 2 and sys.argv[1] == "--run-script":
     script = sys.argv[2]
     sys.argv = [script] + sys.argv[3:]
     runpy.run_path(script, run_name="__main__")
+elif len(sys.argv) > 2 and sys.argv[1] == "--preset-menu":
+    import launcher, preset_tool  # noqa
+    try:
+        preset_tool.menu(sys.argv[2], launcher.game_running)
+    except KeyboardInterrupt:
+        pass
+    launcher.pause()
 else:
     import multiprocessing
     multiprocessing.freeze_support()
     import launcher, preset_tool  # noqa
-    if launcher.MAPONLY:   # 지도 전용 배포판: 창 + 버튼
+    if True:   # 창 + 버튼 (지도 전용판은 고정 적용, 일반판은 항목 선택)
+        if not launcher.MAPONLY and os.name == "nt":   # 일반판은 콘솔 exe 라서 검은 창을 숨김 (프리셋 도구는 새 콘솔로 띄움)
+            try:
+                import ctypes
+                _h = ctypes.windll.kernel32.GetConsoleWindow()
+                if _h:
+                    ctypes.windll.user32.ShowWindow(_h, 0)
+            except Exception:
+                pass
         import gui_app
         try:
             gui_app.main()
