@@ -46,7 +46,8 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        self.W, self.H = (900, 830) if FULL else (580, 470)
+        self.W, self.H = (900, 960) if FULL else (580, 601)
+        self.BH = 225 if FULL else 271      # 배너(게임 이미지) 높이
         root.geometry("%dx%d" % (self.W, self.H))
         root.resizable(False, False)
         self.opts = launcher.load_opts()
@@ -117,19 +118,16 @@ class App:
             cv.create_image(0, 0, image=self._bgimg, anchor="nw")
         except Exception:
             pass
-        title = "간편 도구" if FULL else "지도 도구"
-        cv.create_text(22, 38, text=title, anchor="w", fill="#2a0508", font=(FONT, 26, "bold"))
-        cv.create_text(20, 36, text=title, anchor="w", fill="#f1e9d6", font=(FONT, 26, "bold"))
-        cv.create_text(22, 70, text="INTO THE DEAD  :  OUR DARKEST DAYS", anchor="w", fill="#b9b39d", font=(FONT, 9, "bold"))
-        cv.create_rectangle(0, 88, W, 94, fill="#7e0d13", outline="")
-        cv.create_rectangle(0, 88, W, 90, fill="#a5121a", outline="")
+        BH = self.BH
+        cv.create_rectangle(0, BH - 20, W, BH - 14, fill="#7e0d13", outline="")
+        cv.create_rectangle(0, BH - 20, W, BH - 18, fill="#a5121a", outline="")
         rnd = random.Random(7)
         x = 14
         while x < W:
             ln = rnd.choice((6, 10, 14, 18, 12))
             wd = rnd.choice((4, 5, 6))
-            cv.create_rectangle(x, 92, x + wd, 94 + ln, fill="#7e0d13", outline="")
-            cv.create_oval(x - 1, 92 + ln, x + wd + 1, 98 + ln, fill="#7e0d13", outline="")
+            cv.create_rectangle(x, BH - 16, x + wd, BH - 14 + ln, fill="#7e0d13", outline="")
+            cv.create_oval(x - 1, BH - 16 + ln, x + wd + 1, BH - 10 + ln, fill="#7e0d13", outline="")
             x += rnd.randint(26, 64)
         return cv
 
@@ -149,22 +147,23 @@ class App:
         """공유용(지도 전용): 이미지 위에 글자를 직접 쓰고 입력칸/버튼만 올린다."""
         cv = self._background()
         W = self.W
-        self._shadow_text(cv, 24, 122, "게임 폴더 (AssetBundles)", TOXIC, 10)
+        Y = self.BH
+        self._shadow_text(cv, 24, Y + 30, "게임 폴더 (AssetBundles)", TOXIC, 10)
         e1 = ttk.Entry(cv, textvariable=self.var_ab)
-        cv.create_window(24, 140, anchor="nw", window=e1, width=W - 150, height=30)
+        cv.create_window(24, Y + 48, anchor="nw", window=e1, width=W - 150, height=30)
         b1 = ttk.Button(cv, text="찾아보기", style="Small.TButton", command=self._browse)
-        cv.create_window(W - 112, 140, anchor="nw", window=b1, width=88, height=30)
-        self._shadow_text(cv, 24, 196, "시드 (비우면 무작위)", TOXIC, 10)
+        cv.create_window(W - 112, Y + 48, anchor="nw", window=b1, width=88, height=30)
+        self._shadow_text(cv, 24, Y + 104, "시드 (비우면 무작위)", TOXIC, 10)
         e2 = ttk.Entry(cv, textvariable=self.var_seed)
-        cv.create_window(24, 214, anchor="nw", window=e2, width=190, height=30)
+        cv.create_window(24, Y + 122, anchor="nw", window=e2, width=190, height=30)
         self.btn_go = ttk.Button(cv, text="새 지도 적용", style="Go.TButton", command=self._apply)
-        cv.create_window(24, 268, anchor="nw", window=self.btn_go, width=W - 220, height=48)
+        cv.create_window(24, Y + 176, anchor="nw", window=self.btn_go, width=W - 220, height=48)
         self.btn_back = ttk.Button(cv, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
-        cv.create_window(W - 184, 268, anchor="nw", window=self.btn_back, width=160, height=48)
-        self._shadow_text(cv, 24, 340, "", TOXIC, 11, var=self.seed_shown)
-        self._shadow_text(cv, 24, 366, "", "#d9d4c4", 10, bold=False, var=self.status)
+        cv.create_window(W - 184, Y + 176, anchor="nw", window=self.btn_back, width=160, height=48)
+        self._shadow_text(cv, 24, Y + 248, "", TOXIC, 11, var=self.seed_shown)
+        self._shadow_text(cv, 24, Y + 274, "", "#d9d4c4", 10, bold=False, var=self.status)
         self.prog = ttk.Progressbar(cv, mode="indeterminate", style="Blood.Horizontal.TProgressbar")
-        self._prog_item = cv.create_window(24, 392, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
+        self._prog_item = cv.create_window(24, Y + 300, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
         self._cv = cv
         self.log = None
 
@@ -173,7 +172,7 @@ class App:
             return self._build_map()
         cv = self._background()
         outer = ttk.Frame(cv, padding=(14, 8))
-        cv.create_window(18, 124, anchor="nw", window=outer, width=self.W - 36)
+        cv.create_window(18, self.BH + 8, anchor="nw", window=outer, width=self.W - 36)
 
         c1 = self._card(outer, "게임 폴더 (AssetBundles)")
         row = ttk.Frame(c1, style="Card.TFrame")

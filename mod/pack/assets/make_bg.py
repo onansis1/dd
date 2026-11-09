@@ -1,30 +1,30 @@
-"""header_src.jpg 로 GUI 배경 이미지(bg_map.png, bg_full.png)를 만든다. (개발용: python make_bg.py)"""
-from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
+"""header_src.jpg 로 GUI 배경 이미지(bg_map.png, bg_full.png)를 만든다. (개발용: python make_bg.py)
+위쪽에는 게임 대표 이미지(로고 포함)를 그대로 쓰고, 아래쪽은 입력 영역이라 어둡게 이어 붙인다."""
+from PIL import Image, ImageDraw
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 src = Image.open(os.path.join(here, "header_src.jpg")).convert("RGB")
+DARK = (12, 14, 11)
 
-def make(w, h, name, anchor_right=True, zoom=1.0):
-    s = max(w / src.width, h / src.height) * zoom
-    im = src.resize((int(src.width * s) + 1, int(src.height * s) + 1), Image.LANCZOS)
-    x0 = im.width - w if anchor_right else (im.width - w) // 2
-    im = im.crop((x0, 0, x0 + w, h)).filter(ImageFilter.GaussianBlur(1.1))
-    im = ImageEnhance.Brightness(im).enhance(0.55)
-    im = ImageEnhance.Color(im).enhance(0.8)
-    # 위쪽은 비교적 밝게, 아래쪽은 짙게 (내용이 올라가는 영역은 어둡게)
-    ov = Image.new("L", (w, h))
+def make(w, h, name, banner_h, crop_rows=None):
+    s = w / src.width
+    im = src.resize((w, round(src.height * s)), Image.LANCZOS)
+    if crop_rows:
+        y0, y1 = round(crop_rows[0] * s), round(crop_rows[1] * s)
+        im = im.crop((0, y0, w, y1))
+    im = im.resize((w, banner_h), Image.LANCZOS) if im.height != banner_h else im
+    canvas = Image.new("RGB", (w, h), DARK)
+    canvas.paste(im, (0, 0))
+    # 배너 아래쪽을 어두운 배경으로 자연스럽게 이어 붙인다
+    fade = 46
+    ov = Image.new("L", (w, h), 0)
     d = ImageDraw.Draw(ov)
-    for y in range(h):
-        d.line([(0, y), (w, y)], fill=int(255 * min(1.0, 0.0 + max(0, (y - 90)) / 260.0) * 0.78))
-    dark = Image.new("RGB", (w, h), (8, 10, 7))
-    im = Image.composite(dark, im, ov)
-    # 가장자리 어둡게
-    vg = Image.new("L", (w, h), 0)
-    vd = ImageDraw.Draw(vg)
-    vd.ellipse((-w * 0.25, -h * 0.25, w * 1.25, h * 1.25), fill=255)
-    vg = vg.filter(ImageFilter.GaussianBlur(min(w, h) * 0.12))
-    im = Image.composite(im, Image.new("RGB", (w, h), (4, 5, 4)), vg)
-    im.save(os.path.join(here, name), optimize=True)
+    for i in range(fade):
+        d.line([(0, banner_h - fade + i), (w, banner_h - fade + i)], fill=int(255 * (i / fade) ** 1.6))
+    d.rectangle((0, banner_h, w, h), fill=255)
+    canvas = Image.composite(Image.new("RGB", (w, h), DARK), canvas, ov)
+    canvas.save(os.path.join(here, name), optimize=True)
 
-make(580, 470, "bg_map.png", zoom=1.3)
-make(900, 830, "bg_full.png", zoom=1.3)
+make(580, 601, "bg_map.png", 271)
+make(900, 960, "bg_full.png", 225, crop_rows=(85, 200))
+print("banner_h map=271 full=225")
