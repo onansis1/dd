@@ -46,8 +46,9 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        root.geometry("900x820" if FULL else "580x470")
-        root.minsize(*((640, 760) if FULL else (540, 430)))
+        self.W, self.H = (900, 830) if FULL else (580, 470)
+        root.geometry("%dx%d" % (self.W, self.H))
+        root.resizable(False, False)
         self.opts = launcher.load_opts()
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
@@ -104,43 +105,75 @@ class App:
         ttk.Label(wrap, text=title, style="Head.TLabel").pack(anchor="w", pady=(0, 6))
         return wrap
 
-    def _header(self, parent):
+    def _background(self):
+        """창 전체 배경: 게임 대표 이미지(어둡게 가공한 것) + 제목 + 핏방울. 이미지가 없으면 단색."""
         import random
-        cv = tk.Canvas(parent, height=116, bg=BG, highlightthickness=0)
-        cv.pack(fill="x")
-        title = "지도 도구" if not FULL else "간편 도구"
-
-        def draw(_e=None):
-            cv.delete("all")
-            w = max(cv.winfo_width(), 300)
-            for i in range(0, 70, 5):                       # 위쪽으로 갈수록 붉게 번지는 안개
-                t = i / 70.0
-                col = "#%02x%02x%02x" % (int(12 + 26 * (1 - t)), int(14 + 2 * (1 - t)), int(11 + 3 * (1 - t)))
-                cv.create_rectangle(0, i, w, i + 5, fill=col, outline=col)
-            for x0 in range(-40, w, 150):                    # 할퀸 자국
-                for k in range(3):
-                    cv.create_line(x0 + 70 + k * 9, 6, x0 + 100 + k * 9, 60, fill="#2a0c0f", width=2)
-            cv.create_text(22, 36, text=title, anchor="w", fill="#3a0a0d", font=(FONT, 25, "bold"))
-            cv.create_text(20, 34, text=title, anchor="w", fill=FG, font=(FONT, 25, "bold"))
-            cv.create_text(22, 66, text="INTO THE DEAD  :  OUR DARKEST DAYS", anchor="w", fill=MUTED, font=(FONT, 9, "bold"))
-            cv.create_rectangle(0, 78, w, 84, fill="#7e0d13", outline="")   # 피 웅덩이 띠
-            cv.create_rectangle(0, 78, w, 80, fill="#a5121a", outline="")
-            rnd = random.Random(7)
-            x = 14
-            while x < w:                                    # 흘러내리는 핏방울
-                ln = rnd.choice((10, 18, 28, 40, 52, 22))
-                wd = rnd.choice((4, 5, 6))
-                cv.create_rectangle(x, 82, x + wd, 84 + ln, fill="#7e0d13", outline="")
-                cv.create_oval(x - 1, 82 + ln, x + wd + 1, 88 + ln, fill="#7e0d13", outline="")
-                x += rnd.randint(26, 64)
-        cv.bind("<Configure>", draw)
-        draw()
+        W, H = self.W, self.H
+        cv = tk.Canvas(self.root, width=W, height=H, bg=BG, highlightthickness=0)
+        cv.pack(fill="both", expand=True)
+        self._bgimg = None
+        try:
+            self._bgimg = tk.PhotoImage(file=os.path.join(launcher.HERE, "assets", "bg_full.png" if FULL else "bg_map.png"))
+            cv.create_image(0, 0, image=self._bgimg, anchor="nw")
+        except Exception:
+            pass
+        title = "간편 도구" if FULL else "지도 도구"
+        cv.create_text(22, 38, text=title, anchor="w", fill="#2a0508", font=(FONT, 26, "bold"))
+        cv.create_text(20, 36, text=title, anchor="w", fill="#f1e9d6", font=(FONT, 26, "bold"))
+        cv.create_text(22, 70, text="INTO THE DEAD  :  OUR DARKEST DAYS", anchor="w", fill="#b9b39d", font=(FONT, 9, "bold"))
+        cv.create_rectangle(0, 88, W, 94, fill="#7e0d13", outline="")
+        cv.create_rectangle(0, 88, W, 90, fill="#a5121a", outline="")
+        rnd = random.Random(7)
+        x = 14
+        while x < W:
+            ln = rnd.choice((6, 10, 14, 18, 12))
+            wd = rnd.choice((4, 5, 6))
+            cv.create_rectangle(x, 92, x + wd, 94 + ln, fill="#7e0d13", outline="")
+            cv.create_oval(x - 1, 92 + ln, x + wd + 1, 98 + ln, fill="#7e0d13", outline="")
+            x += rnd.randint(26, 64)
         return cv
 
+    def _shadow_text(self, cv, x, y, text="", fill=FG, size=10, bold=True, var=None, anchor="w"):
+        f = (FONT, size, "bold" if bold else "normal")
+        sh = cv.create_text(x + 1, y + 1, text=text, anchor=anchor, fill="#000000", font=f)
+        tx = cv.create_text(x, y, text=text, anchor=anchor, fill=fill, font=f)
+        if var is not None:
+            def upd(*_a):
+                cv.itemconfigure(sh, text=var.get())
+                cv.itemconfigure(tx, text=var.get())
+            var.trace_add("write", upd)
+            upd()
+        return tx
+
+    def _build_map(self):
+        """공유용(지도 전용): 이미지 위에 글자를 직접 쓰고 입력칸/버튼만 올린다."""
+        cv = self._background()
+        W = self.W
+        self._shadow_text(cv, 24, 122, "게임 폴더 (AssetBundles)", TOXIC, 10)
+        e1 = ttk.Entry(cv, textvariable=self.var_ab)
+        cv.create_window(24, 140, anchor="nw", window=e1, width=W - 150, height=30)
+        b1 = ttk.Button(cv, text="찾아보기", style="Small.TButton", command=self._browse)
+        cv.create_window(W - 112, 140, anchor="nw", window=b1, width=88, height=30)
+        self._shadow_text(cv, 24, 196, "시드 (비우면 무작위)", TOXIC, 10)
+        e2 = ttk.Entry(cv, textvariable=self.var_seed)
+        cv.create_window(24, 214, anchor="nw", window=e2, width=190, height=30)
+        self.btn_go = ttk.Button(cv, text="새 지도 적용", style="Go.TButton", command=self._apply)
+        cv.create_window(24, 268, anchor="nw", window=self.btn_go, width=W - 220, height=48)
+        self.btn_back = ttk.Button(cv, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
+        cv.create_window(W - 184, 268, anchor="nw", window=self.btn_back, width=160, height=48)
+        self._shadow_text(cv, 24, 340, "", TOXIC, 11, var=self.seed_shown)
+        self._shadow_text(cv, 24, 366, "", "#d9d4c4", 10, bold=False, var=self.status)
+        self.prog = ttk.Progressbar(cv, mode="indeterminate", style="Blood.Horizontal.TProgressbar")
+        self._prog_item = cv.create_window(24, 392, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
+        self._cv = cv
+        self.log = None
+
     def _build(self):
-        self._header(self.root)
-        outer = ttk.Frame(self.root, padding=(18, 10))
-        outer.pack(fill="both", expand=True)
+        if not FULL:
+            return self._build_map()
+        cv = self._background()
+        outer = ttk.Frame(cv, padding=(14, 8))
+        cv.create_window(18, 124, anchor="nw", window=outer, width=self.W - 36)
 
         c1 = self._card(outer, "게임 폴더 (AssetBundles)")
         row = ttk.Frame(c1, style="Card.TFrame")
@@ -184,7 +217,7 @@ class App:
         if FULL:
             logf = ttk.Frame(outer)
             logf.pack(fill="both", expand=True)
-            self.log = tk.Text(logf, height=8, bg="#0a0c08", fg=TOXIC, insertbackground=TOXIC, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
+            self.log = tk.Text(logf, height=3, bg="#0a0c08", fg=TOXIC, insertbackground=TOXIC, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
             sb = ttk.Scrollbar(logf, command=self.log.yview)
             self.log.configure(yscrollcommand=sb.set)
             sb.pack(side="right", fill="y")
@@ -238,11 +271,13 @@ class App:
         self.btn_back.configure(state=st)
         try:
             if b:
-                self.prog.pack(**self.prog_pack)
                 self.prog.start(12)
             else:
                 self.prog.stop()
-                self.prog.pack_forget()
+            if FULL:
+                self.prog.pack(**self.prog_pack) if b else self.prog.pack_forget()
+            else:
+                self._cv.itemconfigure(self._prog_item, state="normal" if b else "hidden")
         except Exception:
             pass
 
