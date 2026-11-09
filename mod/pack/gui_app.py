@@ -29,6 +29,7 @@ OPTS = [
     ("hod_start", "[시도] 어둠의 심연 단서 시작부터 보유", False),
     ("spillzone_start", "[시도] 유출구역 단서 시작부터 보유", False),
     ("repair", "정비 작업대 레벨 제한 없이 모든 무기 수리", False),
+    ("dismantle", "정비 작업대 레벨 제한 없이 모든 무기 분해", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
 ]
 BG = "#0c0e0b"          # 어두운 검정-이끼색
@@ -336,7 +337,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]

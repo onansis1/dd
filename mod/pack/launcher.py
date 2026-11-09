@@ -165,11 +165,12 @@ def main():
         if not MAPONLY:
             o["hod_start"] = yn("[시도] 어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함. 효과가 없거나 이상할 수 있음)", o.get("hod_start", False))
             o["repair"] = yn("정비 작업대 레벨 때문에 못 하던 무기 수리를 레벨 제한 없이 가능하게 하기 (수리공/건스미스 특성과 재료는 그대로 필요)", o.get("repair", False))
+            o["dismantle"] = yn("정비 작업대 레벨 때문에 못 하던 무기 분해를 레벨 제한 없이 가능하게 하기", o.get("dismantle", False))
             o["june"] = yn("스필존 스킵의 스쿱 준에게 방호복 받기: 칠리 콘 카르네 4개 -> 락픽 1개 (대사 문구는 그대로일 수 있음)", o.get("june", False))
             o["spillzone_start"] = yn("[시도] 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함)", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
-            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["spillzone_start"] = False
+            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["spillzone_start"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
@@ -185,6 +186,7 @@ def main():
         if o["spillzone_start"]: args += ["--spillzone-start"]
         if o["june"]: args += ["--june-lockpick"]
         if o.get("repair"): args += ["--repair-any-level"]
+        if o.get("dismantle"): args += ["--dismantle-any-level"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
         if o["bal"] and o.get("vale_s12only"): args += ["--vale", "s12only"]
         print("\n이번에 적용: 탐색 반경 x1.5" + (" / 지도 섞기" if o["map"] else "") + (" / 총알·가방·스테이션·시체·베일" if o["bal"] else "") + (" / 탈출 단서 1곳" if o["leads"] else "") + (" / 상인 %d사이클부터" % o["trader_start"] if o.get("trader_start", 10) != 10 else "") + (" / 교역소 중앙부로 이동" if o["move_posts"] else "") + (" / 거점 섞기" if o["shuffle_shelters"] else "") + (" / 연애 제한 해제" if o["romance_all"] else "") + (" / 좀비화 100%" if o["zombie"] else "") + (" / 발소리 없음" if o["quiet"] else "") + (" / 어둠의 심연 시작부터(시도)" if o["hod_start"] else "") + (" / 유출구역 시작부터(시도)" if o["spillzone_start"] else "") + (" / 준 방호복 락픽 1개" if o["june"] else ""))
