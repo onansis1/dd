@@ -170,6 +170,7 @@ def main():
             o["random_skills"] = yn("모든 생존자의 스킬 트리를 티어(1~4)별로 섞어서 다시 나누기 (스토리와 얽힌 티어는 고정, 같은 티어끼리만 섞음. 새 게임/새로 영입하는 생존자에게 적용, 진행 중인 세이브는 그대로)", o.get("random_skills", False))
             o["martial_h2h"] = yn("무술가/프로레슬러 특성(하오/이사야의 원래 특성)을 가진 생존자는 스킬 트리 4티어에 맨손격투 전문가(맨손 스텔스 처형)가 반드시 오게 하기 (스킬 트리 섞기와 같이 쓰면 섞은 뒤에 맞춤)", o.get("martial_h2h", False))
             o["ammo_levels"] = yn("무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 하기 (재료와 작업 시간은 그대로)", o.get("ammo_levels", False))
+            o["unarmed_sound"] = yn("[효과음 번들 수정] 맨손 스텔스 처형(기본 맨손/무술/브루탈)의 효과음이 허드슨/하오/이사야뿐 아니라 모든 생존자에게 나게 하기 (효과음 번들 data_visual 약 530MB를 다시 써서 백업/적용에 시간이 걸림. 목소리는 처형하는 생존자 자신의 것으로 나는 것으로 보이지만 게임에서 확인하지 못함. 이 게임 빌드 전용)", o.get("unarmed_sound", False))
             o["peek"] = yn("[게임 실행 파일 수정] 서 있는 상태에서도 문 엿보기 (이 게임 빌드 전용. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("peek", False))
             o["keep_cleared"] = yn("[게임 실행 파일 수정] 소탕한 거점(이사 가능한 거점)이 날짜가 지나도 다시 언데드로 채워지지 않게 하기 (이 게임 빌드 전용. 소탕한 거점에서는 이후 생기는 스토리 NPC가 안 나올 수 있음. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("keep_cleared", False))
             o["lock_notes"] = yn("맵 정보의 장소 설명 끝에 락픽/볼트 절단기 필요 개수 적기 (방문 전 장소도 표시. 서랍/로커 + 열쇠가 필요한 문 기준, 지식으로 여는 문 제외. 장소 이름 글자 파일 loc.* 수정, 백업 생성)", o.get("lock_notes", False))
@@ -177,7 +178,7 @@ def main():
             o["spillzone_start"] = yn("[시도] 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함)", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
-            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["keep_cleared"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
+            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["unarmed_sound"] = False; o["keep_cleared"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
@@ -198,6 +199,7 @@ def main():
         if o.get("random_traits"): args += ["--random-traits"]
         if o.get("random_skills"): args += ["--random-skills"]
         if o.get("martial_h2h"): args += ["--martial-h2h"]
+        if o.get("unarmed_sound"): args += ["--unarmed-sound"]
         if o.get("peek"): args += ["--peek-standing"]
         if o.get("keep_cleared"): args += ["--keep-cleared"]
         if o.get("lock_notes"): args += ["--lock-notes"]

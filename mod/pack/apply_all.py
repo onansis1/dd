@@ -12,6 +12,7 @@
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
+  --unarmed-sound 맨손 스텔스 처형(기본 맨손/무술/브루탈) 효과음이 허드슨/하오/이사야만이 아니라 모든 생존자에게 나게 한다 (data_visual 번들 수정, 일반판만. 목소리는 처형하는 생존자 자신의 것)
   --keep-cleared  소탕(털기)한 거점(쉘터)이 날짜/난이도 단계가 올라도 다시 언데드로 채워지지 않게 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --random-traits 모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나눔 (스토리와 얽힌 특성 12칸은 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --random-skills 모든 생존자의 스킬 트리를 티어(레벨)별로 섞어서 다시 나눔 (스토리와 얽힌 티어는 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
@@ -105,6 +106,7 @@ def main():
     ap.add_argument("--ammo-all-levels", action="store_true")
     ap.add_argument("--peek-standing", action="store_true")
     ap.add_argument("--keep-cleared", action="store_true")
+    ap.add_argument("--unarmed-sound", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
     ap.add_argument("--random-skills", action="store_true")
     ap.add_argument("--martial-h2h", action="store_true")
@@ -154,6 +156,13 @@ def main():
         files += LOCF
     elif a.lock_notes:
         sys.exit("장소 설명 문구(--lock-notes)는 일반판에서만 쓸 수 있고, loc.korean/loc.english 가 필요합니다.")
+    # 효과음 번들(data_visual, 약 530MB)도 '맨손 처형 효과음' 옵션을 쓰거나 예전에 썼을 때만 관리한다
+    VISF = "data_visual"
+    use_vis = use_dll and os.path.isfile(os.path.join(ab, VISF)) and (a.unarmed_sound or VISF in man)
+    if use_vis:
+        files.append(VISF)
+    elif a.unarmed_sound:
+        sys.exit("맨손 처형 효과음(--unarmed-sound)은 일반판에서만 쓸 수 있고, data_visual 이 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
     for f in files:
@@ -316,6 +325,10 @@ def main():
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         if a.lock_notes and use_loc:
             print(run("patch_lootnote.py", stage).strip())
+        if a.unarmed_sound and use_vis:
+            out_vis = os.path.join(stage, VISF + ".out")
+            print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())
+            os.replace(out_vis, os.path.join(stage, VISF))
         # 3) 결과를 설치 폴더에 반영
         for f in files:
             tmp = os.path.join(ab, f + ".tmp")
