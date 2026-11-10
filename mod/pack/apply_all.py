@@ -9,6 +9,7 @@
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식, 시도. 게임 내 동작 미확인)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 (시도. 게임 내 동작 미확인)
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
+  --no-world-threat 세계 난이도(날짜/스토리 단계) 때문에 지금 사는 거점의 최대 위협이 오르지 않게 (내가 털어서 쓰는 거점만 해당, 지도의 안 털린 장소 난이도는 그대로)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
@@ -97,6 +98,7 @@ def main():
     ap.add_argument("--repair-any-level", action="store_true")
     ap.add_argument("--dismantle-any-level", action="store_true")
     ap.add_argument("--peek-standing", action="store_true")
+    ap.add_argument("--no-world-threat", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
@@ -249,6 +251,10 @@ def main():
             out_cfg3 = os.path.join(stage, "data_config.out")
             print(run("patch_zombie.py", os.path.join(stage, "data_config"), out_cfg3).strip())
             os.replace(out_cfg3, os.path.join(stage, "data_config"))
+        if a.no_world_threat:
+            out_cfg4 = os.path.join(stage, "data_config.out")
+            print(run("patch_worldthreat.py", os.path.join(stage, "data_config"), out_cfg4).strip())
+            os.replace(out_cfg4, os.path.join(stage, "data_config"))
         if a.trader_start < 10:
             out_bal = os.path.join(stage, "data_balancing.out")
             print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal, a.trader_start).strip())
