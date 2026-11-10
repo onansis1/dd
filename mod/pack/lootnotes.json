@@ -39,11 +39,12 @@
 {
 "asset": "LowClass_Residential_01_38IrvingDrive",
 "name": "38 Irving Drive",
-"lp": 0,
+"lp": 1,
 "bc": 0,
-"tlp": 1,
+"tlp": 0,
 "tbc": 0,
-"other": 2
+"other": 0,
+"src": "위키 대조 보정(사용자 확인: 락픽 1개)"
 },
 {
 "asset": "CityCentre_PoliceStation_01_9thPrecinct",
