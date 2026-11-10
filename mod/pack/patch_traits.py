@@ -6,6 +6,7 @@
      (2) 그 생존자의 영입 데이터(RecruitmentData)가 직접 가리키는 특성
      (3) 파일럿(쿠퍼의 능력), 체프웨이즈 직원, '시나리오 모드' 전용 특성 같은 스토리 특성
    MI_/State_ 로 시작하는 것(개 애호가, 시작 경험치 등)은 건드리지 않는다.
+ - 영입 데이터나 시작 생존자 쌍에 한 번도 나오지 않는 생존자(게임에서 얻을 수 없는 사람, 예: Jett/Julie/Norman)는 섞기에서 뺀다(그들에게 특성이 가서 낭비되지 않게).
  - 참조(PathID 8바이트)만 바뀌므로 오브젝트 크기는 변하지 않는다. 이미 진행 중인 세이브의 생존자 특성은 세이브에 저장돼 있어서 바뀌지 않는다(새 게임/새로 영입하는 생존자에게 적용).
 """
 import sys, random
@@ -88,6 +89,21 @@ for objs in (bal_objs, cfg_objs):
             cg, tg = guid_of(t.get(cf) or {}), guid_of(t.get(tf) or {})
             if cg and tg:
                 story_pairs.add((cg, tg))
+# 게임에서 실제로 얻을 수 있는 생존자: 영입 데이터(RecruitmentData)나 시작 생존자 쌍(StartingSurvivorsData)에 나오는 사람만
+obtainable = set()
+for o, t, c in bal_objs:
+    if c == "RecruitmentData":
+        sg = guid_of(t.get("m_survivorGuid") or {})
+        if sg:
+            obtainable.add(sg)
+    elif c == "StartingSurvivorsData":
+        for x in t.get("m_startingSurvivors", []) or []:
+            sg = guid_of(x)
+            if sg:
+                obtainable.add(sg)
+skipped = sorted(t["m_Name"].replace("Survivor_", "") for g, (o, t) in surv.items() if g not in obtainable)
+if len(skipped) > 8:
+    sys.exit("얻을 수 있는 생존자를 제대로 찾지 못했습니다 (제외 %d명). 게임 업데이트로 구조가 바뀌었을 수 있습니다." % len(skipped))
 # (2) 영입 데이터가 가리키는 특성 (PPtr)
 recruit_refs = set()
 for o, t, c in bal_objs:
@@ -104,6 +120,8 @@ plan = {}
 for g, (o, t) in surv.items():
     lst = t["m_startingTraits"]
     plan[t["m_Name"]] = (o, t)
+    if g not in obtainable:
+        continue          # 얻을 수 없는 생존자는 건드리지 않는다 (특성이 낭비되지 않게 풀에서 뺌)
     for i, p in enumerate(lst):
         n = trait_name(p)
         if not n.startswith(("Trait+", "Trait-")):
@@ -137,6 +155,8 @@ for sign in ("+", "-"):
         changes.setdefault(name, {})[idx] = newp
 
 print("특성 섞기: 생존자 %d명 중 %d칸을 다시 나눔 (고정 %d칸)" % (len(surv), sum(len(v) for v in changes.values()), len(fixed)))
+if skipped:
+    print("섞기에서 뺀 생존자(영입/시작 데이터가 없어 게임에서 얻을 수 없음): " + ", ".join(skipped))
 print("고정된 칸: " + ", ".join("%s(%s)" % (n.replace("Survivor_", ""), tn.replace("Trait", "")) for n, tn, _w in sorted(fixed)))
 
 # 같은 크기로 적용
