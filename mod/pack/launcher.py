@@ -166,6 +166,7 @@ def main():
             o["hod_start"] = yn("[시도] 어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함. 효과가 없거나 이상할 수 있음)", o.get("hod_start", False))
             o["repair"] = yn("정비 작업대 레벨 때문에 못 하던 무기 수리를 레벨 제한 없이 가능하게 하기 (수리공/건스미스 특성과 재료는 그대로 필요)", o.get("repair", False))
             o["dismantle"] = yn("정비 작업대 레벨 때문에 못 하던 무기 분해를 레벨 제한 없이 가능하게 하기", o.get("dismantle", False))
+            o["random_traits"] = yn("모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나누기 (쿠퍼의 파일럿처럼 스토리와 얽힌 특성 12칸은 고정. 새 게임/새로 영입하는 생존자에게 적용, 진행 중인 세이브는 그대로)", o.get("random_traits", False))
             o["ammo_levels"] = yn("무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 하기 (재료와 작업 시간은 그대로)", o.get("ammo_levels", False))
             o["peek"] = yn("[게임 실행 파일 수정] 서 있는 상태에서도 문 엿보기 (이 게임 빌드 전용. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("peek", False))
             o["keep_cleared"] = yn("[게임 실행 파일 수정] 소탕한 거점(이사 가능한 거점)이 날짜가 지나도 다시 언데드로 채워지지 않게 하기 (이 게임 빌드 전용. 소탕한 거점에서는 이후 생기는 스토리 NPC가 안 나올 수 있음. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("keep_cleared", False))
@@ -174,7 +175,7 @@ def main():
             o["spillzone_start"] = yn("[시도] 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함)", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
-            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["peek"] = False; o["keep_cleared"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
+            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["peek"] = False; o["keep_cleared"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
@@ -192,6 +193,7 @@ def main():
         if o.get("repair"): args += ["--repair-any-level"]
         if o.get("dismantle"): args += ["--dismantle-any-level"]
         if o.get("ammo_levels"): args += ["--ammo-all-levels"]
+        if o.get("random_traits"): args += ["--random-traits"]
         if o.get("peek"): args += ["--peek-standing"]
         if o.get("keep_cleared"): args += ["--keep-cleared"]
         if o.get("lock_notes"): args += ["--lock-notes"]
