@@ -32,6 +32,7 @@ OPTS = [
     ("dismantle", "정비 작업대 레벨 제한 없이 모든 무기 분해", False),
     ("ammo_levels", "무기 작업대 1레벨부터 모든 총알 제작", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
+    ("keep_cleared", "소탕한 거점 다시 안 차게 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
     ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
 ]
@@ -71,7 +72,7 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        self.W, self.H = (900, 990) if FULL else (580, 601)
+        self.W, self.H = (900, 1010) if FULL else (580, 601)
         self.BH = 225 if FULL else 271      # 배너(게임 이미지) 높이
         root.geometry("%dx%d" % (self.W, self.H))
         root.resizable(False, False)
@@ -212,7 +213,7 @@ class App:
             grid = ttk.Frame(c2, style="Card.TFrame")
             grid.pack(fill="x")
             for i, (k, lab, _d) in enumerate(OPTS):
-                ttk.Checkbutton(grid, text=lab, variable=self.ov[k]).grid(row=i // 2, column=i % 2, sticky="w", pady=1, padx=(0, 14))
+                ttk.Checkbutton(grid, text=lab, variable=self.ov[k]).grid(row=i // 2, column=i % 2, sticky="w", pady=0, padx=(0, 14))
             sub = ttk.Frame(c2, style="Card.TFrame")
             sub.pack(fill="x", pady=(8, 0))
             ttk.Label(sub, text="미스터 베일 첫 석궁/샷건 시점 (0=시작부터, 20=원래)", style="Card.TLabel").grid(row=0, column=0, sticky="w")
@@ -340,7 +341,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("peek", "--peek-standing"), ("lock_notes", "--lock-notes")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("peek", "--peek-standing"), ("keep_cleared", "--keep-cleared"), ("lock_notes", "--lock-notes")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]
