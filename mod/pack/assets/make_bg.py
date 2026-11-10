@@ -26,5 +26,5 @@ def make(w, h, name, banner_h, crop_rows=None):
     canvas.save(os.path.join(here, name), optimize=True)
 
 make(580, 601, "bg_map.png", 271)
-make(900, 960, "bg_full.png", 225, crop_rows=(85, 200))
+make(900, 990, "bg_full.png", 225, crop_rows=(85, 200))
 print("banner_h map=271 full=225")

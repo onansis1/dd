@@ -31,6 +31,7 @@ OPTS = [
     ("repair", "정비 작업대 레벨 제한 없이 모든 무기 수리", False),
     ("dismantle", "정비 작업대 레벨 제한 없이 모든 무기 분해", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
+    ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
 ]
 BG = "#0c0e0b"          # 어두운 검정-이끼색
@@ -69,7 +70,7 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        self.W, self.H = (900, 960) if FULL else (580, 601)
+        self.W, self.H = (900, 990) if FULL else (580, 601)
         self.BH = 225 if FULL else 271      # 배너(게임 이미지) 높이
         root.geometry("%dx%d" % (self.W, self.H))
         root.resizable(False, False)
@@ -338,7 +339,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("peek", "--peek-standing")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("peek", "--peek-standing"), ("lock_notes", "--lock-notes")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]

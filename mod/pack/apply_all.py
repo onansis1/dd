@@ -10,6 +10,7 @@
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 (시도. 게임 내 동작 미확인)
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
+  --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
@@ -97,6 +98,7 @@ def main():
     ap.add_argument("--repair-any-level", action="store_true")
     ap.add_argument("--dismantle-any-level", action="store_true")
     ap.add_argument("--peek-standing", action="store_true")
+    ap.add_argument("--lock-notes", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
@@ -131,9 +133,17 @@ def main():
     mpath = os.path.join(bdir, "manifest.json")
     os.makedirs(bdir, exist_ok=True)
     man = json.load(open(mpath, encoding="utf-8")) if os.path.exists(mpath) else {}
+    # 로컬라이제이션 번들은 '장소 설명 문구' 옵션을 쓰거나 예전에 썼을 때만 관리한다 (공유용/옵션 안 쓰는 사용자는 이 파일을 건드리지 않음)
+    files = list(FILES)
+    LOCF = ["loc.korean", "loc.english"]
+    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or any(f in man for f in LOCF))
+    if use_loc:
+        files += LOCF
+    elif a.lock_notes:
+        sys.exit("장소 설명 문구(--lock-notes)는 일반판에서만 쓸 수 있고, loc.korean/loc.english 가 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
-    for f in FILES:
+    for f in files:
         cur_p, bak_p = os.path.join(ab, f), os.path.join(bdir, f)
         cur = sha(cur_p)
         rec = man.get(f, {})
@@ -154,7 +164,7 @@ def main():
         print("  %-15s %s" % (f, state))
 
     if a.restore:
-        for f in FILES:
+        for f in files:
             tmp = os.path.join(ab, f + ".tmp")
             shutil.copy2(os.path.join(bdir, f), tmp)
             os.replace(tmp, os.path.join(ab, f))
@@ -172,7 +182,7 @@ def main():
     KEEP_STAGE.append(stage)
     ok_done = False
     try:
-        for f in FILES:
+        for f in files:
             shutil.copy2(os.path.join(bdir, f), os.path.join(stage, f))
         # 망원경 검사 결과가 현재 장면 번들과 맞는지 (장면 번들 이름이 바뀌었으면 다시 검사)
         tj = os.path.join(HERE, "telescopes.json")
@@ -273,8 +283,10 @@ def main():
             print("안내: 교역소 이동은 지도 섞기를 켠 경우에만 동작합니다 (이번에는 건너뜀).")
         if a.posts:
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
+        if a.lock_notes and use_loc:
+            print(run("patch_lootnote.py", stage).strip())
         # 3) 결과를 설치 폴더에 반영
-        for f in FILES:
+        for f in files:
             tmp = os.path.join(ab, f + ".tmp")
             shutil.copy2(os.path.join(stage, f), tmp)
             try:

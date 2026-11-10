@@ -1,0 +1,785 @@
+[
+{
+"asset": "UpperClass_Residential_03_Shelter_14EvertonAvenue",
+"name": "14 Everton Avenue",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_Residential_01_15IndependenceBlvd",
+"name": "15 Independence Blvd",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_Residential_03_Shelter_22SpringwoodDrive",
+"name": "22 Springwood Drive",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_Residential_02_Shelter_319SchraderSt",
+"name": "319 Schrader St",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Residential_01_38IrvingDrive",
+"name": "38 Irving Drive",
+"lp": 0,
+"bc": 0,
+"tlp": 1,
+"tbc": 0,
+"other": 2
+},
+{
+"asset": "CityCentre_PoliceStation_01_9thPrecinct",
+"name": "9th Precinct Station",
+"lp": 4,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_CircuitryFactory_01_KosyaireFactory",
+"name": "Abandoned Kosyaire Factory",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Residential_04_Shelter_HoardersHouse",
+"name": "Ashby Hoarder's House",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_Diner_01_Shelter_AuntyMaesDiner",
+"name": "Aunty Mae's Truck Stop Diner",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_VideoRentalShop_01_AuteurVideo",
+"name": "Auteur Video",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_ElectronicsStore_01_Shelter_BestElectronics",
+"name": "Best Electronics",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_BookStore_01_BloomingburgBooks",
+"name": "Bloomingburg Books",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Residential_03_BottleHillRuin",
+"name": "Bottle Hill Ruin",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_ConstructionSite_01_BowenSt",
+"name": "Bowen St Construction Site",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 1
+},
+{
+"asset": "Midtown_Motel_02_BriarwoodMotel",
+"name": "Briarwood Motel",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_Junkyard_01_BucklandAutoSalvage",
+"name": "Buckland Auto Salvage",
+"lp": 1,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_CDCFieldStation_01",
+"name": "CDC Field Station",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_TraderOverpass_01_CarpenterStOverpass",
+"name": "Carpenter St Overpass",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_ConstructionSite_01_CavalierSt",
+"name": "Cavalier St Construction Site",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_AdministrativeComplex_01_Chiefways",
+"name": "Chiefways Administrative Complex",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_BoilerUnit_01_Chiefways",
+"name": "Chiefways Boiler Unit",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_DistillationTowers_01_Chiefways",
+"name": "Chiefways Distillation Towers",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_ControlRoom_01_Shelter_ChiefwaysOperationsCenter",
+"name": "Chiefways Operations Center",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_TransportDepot_01_Chiefways",
+"name": "Chiefways Transport Depot",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_ShippingContainers_01_ContainerYard3",
+"name": "Container Yard #3",
+"lp": 0,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Restaurant_02_EasternArchHouse",
+"name": "Eastern Arch House",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "UpperClass_MedicalPractice_01_ElkinsFamilyClinic",
+"name": "Elkins Family Clinic",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Airfield_01_Fairwind",
+"name": "Fairwind Airfield",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_FireStation_01_Station13",
+"name": "Fire Station No.13",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_FireStation_01_Station8",
+"name": "Fire Station No.8",
+"lp": 2,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "UpperClass_Residential_02_Shelter_FitzgeraldHouse",
+"name": "Fitzgerald House",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_TrailerPark_01_FrontierSprings",
+"name": "Frontier Springs Trailer Park",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 1
+},
+{
+"asset": "CityCentre_Arcade_01_Shelter_GalaxyZone",
+"name": "Galaxy Zone Arcade",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Barber_01_GradysBarberShop",
+"name": "Grady's Barber Shop",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_TraderCemetery_01_GreystoneGardensCemetery",
+"name": "Greystone Gardens Cemetery",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_HardwareStore_01_G&SHardware",
+"name": "Griffith & Sons Hardware",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 1
+},
+{
+"asset": "Midtown_ChineseTakeout_01_Shelter_GuangzhouWok",
+"name": "Guangzhou Wok",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_Office_01_HackettConstruction",
+"name": "Hackett Construction Inc.",
+"lp": 1,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Trailer_01_HardwicksTrailer",
+"name": "Hardwick's Trailer",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_TraderBridge_01_HarlowBridge",
+"name": "Harlow Bridge",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Church_01_HarshawPresbyterian",
+"name": "Harshaw Presbyterian",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Warehouse_01_Shelter_HighMesaCooling",
+"name": "High Mesa Cooling",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Motel_01_JaysMotel",
+"name": "Jay's Motel",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_School_01_JensenElementary",
+"name": "Jensen Elementary School",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_TraderBaseballField_01_KenburryPark",
+"name": "Kenburry Park",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_StorageUnit_01_KeylineStorage",
+"name": "Keyline Storage",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 1
+},
+{
+"asset": "CityCentre_ArtGallery_01_Shelter_KinskiFoundationGallery",
+"name": "Kinski Foundation Gallery",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_CarDealership_01_LesterBarrAutomotive",
+"name": "Lester Barr Automotive",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Daycare_01_Shelter_LilBroncos",
+"name": "Li'l Broncos Daycare",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_School_01_MercerHigh",
+"name": "Mercer High School",
+"lp": 1,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "UpperClass_Residential_01_MillwoodManor",
+"name": "Millwood Manor",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Office_01_MitchumPowellPlaza",
+"name": "Mitchum Powell Plaza",
+"lp": 2,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_BBQRestaurant_01_OlRibShack",
+"name": "Ol' Rib Shack",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Residential_02_OldBallard",
+"name": "Old Ballard",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Stadium_01_PickettStadium",
+"name": "Pickett Stadium",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "UpperClass_CarDealership_01_PioneerMotorCompany",
+"name": "Pioneer Motor Company",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_Restaurant_01_PogosGreenhaven",
+"name": "Pogo's Greenhaven",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Restaurant_01_Pogos9th",
+"name": "Pogo's on 9th",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_MusicFestival_01_QueensCountryFestival",
+"name": "Queens o' Country Festival",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Office_02_RM&KComms",
+"name": "RM&K Communications",
+"lp": 3,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_GasStation_02_RedMile",
+"name": "Red Mile Gas Station",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_ResearcherCamp_01",
+"name": "Researcher Camp",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_SubStation_01_Rodessa",
+"name": "Rodessa Substation",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 2
+},
+{
+"asset": "Midtown_FieldHospital_01_Route86",
+"name": "Route 86",
+"lp": 2,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_IceCreamParlor_01_SkipsScoops",
+"name": "Skip's Scoops",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_RecordingStudio_01_SouthernSpurRecords",
+"name": "Southern Spur Records",
+"lp": 1,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Hospital_01_StBernadette",
+"name": "St Bernadette Hospital",
+"lp": 3,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Butchers_01_Shelter_StantonSonMeats",
+"name": "Stanton & Sons Meats",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_RollerDisco_01_StarlightRink",
+"name": "Starlight Rink",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Arcade_01_StyxArcade",
+"name": "Styx Arcade",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_BeautySalon_01_SunsetShineStyle",
+"name": "Sunset Shine & Style",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "MiddleClass_SportingGoods_01_Shelter_TexasSportSupply",
+"name": "Texas Sport Supply",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_GasStation_01_TexwayGreen",
+"name": "Texway Gas Green St",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_GasStation_01_Shelter_TexwayHart",
+"name": "Texway Gas Hart St",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Bar_01_TheHitchPost",
+"name": "The Hitchpost",
+"lp": 2,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_Hotel_01_TheIndigoRose",
+"name": "The Indigo Rose",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_Pit_01_ThePit",
+"name": "The Pit",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "LowClass_Bar_01_Shelter_ThirtyOughtSixBar",
+"name": "Thirty Ought Six Bar",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_TruckCache_01_USRoute93",
+"name": "US Route 93",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 1
+},
+{
+"asset": "Midtown_RecordStore_01_Shelter_ValueRecords",
+"name": "Value Records",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_Slaughterhouse_01_VictoryMeatProcessing",
+"name": "Victory Meat Processing",
+"lp": 2,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Restaurant_01_Vivaldis",
+"name": "Vivaldi's",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "CityCentre_TraderCarpark_01_WaltonCentralParking",
+"name": "Walton Central Parking",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Industrial_WaterTreatmentPlant_01_WaltonCityWaterTreatment",
+"name": "Walton City Water Treatment",
+"lp": 0,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_PostOffice_01_WaltonPostOffice",
+"name": "Walton Post Office",
+"lp": 1,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_TaxiDepot_01_WaltonTaxi",
+"name": "Walton Taxi Depot",
+"lp": 3,
+"bc": 0,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+},
+{
+"asset": "Midtown_Laundromat_01_WashAndDry",
+"name": "Wash and Dry Laundromat",
+"lp": 0,
+"bc": 1,
+"tlp": 0,
+"tbc": 0,
+"other": 0
+}
+]
