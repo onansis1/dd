@@ -6,6 +6,7 @@
      (2) 그 생존자의 영입 데이터(RecruitmentData)가 직접 가리키는 특성
      (3) 파일럿(쿠퍼의 능력), 체프웨이즈 직원, '시나리오 모드' 전용 특성 같은 스토리 특성
    MI_/State_ 로 시작하는 것(개 애호가, 시작 경험치 등)은 건드리지 않는다.
+ - 맨손 격투 능력은 특성이 아니라 생존자에게 지정된 맨손 무기(m_innateEquipment)가 만든다: Hao 는 SurvivorUnarmedMartialArts_WeaponDefinition, Isaiah 는 SurvivorUnarmedBrutal_WeaponDefinition, 나머지는 SurvivorUnarmed_WeaponDefinition. 그래서 'Trait+MartialArtist'를 받은 생존자에게는 MartialArts 무기를, 'Trait+ProfessionalWrestler'를 받은 생존자에게는 Brutal 무기를, 둘 다 없으면 기본 맨손 무기를 같이 준다(특성과 능력이 함께 움직임).
  - 영입 데이터나 시작 생존자 쌍에 한 번도 나오지 않는 생존자(게임에서 얻을 수 없는 사람, 예: Jett/Julie/Norman)는 섞기에서 뺀다(그들에게 특성이 가서 낭비되지 않게).
  - 참조(PathID 8바이트)만 바뀌므로 오브젝트 크기는 변하지 않는다. 이미 진행 중인 세이브의 생존자 특성은 세이브에 저장돼 있어서 바뀌지 않는다(새 게임/새로 영입하는 생존자에게 적용).
 """
@@ -74,6 +75,20 @@ for o, t, c in bal_objs:
             surv[g] = (o, t)
 if len(surv) < 30:
     sys.exit("생존자 정의를 충분히 찾지 못했습니다 (%d명). 게임 업데이트로 구조가 바뀌었을 수 있습니다." % len(surv))
+
+# 맨손 무기 PPtr 모으기 (생존자 정의의 m_innateEquipment 안에 있는 것을 그대로 복사해서 쓴다)
+UNARMED = {"base": "SurvivorUnarmed_WeaponDefinition", "martial": "SurvivorUnarmedMartialArts_WeaponDefinition", "brutal": "SurvivorUnarmedBrutal_WeaponDefinition"}
+unarmed_ptr = {}
+unarmed_names = set(UNARMED.values())
+for g, (o, t) in surv.items():
+    for p in t.get("m_innateEquipment", []):
+        n = bal_name_by_id.get(p["m_PathID"]) if not p["m_FileID"] else None
+        for k, v in UNARMED.items():
+            if n == v and k not in unarmed_ptr:
+                unarmed_ptr[k] = dict(p)
+WEAPONS_OK = len(unarmed_ptr) == 3
+if not WEAPONS_OK:
+    print("주의: 맨손 무기 정의 3종을 모두 찾지 못해 무기는 옮기지 않고 특성만 섞습니다 (%s)" % sorted(unarmed_ptr))
 
 # (1) 스토리 액션/조건: (생존자 guid, 특성 guid) 쌍
 story_pairs = set()
@@ -168,18 +183,33 @@ name, sf = next(iter(sfs.items()))
 raw = bytearray(sf.reader.bytes)
 nch = 0
 summary = []
-for sname, edits in changes.items():
+weapon_moves = []
+obt_names = {t["m_Name"] for g, (o, t) in surv.items() if g in obtainable}
+for sname in sorted(plan):
     o, t = plan[sname]
+    edits = changes.get(sname, {})
     before = [trait_name(p) for p in t["m_startingTraits"]]
     for idx, newp in edits.items():
         t["m_startingTraits"][idx] = newp
     after = [trait_name(p) for p in t["m_startingTraits"]]
+    wedits = 0
+    if WEAPONS_OK and sname in obt_names:
+        pos = next((n for n in after if n.startswith("Trait+")), None)
+        want = "martial" if pos == "Trait+MartialArtist" else ("brutal" if pos == "Trait+ProfessionalWrestler" else "base")
+        for wi, p in enumerate(t["m_innateEquipment"]):
+            n = bal_name_by_id.get(p["m_PathID"]) if not p["m_FileID"] else None
+            if n in unarmed_names and n != UNARMED[want]:
+                t["m_innateEquipment"][wi] = dict(unarmed_ptr[want])
+                wedits += 1
+                weapon_moves.append((sname.replace("Survivor_", ""), n.replace("SurvivorUnarmed", "").replace("_WeaponDefinition", "") or "기본", UNARMED[want].replace("SurvivorUnarmed", "").replace("_WeaponDefinition", "") or "기본"))
+    if not edits and not wedits:
+        continue
     st = o.byte_start
     seg = bytes(raw[st:st + o.byte_size])
     nb = o.save_typetree(t)
     assert len(nb) == len(seg), "크기가 달라짐"
     d = [i for i in range(len(seg)) if seg[i] != nb[i]]
-    assert d and len(d) <= 8 * len(edits), "예상과 다른 변경 범위"
+    assert d and len(d) <= 8 * (len(edits) + wedits), "예상과 다른 변경 범위"
     raw[st:st + len(seg)] = nb
     nch += len(edits)
     summary.append((sname.replace("Survivor_", ""), [b for b in before if b.startswith("Trait")], [a for a in after if a.startswith("Trait")]))
@@ -207,6 +237,11 @@ for o in env2.objects:
         want = plan[t2["m_Name"]][1]["m_startingTraits"]
         got = t2["m_startingTraits"]
         assert [(p["m_FileID"], p["m_PathID"]) for p in got] == [(p["m_FileID"], p["m_PathID"]) for p in want], "검증 실패: " + t2["m_Name"]
+        wi_want = plan[t2["m_Name"]][1]["m_innateEquipment"]
+        wi_got = t2["m_innateEquipment"]
+        assert [(p["m_FileID"], p["m_PathID"]) for p in wi_got] == [(p["m_FileID"], p["m_PathID"]) for p in wi_want], "검증 실패(무기): " + t2["m_Name"]
 open(OUT, "wb").write(data)
+if weapon_moves:
+    print("맨손 무기 이동: " + ", ".join("%s(%s->%s)" % w for w in weapon_moves))
 for n, b, a in sorted(summary):
     print("  %-10s %s -> %s" % (n, "/".join(x.replace("Trait", "") for x in b), "/".join(x.replace("Trait", "") for x in a)))
