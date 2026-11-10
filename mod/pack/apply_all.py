@@ -14,6 +14,7 @@
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
   --keep-cleared  소탕(털기)한 거점(쉘터)이 날짜/난이도 단계가 올라도 다시 언데드로 채워지지 않게 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --random-traits 모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나눔 (스토리와 얽힌 특성 12칸은 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
+  --random-skills 모든 생존자의 스킬 트리를 티어(레벨)별로 섞어서 다시 나눔 (스토리와 얽힌 티어는 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
@@ -104,6 +105,7 @@ def main():
     ap.add_argument("--peek-standing", action="store_true")
     ap.add_argument("--keep-cleared", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
+    ap.add_argument("--random-skills", action="store_true")
     ap.add_argument("--lock-notes", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
@@ -252,13 +254,18 @@ def main():
             out_bal9 = os.path.join(stage, "data_balancing.out")
             print(run("patch_ammolevel.py", os.path.join(stage, "data_balancing"), out_bal9).strip())
             os.replace(out_bal9, os.path.join(stage, "data_balancing"))
-        if a.random_traits:
+        if a.random_traits or a.random_skills:
             import random as _rnd
             tseed = a.seed if a.seed is not None else _rnd.randrange(1, 2 ** 31)
+            print("생존자 특성/스킬 시드: %d" % tseed)
+        if a.random_traits:
             out_bal10 = os.path.join(stage, "data_balancing.out")
-            print("생존자 특성 시드: %d" % tseed)
             print(run("patch_traits.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal10, tseed).strip())
             os.replace(out_bal10, os.path.join(stage, "data_balancing"))
+        if a.random_skills:
+            out_bal11 = os.path.join(stage, "data_balancing.out")
+            print(run("patch_skills.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal11, tseed).strip())
+            os.replace(out_bal11, os.path.join(stage, "data_balancing"))
         if a.hod_start or a.spillzone_start:
             out_bal5 = os.path.join(stage, "data_balancing.out")
             plans_ = (["hod"] if a.hod_start else []) + (["spillzone"] if a.spillzone_start else [])
