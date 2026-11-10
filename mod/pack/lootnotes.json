@@ -29,11 +29,12 @@
 {
 "asset": "MiddleClass_Residential_02_Shelter_319SchraderSt",
 "name": "319 Schrader St",
-"lp": 0,
+"lp": 1,
 "bc": 0,
 "tlp": 0,
 "tbc": 0,
-"other": 0
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "LowClass_Residential_01_38IrvingDrive",
@@ -119,11 +120,12 @@
 {
 "asset": "Midtown_ConstructionSite_01_BowenSt",
 "name": "Bowen St Construction Site",
-"lp": 1,
+"lp": 2,
 "bc": 0,
 "tlp": 0,
 "tbc": 0,
-"other": 1
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_Motel_02_BriarwoodMotel",
@@ -237,10 +239,11 @@
 "asset": "UpperClass_MedicalPractice_01_ElkinsFamilyClinic",
 "name": "Elkins Family Clinic",
 "lp": 0,
-"bc": 0,
+"bc": 1,
 "tlp": 0,
 "tbc": 0,
-"other": 0
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_Airfield_01_Fairwind",
@@ -317,11 +320,12 @@
 {
 "asset": "Midtown_HardwareStore_01_G&SHardware",
 "name": "Griffith & Sons Hardware",
-"lp": 0,
+"lp": 1,
 "bc": 0,
 "tlp": 0,
 "tbc": 0,
-"other": 1
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_ChineseTakeout_01_Shelter_GuangzhouWok",
@@ -408,10 +412,11 @@
 "asset": "Midtown_StorageUnit_01_KeylineStorage",
 "name": "Keyline Storage",
 "lp": 0,
-"bc": 0,
+"bc": 1,
 "tlp": 0,
 "tbc": 0,
-"other": 1
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "CityCentre_ArtGallery_01_Shelter_KinskiFoundationGallery",
@@ -453,10 +458,11 @@
 "asset": "UpperClass_Residential_01_MillwoodManor",
 "name": "Millwood Manor",
 "lp": 2,
-"bc": 0,
+"bc": 1,
 "tlp": 0,
 "tbc": 0,
-"other": 0
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "CityCentre_Office_01_MitchumPowellPlaza",
@@ -560,11 +566,12 @@
 {
 "asset": "Midtown_SubStation_01_Rodessa",
 "name": "Rodessa Substation",
-"lp": 0,
-"bc": 0,
+"lp": 1,
+"bc": 1,
 "tlp": 0,
 "tbc": 0,
-"other": 2
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_FieldHospital_01_Route86",
@@ -705,10 +712,11 @@
 "asset": "Midtown_TruckCache_01_USRoute93",
 "name": "US Route 93",
 "lp": 0,
-"bc": 0,
+"bc": 1,
 "tlp": 0,
 "tbc": 0,
-"other": 1
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_RecordStore_01_Shelter_ValueRecords",
@@ -767,11 +775,12 @@
 {
 "asset": "Midtown_TaxiDepot_01_WaltonTaxi",
 "name": "Walton Taxi Depot",
-"lp": 3,
+"lp": 2,
 "bc": 0,
-"tlp": 0,
+"tlp": 1,
 "tbc": 0,
-"other": 0
+"other": 0,
+"src": "위키 대조로 보정"
 },
 {
 "asset": "Midtown_Laundromat_01_WashAndDry",
