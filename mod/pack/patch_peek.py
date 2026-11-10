@@ -62,6 +62,20 @@ def sha256(path):
     return h.hexdigest().upper()
 
 
+# 맵 정보 잠금장치 표시 패치(patch_lootlock.py)가 건드리는 자리의 '원래' 바이트 (그쪽이 적용돼 있어도 원본 판정이 되게)
+LOOT_PRISTINE = [(600, '6ef9e403'), (73161584, '000000000000000000000000000000000000000000000000000000000000000000000000000000000000'), (12586706, '0f10b7b8000000'), (14815280, '74ce')]
+
+
+def pristine_sha(path):
+    with open(path, "rb") as f:
+        data = bytearray(f.read())
+    for off, hx in LOOT_PRISTINE:
+        b = bytes.fromhex(hx)
+        if off + len(b) <= len(data):
+            data[off:off + len(b)] = b
+    return hashlib.sha256(bytes(data)).hexdigest().upper()
+
+
 def _expected(k):
     pristine = {}
     for st in STEPS:
@@ -114,7 +128,7 @@ def need_dll(dll):
 
 def check_original(dll, k):
     """k==0(수정 없음)이면 이 게임 빌드의 원본이어야 한다."""
-    if k == 0 and (os.path.getsize(dll) != ORIGINAL_SIZE or sha256(dll) != ORIGINAL_SHA256):
+    if k == 0 and (os.path.getsize(dll) != ORIGINAL_SIZE or pristine_sha(dll) != ORIGINAL_SHA256):
         sys.exit("서서 문 엿보기를 적용하지 못했습니다: 이 게임 버전의 GameAssembly.dll 이 아닙니다 (게임이 업데이트되었거나 다른 도구로 바뀐 파일).\n"
                  "이 패치는 특정 게임 빌드에서만 쓸 수 있습니다. 이 항목을 끄고 다시 적용하세요.")
 
@@ -195,7 +209,7 @@ def cmd_revert(dll):
         _write(dll, st["file_off"], bytes.fromhex(st["new"]), bytes.fromhex(st["orig"]))
         if detect_k(dll) != i:
             sys.exit("중단: %s 를 되돌린 뒤 검증에 실패했습니다. GameAssembly.dll.bak 으로 복원하세요." % st["name"])
-    final = sha256(dll)
+    final = pristine_sha(dll)
     print("서서 문 엿보기를 되돌렸습니다." + ("" if final == ORIGINAL_SHA256 else " (주의: 해시가 원본과 다릅니다. GameAssembly.dll.bak 으로 복원하세요.)"))
 
 
