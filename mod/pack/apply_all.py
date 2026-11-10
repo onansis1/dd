@@ -11,6 +11,7 @@
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
+  --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
@@ -97,6 +98,7 @@ def main():
     ap.add_argument("--june-lockpick", action="store_true")
     ap.add_argument("--repair-any-level", action="store_true")
     ap.add_argument("--dismantle-any-level", action="store_true")
+    ap.add_argument("--ammo-all-levels", action="store_true")
     ap.add_argument("--peek-standing", action="store_true")
     ap.add_argument("--lock-notes", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
@@ -238,6 +240,10 @@ def main():
                 out_bal8 = os.path.join(stage, "data_balancing.out")
                 print(run("patch_repair.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal8, pre_).strip())
                 os.replace(out_bal8, os.path.join(stage, "data_balancing"))
+        if a.ammo_all_levels:
+            out_bal9 = os.path.join(stage, "data_balancing.out")
+            print(run("patch_ammolevel.py", os.path.join(stage, "data_balancing"), out_bal9).strip())
+            os.replace(out_bal9, os.path.join(stage, "data_balancing"))
         if a.hod_start or a.spillzone_start:
             out_bal5 = os.path.join(stage, "data_balancing.out")
             plans_ = (["hod"] if a.hod_start else []) + (["spillzone"] if a.spillzone_start else [])
