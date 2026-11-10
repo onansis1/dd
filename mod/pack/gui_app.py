@@ -34,7 +34,7 @@ OPTS = [
     ("random_traits", "모든 생존자 시작 특성 랜덤 (스토리 특성 고정)", False),
     ("random_skills", "모든 생존자 스킬 트리 티어별 랜덤", False),
     ("martial_h2h", "무술가/프로레슬러 특성 보유자는 4티어 맨손격투 전문가 보장", False),
-    ("unarmed_sound", "맨손 스텔스 처형 효과음을 모든 생존자에게 (효과음 번들 data_visual 수정, 이 게임 빌드 전용)", False),
+    ("unarmed_sound", "맨손 처형 효과음(스텔스/킥/무릎/다운)을 모든 생존자에게 (효과음 번들 data_visual 수정, 이 게임 빌드 전용)", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
     ("keep_cleared", "소탕한 거점 다시 안 차게 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
     ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),

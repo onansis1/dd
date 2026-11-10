@@ -1,6 +1,6 @@
-"""Into the Dead: Our Darkest Days - 맨손 스텔스 처형 효과음을 하오/허드슨/이사야가 아닌 생존자도 들을 수 있게 한다 (data_visual 번들 수정).
+"""Into the Dead: Our Darkest Days - 맨손 처형 효과음(스텔스/크리티컬/다운)을 하오/허드슨/이사야가 아닌 생존자도 들을 수 있게 한다 (data_visual 번들 수정).
 사용: python patch_unarmedsound.py <data_visual 원본> <출력 파일>
- - 맨손 스텔스 처형 3종(기본 맨손/무술/브루탈)의 효과음 에셋(ConditionalCharacterAudioEvent)은 '현재 생존자가 허드슨/하오/이사야인가' 조건이 참일 때만 소리를 낸다.
+ - 맨손 스텔스 처형 3종(기본 맨손/무술/브루탈)과 무술/브루탈 무기의 크리티컬 킥/무릎, 다운 처형 5종의 효과음 에셋(ConditionalCharacterAudioEvent)은 '현재 생존자가 허드슨/하오/이사야인가' 조건이 참일 때만 소리를 낸다.
    그 조건 포인터 12바이트(fileID 2 + pathID)를 data_config 의 '항상 참' 조건(ReturnTrueCondition)을 가리키게 바꾼다. 효과음 이벤트 하나에 타격음과 목소리가 함께 들어 있고
    목소리는 생존자의 CharacterType 값으로 고르므로, 처형하는 생존자마다 자기 목소리로 난다. (게임이 처형 때 CharacterType 을 실제로 넣는지는 게임에서 확인해야 한다)
  - 같은 조건 객체를 쓰는 다른 에셋(크리티컬/다운 처형 등)은 건드리지 않으려고, 값 검색이 아니라 확인된 위치(블록 번호 + 블록 안 오프셋)만 고친다.
@@ -21,6 +21,17 @@ TARGETS = [
      bytes.fromhex("315f417564696f446174610001000000"), bytes.fromhex("a804cfdf87776542979f061095b4162a")),
     ("UnarmedBrutalStealthExecution01_AudioData (이사야)", 3028, 0x1f0, OLD_ISA,
      bytes.fromhex("417564696f4461746100000001000000"), bytes.fromhex("8e7d1e2eaeb5e04dafd642ac12db85e2")),
+    # 크리티컬/다운 처형 효과음 (무술/브루탈 무기의 킥/무릎/다운 처형)
+    ("CriticalKill_Unarmed_Knee_AudioData (이사야)", 2108, 0xe608, OLD_ISA,
+     bytes.fromhex("655f417564696f446174610001000000"), bytes.fromhex("ab8f3154e3b89b43bac4e7d404aceab1")),
+    ("CriticalKill_Unarmed_Medium_AudioData (하오)", 1159, 0x18d6c, OLD_HAO,
+     bytes.fromhex("417564696f4461746100000001000000"), bytes.fromhex("7cf98e029d0260448fddd555a430a1bf")),
+    ("CriticalKill_Unarmed_Spin_Kick_AudioData (하오)", 2203, 0x6e3c, OLD_HAO,
+     bytes.fromhex("636b5f417564696f4461746101000000"), bytes.fromhex("80c17cf33abc0a4d97e7e273f0c97c3d")),
+    ("UnarmedDownedExecution02_AudioData (하오)", 60, 0x1afa8, OLD_HAO,
+     bytes.fromhex("5f417564696f44617461000001000000"), bytes.fromhex("fffac7903b88d946a04351ae2e225260")),
+    ("UnarmedDownedExecution03_AudioData (이사야)", 1758, 0x13ca8, OLD_ISA,
+     bytes.fromhex("5f417564696f44617461000001000000"), bytes.fromhex("908d073fde94294e8aa150a24b51589a")),
 ]
 BLK = 131072
 
@@ -200,7 +211,7 @@ def patch(src, out, targets=None, log=print):
         except OSError:
             pass
         raise SystemExit("쓴 결과 검증 실패(%s). 아무것도 바꾸지 않았습니다." % (e,))
-    log("맨손 스텔스 처형 효과음 조건 %d곳을 '항상 참'으로 변경: 블록 %s 다시 압축 (파일 %d -> %d 바이트)" % (len(targets), "/".join(str(k) for k in sorted(changed)), fsize, total))
+    log("맨손 처형 효과음 조건 %d곳을 '항상 참'으로 변경: 블록 %s 다시 압축 (파일 %d -> %d 바이트)" % (len(targets), "/".join(str(k) for k in sorted(changed)), fsize, total))
 
 
 if __name__ == "__main__":
