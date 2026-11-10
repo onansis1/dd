@@ -1,5 +1,7 @@
 """data_balancing: 생존자 스킬 트리를 티어(레벨)별로 섞어서 다시 나눠준다. 스토리와 얽힌 티어는 그대로 둔다.
-사용: python patch_skills.py <data_balancing 파일> <data_config 파일> <출력 파일> [시드]
+사용: python patch_skills.py <data_balancing 파일> <data_config 파일> <출력 파일> [시드] [h2h] [noshuffle]
+   h2h = 무술가(Trait+MartialArtist)/프로레슬러(Trait+ProfessionalWrestler) 특성을 가진 생존자의 4티어에 맨손격투 전문가(Trait+HandToHandExpert)가 오도록 맞춘다 (4티어 항목을 서로 맞바꿈)
+   noshuffle = 섞지 않고(원래 스킬 트리 그대로) h2h 보정만 한다
  - 생존자마다 스킬 트리(SkillTreeData)는 4개 티어이고, 티어마다 선택지가 1~2개(m_firstChoice, m_secondChoice) 있다.
    각 티어끼리 모아서(1티어는 1티어끼리, 2티어는 2티어끼리 ...) 시드로 섞어 다시 나눠준다. 선택지가 1개인 티어는 그 구조(선택지 1개)가 그대로 따라간다.
  - 섞을 때, 그 생존자가 이미 가진 시작 특성(Trait+/Trait-)이나 같은 트리의 다른 티어와 겹치는 선택지가 가능한 한 적게 가도록 여러 번 시도해서 가장 좋은 것을 고른다.
@@ -22,7 +24,10 @@ import UnityPy
 from UnityPy.streams import EndianBinaryReader
 
 SRC, CFG, OUT = sys.argv[1:4]
-SEED = int(sys.argv[4]) if len(sys.argv) > 4 else None
+SEED = int(sys.argv[4]) if len(sys.argv) > 4 and sys.argv[4].lstrip('-').isdigit() else None
+FLAGS = set(a for a in sys.argv[4:] if a in ('h2h', 'noshuffle'))
+FORCE_H2H = 'h2h' in FLAGS
+NOSHUFFLE = 'noshuffle' in FLAGS
 ZERO = b"\0" * 16
 
 
@@ -189,20 +194,61 @@ def cost(a):
 
 
 best, best_c = None, None
-for _ in range(400):
-    a = assignment()
-    c = cost(a)
-    if best is None or c < best_c:
-        best, best_c = a, c
-        if c == 0:
-            break
+if NOSHUFFLE:
+    best = {i: list(range(len(slots[i]))) for i in range(NT)}
+    best_c = 0
+else:
+    for _ in range(400):
+        a = assignment()
+        c = cost(a)
+        if best is None or c < best_c:
+            best, best_c = a, c
+            if c == 0:
+                break
 base_c = cost({i: list(range(len(slots[i]))) for i in range(NT)})
-print("스킬 트리 섞기: 생존자 %d명의 4개 티어를 티어끼리 섞음 (겹침: 원래 %d -> 섞은 뒤 %d)" % (len(people), base_c, best_c))
+if NOSHUFFLE:
+    print("스킬 트리는 섞지 않음 (맨손격투 전문가 보정만, 생존자 %d명 대상)" % len(people))
+else:
+    print("스킬 트리 섞기: 생존자 %d명의 4개 티어를 티어끼리 섞음 (겹침: 원래 %d -> 섞은 뒤 %d)" % (len(people), base_c, best_c))
 if skipped:
     print("섞기에서 뺀 트리: " + ", ".join(sorted(skipped)))
 fx = [(n, sorted(i + 1 for i in f)) for n, _pid, _st, f in people if f]
 if fx:
     print("스토리 때문에 고정한 티어: " + ", ".join("%s(%s티어)" % (n, "/".join(map(str, t))) for n, t in fx))
+
+# 무술가/프로레슬러 특성을 가진 생존자의 4티어에 맨손격투 전문가가 오도록 맞춤 (4티어 항목을 서로 맞바꿈)
+h2h_note = ""
+if FORCE_H2H:
+    H2H = next((g for g, n in trait_by_guid.items() if n == "Trait+HandToHandExpert"), None)
+    if H2H is None:
+        print("주의: Trait+HandToHandExpert 를 찾지 못해 맨손격투 전문가 보정을 건너뜁니다.")
+    else:
+        T4 = 3
+        targets = [pi for pi, (name, pid, st, fixed) in enumerate(people) if ("Trait+MartialArtist" in st or "Trait+ProfessionalWrestler" in st)]
+        def has_h2h(e):
+            return H2H in (guid_of(e["m_firstChoice"]), guid_of(e["m_secondChoice"]))
+        done, skipped_t = [], []
+        for pi in targets:
+            if pi not in slots[T4]:
+                skipped_t.append(people[pi][0])        # 4티어가 스토리로 고정이거나 없음
+                continue
+            kt = slots[T4].index(pi)
+            if has_h2h(entries[T4][best[T4][kt]]):
+                done.append(people[pi][0] + "(이미 있음)")
+                continue
+            # 맨손격투 전문가가 있는 4티어 항목을 가진, 대상이 아닌 사람을 찾아 맞바꿈
+            src = None
+            for ks, pj in enumerate(slots[T4]):
+                if pj != pi and pj not in targets and has_h2h(entries[T4][best[T4][ks]]):
+                    src = ks
+                    break
+            if src is None:
+                skipped_t.append(people[pi][0])
+                continue
+            best[T4][kt], best[T4][src] = best[T4][src], best[T4][kt]
+            done.append(people[pi][0])
+        h2h_note = "맨손격투 전문가 4티어 보장: " + (", ".join(done) if done else "해당 없음") + (" / 못 맞춘 사람: " + ", ".join(skipped_t) if skipped_t else "")
+        print(h2h_note)
 
 # 적용
 changed = {}                    # path_id -> {tier: entry}

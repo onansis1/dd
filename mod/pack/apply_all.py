@@ -15,6 +15,7 @@
   --keep-cleared  소탕(털기)한 거점(쉘터)이 날짜/난이도 단계가 올라도 다시 언데드로 채워지지 않게 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --random-traits 모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나눔 (스토리와 얽힌 특성 12칸은 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --random-skills 모든 생존자의 스킬 트리를 티어(레벨)별로 섞어서 다시 나눔 (스토리와 얽힌 티어는 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
+  --martial-h2h   무술가(Trait+MartialArtist)/프로레슬러(Trait+ProfessionalWrestler) 특성을 가진 생존자는 스킬 트리 4티어에 맨손격투 전문가(스텔스 처형 허용)가 오게 보정 (--random-skills 와 같이 쓰면 섞은 뒤에, 아니면 이것만 적용)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
@@ -106,6 +107,7 @@ def main():
     ap.add_argument("--keep-cleared", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
     ap.add_argument("--random-skills", action="store_true")
+    ap.add_argument("--martial-h2h", action="store_true")
     ap.add_argument("--lock-notes", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
@@ -254,7 +256,7 @@ def main():
             out_bal9 = os.path.join(stage, "data_balancing.out")
             print(run("patch_ammolevel.py", os.path.join(stage, "data_balancing"), out_bal9).strip())
             os.replace(out_bal9, os.path.join(stage, "data_balancing"))
-        if a.random_traits or a.random_skills:
+        if a.random_traits or a.random_skills or a.martial_h2h:
             import random as _rnd
             tseed = a.seed if a.seed is not None else _rnd.randrange(1, 2 ** 31)
             print("생존자 특성/스킬 시드: %d" % tseed)
@@ -262,9 +264,10 @@ def main():
             out_bal10 = os.path.join(stage, "data_balancing.out")
             print(run("patch_traits.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal10, tseed).strip())
             os.replace(out_bal10, os.path.join(stage, "data_balancing"))
-        if a.random_skills:
+        if a.random_skills or a.martial_h2h:
             out_bal11 = os.path.join(stage, "data_balancing.out")
-            print(run("patch_skills.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal11, tseed).strip())
+            sk_extra = (["h2h"] if a.martial_h2h else []) + ([] if a.random_skills else ["noshuffle"])
+            print(run("patch_skills.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal11, tseed, *sk_extra).strip())
             os.replace(out_bal11, os.path.join(stage, "data_balancing"))
         if a.hod_start or a.spillzone_start:
             out_bal5 = os.path.join(stage, "data_balancing.out")
