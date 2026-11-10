@@ -227,26 +227,36 @@ if FORCE_H2H:
         targets = [pi for pi, (name, pid, st, fixed) in enumerate(people) if ("Trait+MartialArtist" in st or "Trait+ProfessionalWrestler" in st)]
         def has_h2h(e):
             return H2H in (guid_of(e["m_firstChoice"]), guid_of(e["m_secondChoice"]))
+        def pure_h2h(e):
+            # 선택지가 맨손격투 전문가 하나뿐인 항목 (다른 선택지가 없어 반드시 이 스킬을 얻음)
+            return guid_of(e["m_firstChoice"]) == H2H and guid_of(e["m_secondChoice"]) in (None, ZERO)
         done, skipped_t = [], []
         for pi in targets:
             if pi not in slots[T4]:
                 skipped_t.append(people[pi][0])        # 4티어가 스토리로 고정이거나 없음
                 continue
             kt = slots[T4].index(pi)
-            if has_h2h(entries[T4][best[T4][kt]]):
+            cur = entries[T4][best[T4][kt]]
+            if pure_h2h(cur):
                 done.append(people[pi][0] + "(이미 있음)")
                 continue
-            # 맨손격투 전문가가 있는 4티어 항목을 가진, 대상이 아닌 사람을 찾아 맞바꿈
+            # 선택지 1개짜리 맨손격투 전문가 항목을 가진 대상이 아닌 사람과 맞바꿈, 없으면 선택지 2개짜리(허드슨)로
             src = None
-            for ks, pj in enumerate(slots[T4]):
-                if pj != pi and pj not in targets and has_h2h(entries[T4][best[T4][ks]]):
-                    src = ks
+            for want in (pure_h2h, has_h2h):
+                for ks, pj in enumerate(slots[T4]):
+                    if pj != pi and pj not in targets and want(entries[T4][best[T4][ks]]):
+                        src = ks
+                        break
+                if src is not None:
                     break
             if src is None:
-                skipped_t.append(people[pi][0])
+                if has_h2h(cur):
+                    done.append(people[pi][0] + "(이미 있음, 선택지 2개)")
+                else:
+                    skipped_t.append(people[pi][0])
                 continue
             best[T4][kt], best[T4][src] = best[T4][src], best[T4][kt]
-            done.append(people[pi][0])
+            done.append(people[pi][0] + ("" if pure_h2h(entries[T4][best[T4][kt]]) else "(선택지 2개)"))
         h2h_note = "맨손격투 전문가 4티어 보장: " + (", ".join(done) if done else "해당 없음") + (" / 못 맞춘 사람: " + ", ".join(skipped_t) if skipped_t else "")
         print(h2h_note)
 
