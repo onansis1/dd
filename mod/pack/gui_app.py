@@ -26,8 +26,8 @@ OPTS = [
     ("romance_all", "연애 제한 모두 해제", False),
     ("zombie", "죽은 생존자 좀비화 100%", False),
     ("quiet", "걷기/달리기 발소리 없음", False),
-    ("hod_start", "[시도] 어둠의 심연 단서 시작부터 보유", False),
-    ("spillzone_start", "[시도] 유출구역 단서 시작부터 보유", False),
+    ("hod_start", "어둠의 심연 단서 시작부터 보유", False),
+    ("spillzone_start", "유출구역 단서 시작부터 보유", False),
     ("repair", "정비 작업대 레벨 제한 없이 모든 무기 수리", False),
     ("dismantle", "정비 작업대 레벨 제한 없이 모든 무기 분해", False),
     ("ammo_levels", "무기 작업대 1레벨부터 모든 총알 제작", False),
@@ -44,11 +44,10 @@ OPTS = [
 ]
 # 화면에 묶어서 보여 줄 때의 그룹 (모든 OPTS 키가 정확히 한 번씩 들어 있어야 한다)
 GROUPS = [
-    ("지도", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads"]),
+    ("지도 · 단서", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads", "hod_start", "spillzone_start"]),
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
-    ("[시도] 게임에서 동작 미확인", ["hod_start", "spillzone_start"]),
     ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "unarmed_sound"]),
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"

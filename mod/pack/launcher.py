@@ -163,7 +163,7 @@ def main():
             o["romance_all"] = yn("연애의 모든 제한 풀기 (공용구역 2명 사용 기준: 가족/나이대/연애 중/호환성/관계 단계/연애 대상 여부 + 성공 확률 최대)", o.get("romance_all", False))
             o["zombie"] = yn("탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)", o.get("zombie", False))
         if not MAPONLY:
-            o["hod_start"] = yn("[시도] 어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함. 효과가 없거나 이상할 수 있음)", o.get("hod_start", False))
+            o["hod_start"] = yn("어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 시작", o.get("hod_start", False))
             o["repair"] = yn("정비 작업대 레벨 때문에 못 하던 무기 수리를 레벨 제한 없이 가능하게 하기 (수리공/건스미스 특성과 재료는 그대로 필요)", o.get("repair", False))
             o["dismantle"] = yn("정비 작업대 레벨 때문에 못 하던 무기 분해를 레벨 제한 없이 가능하게 하기", o.get("dismantle", False))
             o["random_traits"] = yn("모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나누기 (쿠퍼의 파일럿처럼 스토리와 얽힌 특성 12칸은 고정. 새 게임/새로 영입하는 생존자에게 적용, 진행 중인 세이브는 그대로)", o.get("random_traits", False))
@@ -177,7 +177,7 @@ def main():
             o["peek"] = yn("[게임 실행 파일 수정] 서 있는 상태에서도 문 엿보기 (이 게임 빌드 전용. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("peek", False))
             o["lock_notes"] = yn("맵 정보의 장소 설명 끝에 락픽/볼트 절단기 필요 개수 적기 (방문 전 장소도 표시. 서랍/로커 + 열쇠가 필요한 문 기준, 지식으로 여는 문 제외. 장소 이름 글자 파일 loc.* 수정, 백업 생성)", o.get("lock_notes", False))
             o["june"] = yn("스필존 스킵의 스쿱 준에게 방호복 받기: 칠리 콘 카르네 4개 -> 락픽 1개 (대사 문구는 그대로일 수 있음)", o.get("june", False))
-            o["spillzone_start"] = yn("[시도] 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작 (게임에서 동작하는지 확인 못 함)", o.get("spillzone_start", False))
+            o["spillzone_start"] = yn("유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
             o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["wheel_gold"] = False; o["shelter_move"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False

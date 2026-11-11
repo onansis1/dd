@@ -1,4 +1,4 @@
-"""data_balancing: 어둠의 심연(Heart of Darkness) 단서를 게임 시작부터 얻은 상태로 만든다 (시도).
+"""data_balancing: 어둠의 심연(Heart of Darkness) 단서를 게임 시작부터 얻은 상태로 만든다.
 사용: python patch_hod.py <data_balancing 파일> <data_config 파일> <출력 파일> [hod] [spillzone]   (기본 hod)
  - 어둠의 심연의 기존 '지식 얻기' 동작 3개(HoD_Leads_Unlock_Attempt_01/02, HoD_Leads_Unlocked)가 가리키는 지식을
    HoD_Lead_01, 02, 03 (단서 3개)으로 바꾼다. (같은 크기 포인터 교체)
@@ -134,4 +134,4 @@ r_ = EndianBinaryReader(bytes(out))
 r_.flags = sf.flags
 bundle.files[name] = r_
 open(OUT, "wb").write(bundle.save(packer="lz4"))
-print("%s 단서 3개씩을 시작부터 지급 (시도, 게임 내 동작 미확인): 이벤트 %d개 크기 증가" % ("/".join({"hod": "어둠의 심연", "spillzone": "유출구역"}[p_] for p_ in PLANS), len(EVENTS)))
+print("%s 단서 3개씩을 시작부터 지급 : 이벤트 %d개 크기 증가" % ("/".join({"hod": "어둠의 심연", "spillzone": "유출구역"}[p_] for p_ in PLANS), len(EVENTS)))
