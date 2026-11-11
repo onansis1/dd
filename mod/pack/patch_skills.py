@@ -5,7 +5,7 @@
  - 생존자마다 스킬 트리(SkillTreeData)는 4개 티어이고, 티어마다 선택지가 1~2개(m_firstChoice, m_secondChoice) 있다.
    각 티어끼리 모아서(1티어는 1티어끼리, 2티어는 2티어끼리 ...) 시드로 섞어 다시 나눠준다. 선택지가 1개인 티어는 그 구조(선택지 1개)가 그대로 따라간다.
  - 섞을 때, 그 생존자가 이미 가진 시작 특성(Trait+/Trait-)이나 같은 트리의 다른 티어와 겹치는 선택지가 가능한 한 적게 가도록 여러 번 시도해서 가장 좋은 것을 고른다.
- - 건드리지 않는 것: 파일럿용 임시 트리(TEMP_SkillTreeData), 비어 있는 트리, 영입/시작 데이터가 없어 얻을 수 없는 생존자(Jett/Julie/Norman)의 트리, 그리고 그 생존자를 지정해서 그 특성을 치료/부여/검사하는 스토리 액션·조건이 있는 티어.
+ - 건드리지 않는 것: 파일럿용 임시 트리(TEMP_SkillTreeData), 비어 있는 트리, 영입/시작 데이터가 없어 얻을 수 없는 생존자(Jett/Julie/Norman)와 탈출 플랜 전용 생존자(Issac)의 트리, 그리고 그 생존자를 지정해서 그 특성을 치료/부여/검사하는 스토리 액션·조건이 있는 티어.
  - 선택지는 16바이트 GUID 값을 그대로 옮기는 것이라 오브젝트 크기는 변하지 않는다. 진행 중인 세이브의 이미 고른 스킬은 세이브에 저장돼 있어 바뀌지 않는다(새 게임/새로 영입하는 생존자에게 적용).
 """
 import sys, random, copy
@@ -118,6 +118,10 @@ def start_traits(t):
     return names
 
 
+# 영입 데이터는 있지만 특정 탈출 플랜(Birds of Prey 킹사이드)에서만 나오는 생존자: 평소 플레이에서 안 나오므로 그 칸에 간 스킬이 낭비된다.
+# 이들의 트리는 건드리지 않는다(원래 스킬 그대로). 대신 다른 생존자들의 스킬은 모두 나오는 생존자에게만 간다.
+PLAN_ONLY = {"Issac"}
+
 # 섞을 수 있는 (생존자, 트리) 와 티어별 고정 여부
 people = []          # (생존자 이름, 트리 path_id, 시작 특성 이름 집합, 고정 티어 집합)
 skipped = []
@@ -129,7 +133,7 @@ for g, t in surv.items():
         continue
     to, tt = trees[pid]
     lv = tt["m_skillTreeLevels"]
-    if g not in obtainable or "TEMP" in tt["m_Name"] or not any(guid_of(l["m_firstChoice"]) not in (None, ZERO) for l in lv):
+    if g not in obtainable or name in PLAN_ONLY or "TEMP" in tt["m_Name"] or not any(guid_of(l["m_firstChoice"]) not in (None, ZERO) for l in lv):
         skipped.append(name)
         continue
     fixed = set()
