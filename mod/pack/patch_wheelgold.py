@@ -35,6 +35,7 @@ CAVE_B = ("488b75204885f60f84810100008b7e1883ff010f8c7501000081ff000100000f87690
 BAD_TABLE = ("0580bb36449e30bf169ee81d835b028e" "07cf7f40a744a1065dfee1f2f6bb708d" "13371991e6511b6981e4036c0eb51128" "2eefb6a7599c6d2e49f9b8f6083805f5"
              "315a6c476e12cd8eff233f7a0a64715a" "619bcdc76398b9420122e3cb027c2327" "aa8983f4bd2738c65ba8668fc9236678" "bafc968b4250fa3c27e8f5fd0d072864"
              "f20593f99bca412c6ff89a88da69a04b" "00000000000000000000000000000000")                 # 0x65E5700: 부정 특성 GUID 9개 + 종료 항목
+SHELTER_OFF, SHELTER_LEN = 0xA00, 160                                      # patch_shelter.py 가 같은 구역의 이 자리를 쓴다 (겹치지 않음)
 CODE = [("색 동굴 A", 0x100, CAVE_A), ("금색 상수", 0x160, GOLD), ("겹침 계산 동굴 B", 0x400, CAVE_B), ("부정 특성 표", 0x700, BAD_TABLE)]
 # --- 후크 둘: (이름, 파일 위치, 원래 바이트, 마지막 단계 바이트, 개발 중 시험 단계 바이트들, 앞 20바이트, 뒤 20바이트)
 HOOKS = [
@@ -318,22 +319,28 @@ def cmd_revert(dll):
             cur = bytes.fromhex(final if st == "final" else tests[0])
             _write(dll, off, cur, bytes.fromhex(orig))
     sk, _ = pagestate(dll)
+    shared = False
     if sk == "page":                                                    # 코드 조각을 0xCC 로 (개발 중 시험 코드가 있어도 페이지 전체를 지움)
         cur = read_at(dll, ORIGINAL_SIZE, PAGE)
-        if cur != b"\xcc" * PAGE:
-            _write(dll, ORIGINAL_SIZE, cur, b"\xcc" * PAGE)
-        for name, off, orig, new in reversed(HEADER):                   # 구역 수 -> SizeOfImage -> 구역 헤더
-            if read_at(dll, off, len(orig) // 2).hex() == new:
-                _write(dll, off, bytes.fromhex(new), bytes.fromhex(orig))
-        with open(dll, "r+b") as f:                                     # 페이지 떼어내기
-            if os.fstat(f.fileno()).st_size == ORIGINAL_SIZE + PAGE and read_at(dll, ORIGINAL_SIZE, PAGE) == b"\xcc" * PAGE:
-                f.truncate(ORIGINAL_SIZE)
-                f.flush()
-                os.fsync(f.fileno())
+        keep = bytearray(b"\xcc" * PAGE)
+        if cur[SHELTER_OFF:SHELTER_OFF + SHELTER_LEN] != b"\xcc" * SHELTER_LEN:   # 거점 이동 패치(patch_shelter.py)의 코드가 있으면 그 자리는 남기고 구역도 남긴다
+            shared = True
+            keep[SHELTER_OFF:SHELTER_OFF + SHELTER_LEN] = cur[SHELTER_OFF:SHELTER_OFF + SHELTER_LEN]
+        if cur != bytes(keep):
+            _write(dll, ORIGINAL_SIZE, cur, bytes(keep))
+        if not shared:
+            for name, off, orig, new in reversed(HEADER):               # 구역 수 -> SizeOfImage -> 구역 헤더
+                if read_at(dll, off, len(orig) // 2).hex() == new:
+                    _write(dll, off, bytes.fromhex(new), bytes.fromhex(orig))
+            with open(dll, "r+b") as f:                                 # 페이지 떼어내기
+                if os.fstat(f.fileno()).st_size == ORIGINAL_SIZE + PAGE and read_at(dll, ORIGINAL_SIZE, PAGE) == b"\xcc" * PAGE:
+                    f.truncate(ORIGINAL_SIZE)
+                    f.flush()
+                    os.fsync(f.fileno())
     k2 = state(dll)
-    if k2 != ("ok", 0):
+    if k2 != ("ok", 4 if shared else 0):
         sys.exit("중단: 되돌린 뒤 검증에 실패했습니다 (%s). GameAssembly.dll.bak 으로 복원하세요." % (k2,))
-    print("스테이션 휠 특기 강조를 되돌렸습니다 (원래 크기로 복구)." + ("" if sha256(dll) == ORIGINAL_SHA256 else " (다른 수정이 남아 있으면 파일 전체 해시는 원본과 다를 수 있습니다.)"))
+    print("스테이션 휠 특기 강조를 되돌렸습니다 (" + ("새 구역은 거점 이동 패치가 쓰고 있어 남겨 뒀습니다" if shared else "원래 크기로 복구") + ")." + ("" if sha256(dll) == ORIGINAL_SHA256 else " (다른 수정이 남아 있으면 파일 전체 해시는 원본과 다를 수 있습니다.)"))
 
 
 if __name__ == "__main__":

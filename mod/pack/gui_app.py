@@ -37,6 +37,7 @@ OPTS = [
     ("unarmed_sound", "맨손 처형 효과음을 모든 생존자에게 (효과음 번들 수정)", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정)", False),
     ("wheel_gold", "스테이션 휠: 내 생존자의 특기 작업 칸을 금색으로 (게임 실행 파일 수정)", False),
+    ("shelter_move", "살았던 거점은 수색 없이 바로 이동 (게임 실행 파일 수정, 미확인)", False),
     ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
     ("otto", "오토 영입: 방호복 대신 락픽 1개 (관제실)", False),
@@ -48,7 +49,7 @@ GROUPS = [
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
     ("[시도] 게임에서 동작 미확인", ["hod_start", "spillzone_start"]),
-    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "unarmed_sound"]),
+    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "unarmed_sound"]),
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
 BG = "#0c0e0b"          # 어두운 검정-이끼색
@@ -415,7 +416,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]
