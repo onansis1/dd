@@ -18,6 +18,7 @@
   --random-skills 모든 생존자의 스킬 트리를 티어(레벨)별로 섞어서 다시 나눔 (스토리와 얽힌 티어는 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --martial-h2h   무술가(Trait+MartialArtist)/프로레슬러(Trait+ProfessionalWrestler) 특성을 가진 생존자는 스킬 트리 4티어에 맨손격투 전문가(스텔스 처형 허용)가 오게 보정 (--random-skills 와 같이 쓰면 섞은 뒤에, 아니면 이것만 적용)
   --dismantle-any-level 정비 작업대 레벨(2/3) 때문에 분해하지 못하던 무기를 레벨 제한 없이 분해
+  --otto-lockpick 스필존 관제실의 오토 영입 때 건네는 방호복을 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --june-lockpick 스필존 스킵의 스쿱 준에게 방호복 받는 조건을 칠리 콘 카르네 4개에서 락픽 1개로 (대사 문구는 그대로일 수 있음)
   --move-spillzone 유출구역(치프웨이즈 계열 장소 + 치프웨이즈 운영 센터)을 상대 배치 그대로 통째로 지도의 다른 곳으로 옮긴다 (지도 섞기를 켠 경우에만)
   --romance       공용구역에 3명 이상 있어도 로맨스 아이템을 쓸 수 있게 한다 (주의: 연애 시도는 게임 코드가 2명만 처리해, 아이템만 소모될 수 있음)
@@ -101,6 +102,7 @@ def main():
     ap.add_argument("--zombie", action="store_true")
     ap.add_argument("--move-spillzone", action="store_true")
     ap.add_argument("--june-lockpick", action="store_true")
+    ap.add_argument("--otto-lockpick", action="store_true")
     ap.add_argument("--repair-any-level", action="store_true")
     ap.add_argument("--dismantle-any-level", action="store_true")
     ap.add_argument("--ammo-all-levels", action="store_true")
@@ -256,6 +258,10 @@ def main():
             out_bal7 = os.path.join(stage, "data_balancing.out")
             print(run("patch_june.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal7).strip())
             os.replace(out_bal7, os.path.join(stage, "data_balancing"))
+        if a.otto_lockpick:
+            out_bal7b = os.path.join(stage, "data_balancing.out")
+            print(run("patch_otto.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal7b).strip())
+            os.replace(out_bal7b, os.path.join(stage, "data_balancing"))
         for flag_, pre_ in ((a.repair_any_level, "Repair"), (a.dismantle_any_level, "Dismantle")):
             if flag_:
                 out_bal8 = os.path.join(stage, "data_balancing.out")

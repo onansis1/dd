@@ -34,12 +34,23 @@ OPTS = [
     ("random_traits", "모든 생존자 시작 특성 랜덤 (스토리 특성 고정)", False),
     ("random_skills", "모든 생존자 스킬 트리 티어별 랜덤", False),
     ("martial_h2h", "무술가/프로레슬러 특성 보유자는 4티어 맨손격투 전문가 보장", False),
-    ("unarmed_sound", "맨손 처형 효과음(스텔스/킥/무릎/다운)을 모든 생존자에게 (효과음 번들 data_visual 수정, 이 게임 빌드 전용)", False),
-    ("peek", "서서 문 엿보기 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
-    ("keep_cleared", "소탕한 거점 다시 안 차게 (게임 실행 파일 수정, 이 게임 빌드 전용)", False),
+    ("unarmed_sound", "맨손 처형 효과음을 모든 생존자에게 (효과음 번들 수정)", False),
+    ("peek", "서서 문 엿보기 (게임 실행 파일 수정)", False),
+    ("keep_cleared", "소탕한 거점 다시 안 차게 (게임 실행 파일 수정)", False),
     ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
+    ("otto", "오토 영입: 방호복 대신 락픽 1개 (관제실)", False),
 ]
+# 화면에 묶어서 보여 줄 때의 그룹 (모든 OPTS 키가 정확히 한 번씩 들어 있어야 한다)
+GROUPS = [
+    ("지도", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads"]),
+    ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto"]),
+    ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
+    ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
+    ("[시도] 게임에서 동작 미확인", ["hod_start", "spillzone_start"]),
+    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "keep_cleared", "unarmed_sound"]),
+]
+assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
 BG = "#0c0e0b"          # 어두운 검정-이끼색
 PANEL = "#151911"       # 카드 배경
 EDGE = "#3b1114"        # 카드 테두리 (마른 핏빛)
@@ -77,7 +88,14 @@ class App:
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
         self.W, self.H = (900, 1038) if FULL else (580, 601)
+        if FULL:
+            try:     # 화면보다 창이 크면 아래가 잘리므로, 화면 높이에 맞춰 줄인다 (옵션 영역은 스크롤)
+                self.H = max(620, min(self.H, root.winfo_screenheight() - 96))
+            except Exception:
+                pass
         self.BH = 225 if FULL else 271      # 배너(게임 이미지) 높이
+        if FULL and self.H < 800:
+            self.BH = 150                   # 낮은 화면(예: 768): 배너 윗부분을 잘라 옵션 영역을 넓힌다
         root.geometry("%dx%d" % (self.W, self.H))
         root.resizable(False, False)
         self.opts = launcher.load_opts()
@@ -126,6 +144,8 @@ class App:
         self.root.option_add("*TCombobox*Listbox.background", "#0a0c08")
         self.root.option_add("*TCombobox*Listbox.foreground", FG)
         self.root.option_add("*TCombobox*Listbox.selectBackground", ACCENT)
+        st.configure("Vertical.TScrollbar", background="#2c3523", troughcolor="#0a0c08", bordercolor=EDGE, arrowcolor=TOXIC, lightcolor="#2c3523", darkcolor="#2c3523")
+        st.map("Vertical.TScrollbar", background=[("active", "#3d4a30")])
         st.configure("Blood.Horizontal.TProgressbar", troughcolor="#1a0c0e", background=ACCENT, bordercolor=BG, lightcolor=ACCENT, darkcolor=ACCENT)
 
     def _card(self, parent, title):
@@ -145,7 +165,7 @@ class App:
         self._bgimg = None
         try:
             self._bgimg = tk.PhotoImage(file=os.path.join(launcher.HERE, "assets", "bg_full.png" if FULL else "bg_map.png"))
-            cv.create_image(0, 0, image=self._bgimg, anchor="nw")
+            cv.create_image(0, (self.BH - 225) if FULL else 0, image=self._bgimg, anchor="nw")
         except Exception:
             pass
         BH = self.BH
@@ -202,56 +222,107 @@ class App:
         if not FULL:
             return self._build_map()
         cv = self._background()
+        self._cv = cv
         outer = ttk.Frame(cv, padding=(14, 8))
-        cv.create_window(18, self.BH + 8, anchor="nw", window=outer, width=self.W - 36)
+        cv.create_window(18, self.BH + 8, anchor="nw", window=outer, width=self.W - 36, height=self.H - self.BH - 14)
 
-        c1 = self._card(outer, "게임 폴더 (AssetBundles)")
-        row = ttk.Frame(c1, style="Card.TFrame")
-        row.pack(fill="x")
-        ent = ttk.Entry(row, textvariable=self.var_ab)
-        ent.pack(side="left", fill="x", expand=True)
-        ttk.Button(row, text="찾아보기", style="Small.TButton", command=self._browse).pack(side="left", padx=(8, 0))
-
-        if FULL:
-            c2 = self._card(outer, "적용할 항목  (탐색 반경 x1.5 는 항상 적용)")
-            grid = ttk.Frame(c2, style="Card.TFrame")
-            grid.pack(fill="x")
-            for i, (k, lab, _d) in enumerate(OPTS):
-                ttk.Checkbutton(grid, text=lab, variable=self.ov[k]).grid(row=i // 2, column=i % 2, sticky="w", pady=0, padx=(0, 14))
-            sub = ttk.Frame(c2, style="Card.TFrame")
-            sub.pack(fill="x", pady=(8, 0))
-            ttk.Label(sub, text="미스터 베일 첫 석궁/샷건 시점 (0=시작부터, 20=원래)", style="Card.TLabel").grid(row=0, column=0, sticky="w")
-            ttk.Combobox(sub, textvariable=self.var_vale, values=["0", "10", "20"], width=5, state="readonly").grid(row=0, column=1, padx=8)
-            ttk.Label(sub, text="상인 첫 등장 사이클 (0=시작부터, 10=원래)", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 0))
-            ttk.Combobox(sub, textvariable=self.var_trader, values=[str(i) for i in range(11)], width=5, state="readonly").grid(row=1, column=1, padx=8, pady=(4, 0))
-
-        c3 = self._card(outer, "시드 (비우면 무작위)")
-        row3 = ttk.Frame(c3, style="Card.TFrame")
-        row3.pack(fill="x")
-        ttk.Entry(row3, textvariable=self.var_seed, width=18).pack(side="left")
-        if FULL:
-            ttk.Button(row3, text="프리셋 도구 (새 창)", style="Small.TButton", command=self._preset).pack(side="left", padx=(16, 0))
+        # ---- 아래쪽 고정 막대 (시드/버튼/상태/로그): 아래에서부터 쌓는다 ----
+        logf = ttk.Frame(outer)
+        logf.pack(side="bottom", fill="x")
+        self.log = tk.Text(logf, height=3, bg="#0a0c08", fg=TOXIC, insertbackground=TOXIC, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
+        sb = ttk.Scrollbar(logf, command=self.log.yview)
+        self.log.configure(yscrollcommand=sb.set)
+        sb.pack(side="right", fill="y")
+        self.log.pack(side="left", fill="x", expand=True)
+        infof = ttk.Frame(outer)
+        infof.pack(side="bottom", fill="x", pady=(0, 4))
+        st_lab = ttk.Label(infof, textvariable=self.status, style="Sub.TLabel")
+        st_lab.pack(side="bottom", anchor="w")
+        seed_lab = ttk.Label(infof, textvariable=self.seed_shown, style="Seed.TLabel")
+        def _seed_vis(*_a):
+            if self.seed_shown.get():
+                seed_lab.pack(side="bottom", anchor="w", before=st_lab)
+            else:
+                seed_lab.pack_forget()
+        self.seed_shown.trace_add("write", _seed_vis)
+        self.progf = ttk.Frame(outer)
+        self.progf.pack(side="bottom", fill="x")
+        self.prog = ttk.Progressbar(self.progf, mode="indeterminate", style="Blood.Horizontal.TProgressbar", length=200)
+        self.prog_pack = dict(fill="x", pady=(0, 6))
         btns = ttk.Frame(outer)
-        btns.pack(fill="x", pady=(2, 8))
-        self.btn_go = ttk.Button(btns, text=("적용" if FULL else "새 지도 적용"), style="Go.TButton", command=self._apply)
+        btns.pack(side="bottom", fill="x", pady=(2, 6))
+        self.btn_go = ttk.Button(btns, text="적용", style="Go.TButton", command=self._apply)
         self.btn_go.pack(side="left", fill="x", expand=True)
         self.btn_back = ttk.Button(btns, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
         self.btn_back.pack(side="left", padx=(10, 0))
+        seedrow = ttk.Frame(outer)
+        seedrow.pack(side="bottom", fill="x", pady=(2, 6))
+        ttk.Label(seedrow, text="시드 (비우면 무작위)", style="Sub.TLabel").pack(side="left")
+        ttk.Entry(seedrow, textvariable=self.var_seed, width=18).pack(side="left", padx=(10, 0))
+        ttk.Button(seedrow, text="프리셋 도구 (새 창)", style="Small.TButton", command=self._preset).pack(side="left", padx=(16, 0))
 
-        self.prog = ttk.Progressbar(outer, mode="indeterminate", style="Blood.Horizontal.TProgressbar", length=200)
-        ttk.Label(outer, textvariable=self.seed_shown, style="Seed.TLabel").pack(anchor="w")
-        ttk.Label(outer, textvariable=self.status, style="Sub.TLabel").pack(anchor="w", pady=(0, 6))
-        self.prog_pack = dict(fill="x", pady=(0, 6))
-        self.log = None
-        if FULL:
-            logf = ttk.Frame(outer)
-            logf.pack(fill="both", expand=True)
-            self.log = tk.Text(logf, height=3, bg="#0a0c08", fg=TOXIC, insertbackground=TOXIC, relief="flat", wrap="word", state="disabled", font=("Consolas", 10))
-            sb = ttk.Scrollbar(logf, command=self.log.yview)
-            self.log.configure(yscrollcommand=sb.set)
-            sb.pack(side="right", fill="y")
-            self.log.pack(side="left", fill="both", expand=True)
+        # ---- 위쪽: 스크롤되는 영역 (게임 폴더 + 항목들) ----
+        area = tk.Frame(outer, bg=EDGE)
+        area.pack(side="top", fill="both", expand=True, pady=(0, 6))
+        holder = tk.Frame(area, bg=PANEL)
+        holder.pack(fill="both", expand=True, padx=1, pady=1)
+        self._sc = tk.Canvas(holder, bg=PANEL, highlightthickness=0, yscrollincrement=18)
+        vs = ttk.Scrollbar(holder, orient="vertical", command=self._sc.yview)
+        self._sc.configure(yscrollcommand=vs.set)
+        vs.pack(side="right", fill="y")
+        self._sc.pack(side="left", fill="both", expand=True)
+        inner = ttk.Frame(self._sc, style="Card.TFrame", padding=(14, 10))
+        win = self._sc.create_window(0, 0, window=inner, anchor="nw")
+        inner.bind("<Configure>", lambda e: self._sc.configure(scrollregion=self._sc.bbox("all")))
+        self._sc.bind("<Configure>", lambda e: self._sc.itemconfigure(win, width=e.width))
 
+        def wheel(e):
+            d = -1 if (getattr(e, "num", 0) == 4 or getattr(e, "delta", 0) > 0) else 1
+            first, last = self._sc.yview()
+            if (d < 0 and first <= 0.0) or (d > 0 and last >= 1.0):
+                return
+            self._sc.yview_scroll(d * 2, "units")
+        def on_enter(_e):
+            self._sc.bind_all("<MouseWheel>", wheel)
+            self._sc.bind_all("<Button-4>", wheel)
+            self._sc.bind_all("<Button-5>", wheel)
+        def on_leave(_e):
+            for ev in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+                self._sc.unbind_all(ev)
+        holder.bind("<Enter>", on_enter)
+        holder.bind("<Leave>", on_leave)
+
+        ttk.Label(inner, text="게임 폴더 (AssetBundles)", style="Head.TLabel").pack(anchor="w", pady=(0, 6))
+        row = ttk.Frame(inner, style="Card.TFrame")
+        row.pack(fill="x", pady=(0, 14))
+        ttk.Entry(row, textvariable=self.var_ab).pack(side="left", fill="x", expand=True)
+        ttk.Button(row, text="찾아보기", style="Small.TButton", command=self._browse).pack(side="left", padx=(8, 0))
+
+        head = ttk.Frame(inner, style="Card.TFrame")
+        head.pack(fill="x", pady=(0, 4))
+        ttk.Label(head, text="적용할 항목  (탐색 반경 x1.5 는 항상 적용)", style="Head.TLabel").pack(side="left")
+        ttk.Button(head, text="전체 해제", style="Small.TButton", command=lambda: self._set_all(False)).pack(side="right")
+        ttk.Button(head, text="전체 선택", style="Small.TButton", command=lambda: self._set_all(True)).pack(side="right", padx=(0, 6))
+        labels = {k: lab for k, lab, _d in OPTS}
+        for gname, keys in GROUPS:
+            ttk.Label(inner, text=gname, style="Muted.TLabel").pack(anchor="w", pady=(8, 1))
+            grid = ttk.Frame(inner, style="Card.TFrame")
+            grid.pack(fill="x")
+            grid.columnconfigure(0, weight=1, uniform="c")
+            grid.columnconfigure(1, weight=1, uniform="c")
+            for i, k in enumerate(keys):
+                ttk.Checkbutton(grid, text=labels[k], variable=self.ov[k], width=0).grid(row=i // 2, column=i % 2, sticky="w", padx=(0, 10))
+        sub = ttk.Frame(inner, style="Card.TFrame")
+        sub.pack(fill="x", pady=(12, 2))
+        ttk.Label(sub, text="미스터 베일 첫 석궁/샷건 시점 (0=시작부터, 20=원래)", style="Card.TLabel").grid(row=0, column=0, sticky="w")
+        ttk.Combobox(sub, textvariable=self.var_vale, values=["0", "10", "20"], width=5, state="readonly").grid(row=0, column=1, padx=8)
+        ttk.Label(sub, text="상인 첫 등장 사이클 (0=시작부터, 10=원래)", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=(4, 0))
+        ttk.Combobox(sub, textvariable=self.var_trader, values=[str(i) for i in range(11)], width=5, state="readonly").grid(row=1, column=1, padx=8, pady=(4, 0))
+
+    def _set_all(self, v):
+        for var in self.ov.values():
+            var.set(bool(v))
+        self._say("모든 항목을 선택했습니다." if v else "모든 항목을 해제했습니다.")
 
     # ------------------------------------------------------------------ 동작
     def _detect(self):
@@ -344,7 +415,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("keep_cleared", "--keep-cleared"), ("unarmed_sound", "--unarmed-sound"), ("lock_notes", "--lock-notes")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("keep_cleared", "--keep-cleared"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]
