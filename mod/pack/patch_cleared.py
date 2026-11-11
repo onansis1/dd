@@ -212,7 +212,7 @@ def cmd_revert(dll):
         if detect_k(dll) != i:
             sys.exit("중단: %s 를 되돌린 뒤 검증에 실패했습니다. GameAssembly.dll.bak 으로 복원하세요." % st["name"])
     final = pristine_sha(dll)
-    print("소탕 거점 재생성 방지를 되돌렸습니다." + ("" if final == ORIGINAL_SHA256 else " (주의: 해시가 원본과 다릅니다. GameAssembly.dll.bak 으로 복원하세요.)"))
+    print("소탕 거점 재생성 방지(제거된 기능)를 되돌렸습니다." + ("" if final == ORIGINAL_SHA256 else " (이 패치 영역은 원래대로입니다. 문 엿보기 등 다른 수정이 남아 있으면 파일 전체 해시는 원본과 다를 수 있습니다.)"))
 
 
 def cmd_status(dll):

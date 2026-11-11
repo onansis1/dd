@@ -13,7 +13,7 @@
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
   --unarmed-sound 맨손 처형(스텔스/크리티컬 킥/무릎/다운) 효과음이 허드슨/하오/이사야만이 아니라 모든 생존자에게 나게 한다 (data_visual 번들 수정, 일반판만. 목소리는 처형하는 생존자 자신의 것)
-  --keep-cleared  소탕(털기)한 거점(쉘터)이 날짜/난이도 단계가 올라도 다시 언데드로 채워지지 않게 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
+  --keep-cleared  (제거된 기능: 더 이상 적용하지 않음. 이전에 적용돼 있으면 다음 적용/되돌리기 때 원래대로 되돌린다)
   --random-traits 모든 생존자의 시작 특성(양성 1 + 음성 1)을 섞어서 다시 나눔 (스토리와 얽힌 특성 12칸은 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --random-skills 모든 생존자의 스킬 트리를 티어(레벨)별로 섞어서 다시 나눔 (스토리와 얽힌 티어는 고정, 새 게임/새 영입에 적용. --seed 가 있으면 그 시드로)
   --martial-h2h   무술가(Trait+MartialArtist)/프로레슬러(Trait+ProfessionalWrestler) 특성을 가진 생존자는 스킬 트리 4티어에 맨손격투 전문가(스텔스 처형 허용)가 오게 보정 (--random-skills 와 같이 쓰면 섞은 뒤에, 아니면 이것만 적용)
@@ -107,7 +107,7 @@ def main():
     ap.add_argument("--dismantle-any-level", action="store_true")
     ap.add_argument("--ammo-all-levels", action="store_true")
     ap.add_argument("--peek-standing", action="store_true")
-    ap.add_argument("--keep-cleared", action="store_true")
+    ap.add_argument("--keep-cleared", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--unarmed-sound", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
     ap.add_argument("--random-skills", action="store_true")
@@ -141,7 +141,7 @@ def main():
     # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)은 절대 건드리지 않는다.
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
     use_dll = not os.path.exists(os.path.join(HERE, "edition_map.txt"))
-    DLL_PATCHES = (("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", a.keep_cleared, "소탕 거점 재생성 방지"))
+    DLL_PATCHES = (("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
             if on_:
