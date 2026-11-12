@@ -11,6 +11,7 @@
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
   --wheel-gold    스테이션 휠(F 길게)에서 지금 조작 중인 생존자의 특기와 맞는 작업 칸을 금색으로 강조 (게임 실행 파일 GameAssembly.dll 에 새 실행 구역을 추가하고 직접 수정. 이 게임 빌드 전용, 일반판만)
   --shelter-move  한 번이라도 살았던 거점(떠난 날 기록이 있는 거점)은 '수색해서 소탕' 없이 바로 은신처 이동이 가능 (GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만. 게임에서 동작 미확인)
+  --random-start  사용자 지정 시나리오 화면에서 생존자를 아무도 안 고르고 시작을 누르면 후보 18명(Survivor Draw 후보에서 Bowman 제외) 중 랜덤 3명 + 랜덤 거점으로 시작 (GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
@@ -111,6 +112,7 @@ def main():
     ap.add_argument("--peek-standing", action="store_true")
     ap.add_argument("--wheel-gold", action="store_true")
     ap.add_argument("--shelter-move", action="store_true")
+    ap.add_argument("--random-start", action="store_true")
     ap.add_argument("--keep-cleared", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--unarmed-sound", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
@@ -145,7 +147,7 @@ def main():
     # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)은 절대 건드리지 않는다.
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
     use_dll = not os.path.exists(os.path.join(HERE, "edition_map.txt"))
-    DLL_PATCHES = (("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"))
+    DLL_PATCHES = (("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
             if on_:

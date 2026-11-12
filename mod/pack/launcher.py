@@ -174,13 +174,14 @@ def main():
             o["unarmed_sound"] = yn("[효과음 번들 수정] 맨손 스텔스 처형(기본 맨손/무술/브루탈)의 효과음이 허드슨/하오/이사야뿐 아니라 모든 생존자에게 나게 하기 (효과음 번들 data_visual 약 530MB를 다시 써서 백업/적용에 시간이 걸림. 목소리는 처형하는 생존자 자신의 것으로 나는 것으로 보이지만 게임에서 확인하지 못함. 이 게임 빌드 전용)", o.get("unarmed_sound", False))
             o["wheel_gold"] = yn("[게임 실행 파일 수정] 스테이션 휠(F 길게)에서 지금 조작 중인 생존자의 특기와 맞는 작업 칸을 금색으로 강조 (나쁜 특성은 제외, 자리가 꽉 찬 칸은 회색 그대로. GameAssembly.dll 에 새 실행 구역(4KB)을 추가하는 큰 변경이라 이 게임 빌드 전용이고 게임 업데이트/스팀 파일 검사 후에는 다시 적용해야 함. GameAssembly.dll.bak 백업을 만듦)", o.get("wheel_gold", False))
             o["shelter_move"] = yn("[게임 실행 파일 수정, 게임에서 동작 미확인] 한 번이라도 살았던 거점은 '수색해서 소탕'하지 않아도 바로 은신처로 이동 (한 번도 안 살아 본 거점은 그대로. GameAssembly.dll 에 새 실행 구역을 쓰며 이 게임 빌드 전용이고 게임 업데이트/스팀 무결성 검사 때 되돌아갈 수 있음. 원래대로 되돌릴 수 있음)", False)
+            o["random_start"] = yn("[게임 실행 파일 수정] 사용자 지정 시나리오에서 생존자를 아무도 안 고르고 시작하면 후보 18명(Bowman 제외) 중 랜덤 3명 + 랜덤 거점으로 시작 (GameAssembly.dll 에 새 실행 구역을 쓰며 이 게임 빌드 전용이고 게임 업데이트/스팀 무결성 검사 때 되돌아갈 수 있음. 원래대로 되돌릴 수 있음)", False)
             o["peek"] = yn("[게임 실행 파일 수정] 서 있는 상태에서도 문 엿보기 (이 게임 빌드 전용. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("peek", False))
             o["lock_notes"] = yn("맵 정보의 장소 설명 끝에 락픽/볼트 절단기 필요 개수 적기 (방문 전 장소도 표시. 서랍/로커 + 열쇠가 필요한 문 기준, 지식으로 여는 문 제외. 장소 이름 글자 파일 loc.* 수정, 백업 생성)", o.get("lock_notes", False))
             o["june"] = yn("스필존 스킵의 스쿱 준에게 방호복 받기: 칠리 콘 카르네 4개 -> 락픽 1개 (대사 문구는 그대로일 수 있음)", o.get("june", False))
             o["spillzone_start"] = yn("유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
-            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["wheel_gold"] = False; o["shelter_move"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
+            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["wheel_gold"] = False; o["shelter_move"] = False; o["random_start"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]
@@ -206,6 +207,7 @@ def main():
         if o.get("peek"): args += ["--peek-standing"]
         if o.get("wheel_gold"): args += ["--wheel-gold"]
         if o.get("shelter_move"): args += ["--shelter-move"]
+        if o.get("random_start"): args += ["--random-start"]
         if o.get("lock_notes"): args += ["--lock-notes"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
         if o["bal"] and o.get("vale_s12only"): args += ["--vale", "s12only"]
