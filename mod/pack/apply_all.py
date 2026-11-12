@@ -175,7 +175,7 @@ def main():
         sys.exit("맨손 처형 효과음(--unarmed-sound)은 일반판에서만 쓸 수 있고, data_visual 이 필요합니다.")
     # 지도 UI 번들(ui_screens, 약 50MB)은 '탐색 생존자 패널' 옵션을 쓰거나 예전에 썼을 때만 관리한다
     PUI = "ui_screens"
-    PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5"      # 이 게임 빌드의 원본 ui_screens
+    PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5".lower()      # 이 게임 빌드의 원본 ui_screens
     use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or PUI in man)
     if use_panel:
         files.append(PUI)
