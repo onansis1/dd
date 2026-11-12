@@ -40,6 +40,7 @@ OPTS = [
     ("shelter_move", "살았던 거점은 수색 없이 바로 이동 (게임 실행 파일 수정, 미확인)", False),
     ("random_start", "시나리오 랜덤 시작: 생존자를 안 고르고 시작하면 랜덤 3명 (게임 실행 파일 수정)", False),
     ("lock_notes", "맵 정보 장소 설명에 락픽/볼트 절단기 개수 표시", False),
+    ("map_note_test", "[시험] 지도 설명문에 탐색 특성 문구·이미지 태그 (슈레더 319번지 1곳)", False),
     ("june", "준(스킵의 스쿱) 방호복: 락픽 1개로 교환", False),
     ("otto", "오토 영입: 방호복 대신 락픽 1개 (관제실)", False),
 ]
@@ -48,7 +49,7 @@ GROUPS = [
     ("지도 · 단서", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads", "hod_start", "spillzone_start"]),
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
-    ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
+    ("작업대 · 표시", ["repair", "dismantle", "lock_notes", "map_note_test"]),
     ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "unarmed_sound"]),
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
@@ -416,7 +417,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
-                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("random_start", "--random-start"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
+                     ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("map_note_test", "--map-note-test"), ("random_start", "--random-start"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
             if o[k]: a.append(f)
         if o["bal"] and vale != 20: a += ["--vale-start", str(vale)]
         if o["bal"] and o["vale_s12only"]: a += ["--vale", "s12only"]
