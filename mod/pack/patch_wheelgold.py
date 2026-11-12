@@ -32,11 +32,11 @@ CAVE_B = ("488b75204885f60f84810100008b7e1883ff010f8c7501000081ff000100000f87690
           "488b52284885d2747f448b42184183f8017c754181f800010000776c488b52104885d27463443b4218775d4883c22041c1e0044e8d04024989c94d8b394d85ff743d498b5f104d8b7f184c8d1dc1"
           "01000049833b00741149391b75064d397b08741d4983c310ebe94989d649391e75064d397e0874214983c6104d39c672ec4983c1084d39d172b24883c6084839fe0f8252ffffffeb09c740240100"
           "0000ebe8488b15cb0a47ffe9b33f47fa")                                                      # 0x65E5400: 특기 겹침 계산 (B-real2, 410바이트)
-BAD_TABLE = ("0580bb36449e30bf169ee81d835b028e" "07cf7f40a744a1065dfee1f2f6bb708d" "13371991e6511b6981e4036c0eb51128" "2eefb6a7599c6d2e49f9b8f6083805f5"
-             "315a6c476e12cd8eff233f7a0a64715a" "619bcdc76398b9420122e3cb027c2327" "aa8983f4bd2738c65ba8668fc9236678" "bafc968b4250fa3c27e8f5fd0d072864"
-             "f20593f99bca412c6ff89a88da69a04b" "00000000000000000000000000000000")                 # 0x65E5700: 부정 특성 GUID 9개 + 종료 항목
+BAD_TABLE = ("0580bb36449e30bf169ee81d835b028e" "07cf7f40a744a1065dfee1f2f6bb708d" "13371991e6511b6981e4036c0eb51128" "2eefb6a7599c6d2e49f9b8f6083805f5" "315a6c476e12cd8eff233f7a0a64715a" "619bcdc76398b9420122e3cb027c2327" "aa8983f4bd2738c65ba8668fc9236678" "bafc968b4250fa3c27e8f5fd0d072864" "f20593f99bca412c6ff89a88da69a04b" "e3eda00e041f6cefaf85d9e1a74548dc" "00000000000000000000000000000000")   # 0x65E5700: 부정 특성 GUID 9개 + 사교적(Sociable, 공동구역에서는 작업 특기가 아님) + 종료 항목
+OLD_BAD_TABLE = ("0580bb36449e30bf169ee81d835b028e" "07cf7f40a744a1065dfee1f2f6bb708d" "13371991e6511b6981e4036c0eb51128" "2eefb6a7599c6d2e49f9b8f6083805f5" "315a6c476e12cd8eff233f7a0a64715a" "619bcdc76398b9420122e3cb027c2327" "aa8983f4bd2738c65ba8668fc9236678" "bafc968b4250fa3c27e8f5fd0d072864" "f20593f99bca412c6ff89a88da69a04b" "00000000000000000000000000000000" "cccccccccccccccccccccccccccccccc")      # 이전 버전(Sociable 제외 전)이 쓰던 표 + 그 뒤 0xCC. 이 상태도 알아보고 새 표로 바꿔 쓴다
 SHELTER_OFF, SHELTER_LEN = 0xA00, 160                                      # patch_shelter.py 가 같은 구역의 이 자리를 쓴다 (겹치지 않음)
 CODE = [("색 동굴 A", 0x100, CAVE_A), ("금색 상수", 0x160, GOLD), ("겹침 계산 동굴 B", 0x400, CAVE_B), ("부정 특성 표", 0x700, BAD_TABLE)]
+ALT = {"부정 특성 표": OLD_BAD_TABLE}                                   # 코드 조각의 알려진 이전 버전
 # --- 후크 둘: (이름, 파일 위치, 원래 바이트, 마지막 단계 바이트, 개발 중 시험 단계 바이트들, 앞 20바이트, 뒤 20바이트)
 HOOKS = [
     ("후크 B GoToStationWheel(0xA59546) -> 겹침 계산", 0xA58746, "488b1513cbff04", "e9b5beb8059090", ["e935bcb8059090"],
@@ -148,10 +148,10 @@ def pagestate(dll):
     if size != ORIGINAL_SIZE + PAGE:
         return None, None
     regs = []
-    for _n, po, hx in CODE:
+    for nm, po, hx in CODE:
         b = bytes.fromhex(hx)
         cur = read_at(dll, ORIGINAL_SIZE + po, len(b))
-        regs.append("cc" if cur == b"\xcc" * len(b) else "final" if cur == b else "other")
+        regs.append("cc" if cur == b"\xcc" * len(b) else "final" if cur == b else "old" if (nm in ALT and cur == bytes.fromhex(ALT[nm])) else "other")
     return "page", regs
 
 
@@ -187,12 +187,13 @@ def state(dll):
         return "ok", 0
     if regs and "other" in regs:
         return None, "새 구역 안의 코드 자리가 0xCC 도, 우리 코드도 아닙니다: %s" % regs
-    code_final = bool(regs) and all(r == "final" for r in regs)
+    code_final = bool(regs) and all(r in ("final", "old") for r in regs)
+    code_old = "old" in (regs or [])
     code_clean = bool(regs) and all(r == "cc" for r in regs)
     if any(x != "orig" for x in hk) and not code_final and not (any(x == "test" for x in hk) and regs):
         return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if kh == 3 and code_final and hk == ["final", "final"]:
-        return "ok", 7
+        return "ok", "old" if code_old else 7
     if kh == 0 and code_clean and hk == ["orig", "orig"]:
         return "ok", 1                      # 페이지만 붙은 상태
     if kh == 3 and code_clean and hk == ["orig", "orig"]:
@@ -242,7 +243,7 @@ def cmd_status(dll):
     if k[0] is None:
         print("상태: 알 수 없음 -", k[1])
     else:
-        print("상태:", ("%d/7 단계" % k[1]) if isinstance(k[1], int) else "개발 중 시험 단계(적용하면 마지막 단계로 옮겨짐)")
+        print("상태:", ("%d/7 단계" % k[1]) if isinstance(k[1], int) else "이전 버전 또는 개발 중 시험 단계(적용하면 마지막 단계로 옮겨짐)")
 
 
 def cmd_check(dll):
@@ -257,7 +258,7 @@ def cmd_check(dll):
     need_bak(dll, k[1] if isinstance(k[1], int) else 7, create=False)
     if game_running():
         sys.exit("게임이 실행 중입니다. 게임을 완전히 끄고 다시 시도하세요.")
-    print("스테이션 휠 특기 강조: 적용 가능 (현재 %s)" % (("%d/7 단계" % k[1]) if isinstance(k[1], int) else "시험 단계"))
+    print("스테이션 휠 특기 강조: 적용 가능 (현재 %s)" % (("%d/7 단계" % k[1]) if isinstance(k[1], int) else "이전 버전/시험 단계"))
 
 
 def cmd_apply(dll):
@@ -287,7 +288,8 @@ def cmd_apply(dll):
         b = bytes.fromhex(hx)
         cur = read_at(dll, ORIGINAL_SIZE + po, len(b))
         if cur != b:
-            _write(dll, ORIGINAL_SIZE + po, b"\xcc" * len(b), b)
+            expect = bytes.fromhex(ALT[name]) if name in ALT and cur == bytes.fromhex(ALT[name]) else b"\xcc" * len(b)   # 이전 버전 코드(부정 특성 표)는 새 것으로 바꿔 씀
+            _write(dll, ORIGINAL_SIZE + po, expect, b)
     for h in HOOKS:                                                     # 6~7) 후크 연결 (코드가 있어야만)
         _n, off, orig, final, tests, _b, _a = h
         st = hookstate(dll, h)
