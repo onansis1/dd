@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """verify_addimg.py - read-only verification of a bundle built by itd_mapscreen_addimg.py (work on copies only).
   python -I -X utf8 verify_addimg.py --orig <orig ui_screens copy> --new <new ui_screens> --info <new>.build.json [--game-bundles <AssetBundles dir>]
 exit code 0 = all checks passed."""
@@ -29,7 +29,10 @@ def verify_tree(v, n, trees, spec, info, orig_ser, new_ids):
     """independent check of the new subtree against the spec, walking the REAL new scene from the MapHud RectTransform"""
     Pn = n.by_pid(); Po = orig_ser.by_pid(); otrees = [tt.build_tree(t) for t in orig_ser.types]
     def orig_L(pid): return {p: val for p, off, t, val in tt.parse_object(orig_ser, Po[pid], otrees)}
-    def L(pid): return {p: val for p, off, t, val in tt.parse_object(n, Pn[pid], trees)}
+    _lc = {}
+    def L(pid):
+        if pid not in _lc: _lc[pid] = {p: val for p, off, t, val in tt.parse_object(n, Pn[pid], trees)}
+        return _lc[pid]
     # script pointer -> kind, taken from the ORIGINAL clone-source components
     kind_by_script = {}
     for kind in ('image', 'smarttext', 'localise', 'vlg', 'hlg', 'csf', 'button'):

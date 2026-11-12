@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """itd_mapscreen_addimg.py - COPY-ONLY tool: add fixed Image slots to BuildPlayer-MapScreen inside a ui_screens bundle copy.
 
   python -I -X utf8 itd_mapscreen_addimg.py plan  --src <ui_screens copy> --spec spec.json
@@ -6,7 +6,7 @@
 
 Never writes into the game folder (refused). The source file is only read. Requires: python 3.10+, lz4, UnityPy (common-string table only).
 """
-import sys, os, json, struct, hashlib, argparse
+import sys, os, json, struct, hashlib, argparse, copy
 HERE = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import itdp_ufs as ufs, itdp_ser as S, itdp_tt as tt, itdp_edit as ser_edit
 
@@ -213,7 +213,10 @@ def build_tree_objects(sr, trees, spec, table, fid_for):
     for rec in flat: name2go.setdefault(rec['node']['name'], []).append(rec['ids']['go'])
     append = {}
     tid_of = lambda pid: sr.objects[P[pid]][3]
-    def mk(kind): return Obj(sr, trees, TREE_SRC[kind])
+    tmpl = {}
+    def mk(kind):
+        if kind not in tmpl: tmpl[kind] = Obj(sr, trees, TREE_SRC[kind])          # parsed once; every clone is a byte-identical copy of the template
+        t = tmpl[kind]; c = copy.copy(t); c.b = bytearray(t.b); c.off = dict(t.off); c.val = dict(t.val); return c
     def build(rec, father_rt):
         n = rec['node']; ids = rec['ids']
         comps = [ids['rt']] + ([ids['cr']] if 'cr' in ids else [])

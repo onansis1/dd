@@ -32,6 +32,8 @@ HOOK_OFF, HOOK_ORIG, HOOK_NEW = D["hook_off"], D["hook_orig"], D["hook_new"]
 HOOK_BEFORE, HOOK_AFTER = D["hook_before"], D["hook_after"]
 V1_PIECES = [(p["name"], p["page_off"], p["hex"]) for p in D["v1_pieces"]]    # 개발 도구가 .itdx 안에 쓴 이전 버전 조각
 V1_HOOK = D["v1_hook_new"]
+OLD = [(bytes.fromhex(o["section_hex"]), o["hook_new"]) for o in D.get("old", [])]      # 이전 버전(v2.1) 구역/후크: 새 버전으로 교체 대상
+OLD_HOOKS = [h for _s, h in OLD]
 assert len(SECTION) == PAGE2 and len(ITD2_HDR) == 80
 
 
@@ -91,7 +93,7 @@ def hdrstate(dll):
 
 def hookbytes(dll):
     cur = read_at(dll, HOOK_OFF, 8).hex()
-    return "orig" if cur == HOOK_ORIG else "v3" if cur == HOOK_NEW else "v1" if cur == V1_HOOK else "other"
+    return "orig" if cur == HOOK_ORIG else "v3" if cur == HOOK_NEW else "v1" if cur == V1_HOOK else "old3" if cur in OLD_HOOKS else "other"
 
 
 def check_hook_context(dll):
@@ -136,13 +138,16 @@ def state(dll):
         if h872 != ITD2_HDR or nsec != 9 or read_at(dll, 368, 4).hex() != HDR_ALT[368]:
             return None, ".itd2 구역 헤더/구역 수/SizeOfImage 가 알려진 상태가 아닙니다"
         sec = read_at(dll, ORIGINAL_SIZE + PAGE, PAGE2)
-        scs = "final" if sec == SECTION else "blank" if all(c in (0x00, 0xCC) for c in sec) else "other"
+        scs = "final" if sec == SECTION else "old" if any(sec == o for o, _h in OLD) else "blank" if all(c in (0x00, 0xCC) for c in sec) else "other"
         if scs == "other":
             return None, ".itd2 구역의 내용이 우리 코드도 빈 구역도 아닙니다"
     else:
         if nsec == 9 or read_at(dll, ITD2_HDR_OFF, 40).hex() != "00" * 40 or read_at(dll, 368, 4).hex() == HDR_ALT[368]:
             return None, ".itd2 흔적이 있는데 파일 크기가 맞지 않습니다"
         scs = "none"
+    if hk == "old3":
+        if not (has_itd2 and scs == "old" and read_at(dll, HOOK_OFF, 8).hex() == next(h for o, h in OLD if o == sec)):
+            return None, "이전 버전 후크는 있는데 짝이 되는 이전 버전 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if hk == "v3" and not (has_itd2 and scs == "final"):
         return None, "후크는 연결돼 있는데 새 구역에 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if hk == "v1" and v1 != "v1":
@@ -151,6 +156,8 @@ def state(dll):
         return "v1", "이전 버전(개발 도구) 코드"
     if v1 in ("v1", "partial"):
         return "v1", "이전 버전 코드 조각이 남아 있음"
+    if hk == "old3" or (has_itd2 and scs == "old"):
+        return "old", "이전 버전(v2.1) 패널 코드: 새 버전으로 교체 대상"
     if hk == "v3":
         return "final", ""
     if has_itd2 and scs == "final":
@@ -251,6 +258,8 @@ def cmd_apply(dll):
         _write(dll, ITD2_HDR_OFF, b"\x00" * 40, bytes.fromhex(ITD2_HDR))
         _write(dll, 294, bytes.fromhex("0800"), bytes.fromhex("0900"))
         _write(dll, 368, bytes.fromhex("00605e06"), bytes.fromhex("00705e06"))
+    if hookbytes(dll) == "old3":                                        # 이전 버전 후크를 먼저 걷어 낸 뒤 코드를 바꾼다 (코드가 바뀌는 동안 아무도 점프하지 않게)
+        _write(dll, HOOK_OFF, read_at(dll, HOOK_OFF, 8), bytes.fromhex(HOOK_ORIG))
     cur = read_at(dll, ORIGINAL_SIZE + PAGE, PAGE2)
     if cur != SECTION:
         _write(dll, ORIGINAL_SIZE + PAGE, cur, SECTION)                 # 코드 (아직 아무도 점프하지 않음)
@@ -273,8 +282,8 @@ def cmd_revert(dll):
         return
     if game_running():
         sys.exit("게임이 실행 중입니다. 게임을 완전히 끄고 다시 시도하세요 (지도 패널 코드를 되돌리지 못했습니다).")
-    if hookbytes(dll) == "v3":                                          # 후크 먼저
-        _write(dll, HOOK_OFF, bytes.fromhex(HOOK_NEW), bytes.fromhex(HOOK_ORIG))
+    if hookbytes(dll) in ("v3", "old3"):                                # 후크 먼저
+        _write(dll, HOOK_OFF, read_at(dll, HOOK_OFF, 8), bytes.fromhex(HOOK_ORIG))
     _remove_v1(dll)
     if os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2:            # .itd2: SizeOfImage -> 구역 수 -> 헤더 -> 파일 끝
         _write(dll, 368, bytes.fromhex("00705e06"), bytes.fromhex("00605e06"))
