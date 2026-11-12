@@ -14,7 +14,6 @@
   --random-start  사용자 지정 시나리오 화면에서 생존자를 아무도 안 고르고 시작을 누르면 후보 18명(Survivor Draw 후보에서 Bowman 제외) 중 랜덤 3명 + 랜덤 거점으로 시작 (GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
-  --map-note-test [시험] 지도 스테이션 화면에서 슈레더 스트리트 319번지 설명문 끝에 '탐색 유리 특성' 문구와 이미지 태그 시험 줄을 붙인다 (loc.* 번들 수정, 일반판만. 서식/이미지 태그가 되는지 확인용)
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
   --unarmed-sound 맨손 처형(스텔스/크리티컬 킥/무릎/다운) 효과음이 허드슨/하오/이사야만이 아니라 모든 생존자에게 나게 한다 (data_visual 번들 수정, 일반판만. 목소리는 처형하는 생존자 자신의 것)
   --keep-cleared  (제거된 기능: 더 이상 적용하지 않음. 이전에 적용돼 있으면 다음 적용/되돌리기 때 원래대로 되돌린다)
@@ -120,7 +119,6 @@ def main():
     ap.add_argument("--random-skills", action="store_true")
     ap.add_argument("--martial-h2h", action="store_true")
     ap.add_argument("--lock-notes", action="store_true")
-    ap.add_argument("--map-note-test", action="store_true")
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
@@ -161,10 +159,10 @@ def main():
     # 로컬라이제이션 번들은 '장소 설명 문구' 옵션을 쓰거나 예전에 썼을 때만 관리한다 (공유용/옵션 안 쓰는 사용자는 이 파일을 건드리지 않음)
     files = list(FILES)
     LOCF = ["loc.korean", "loc.english"]
-    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.map_note_test or any(f in man for f in LOCF))
+    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or any(f in man for f in LOCF))
     if use_loc:
         files += LOCF
-    elif a.lock_notes or a.map_note_test:
+    elif a.lock_notes:
         sys.exit("장소 설명 문구(--lock-notes)는 일반판에서만 쓸 수 있고, loc.korean/loc.english 가 필요합니다.")
     # 효과음 번들(data_visual, 약 530MB)도 '맨손 처형 효과음' 옵션을 쓰거나 예전에 썼을 때만 관리한다
     VISF = "data_visual"
@@ -339,8 +337,6 @@ def main():
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         if a.lock_notes and use_loc:
             print(run("patch_lootnote.py", stage).strip())
-        if a.map_note_test and use_loc:
-            print(run("patch_mapnote.py", stage).strip())
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())
