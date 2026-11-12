@@ -192,7 +192,12 @@ def main():
         cur = sha(cur_p)
         rec = man.get(f, {})
         has_bak = os.path.exists(bak_p)
-        if has_bak and rec.get("out") == cur:
+        if f == PUI and has_bak and sha(bak_p) != PUI_ORIG_SHA and os.path.isfile(cur_p + ".itd_orig") and sha(cur_p + ".itd_orig") == PUI_ORIG_SHA:
+            print("안내: 백업된 ui_screens 가 원본이 아니라(개발 도구 결과) 도구가 만든 원본 백업(ui_screens.itd_orig)으로 바꿉니다.")
+            shutil.copy2(bak_p, bak_p + ".prev")
+            shutil.copy2(cur_p + ".itd_orig", bak_p)
+            state = "개발 도구 결과 (원본 백업 기준으로 다시 계산)"
+        elif has_bak and rec.get("out") == cur:
             state = "이전 결과 (백업 기준으로 다시 계산)"
         elif has_bak and sha(bak_p) == cur:
             state = "원본 (수정 없음)"

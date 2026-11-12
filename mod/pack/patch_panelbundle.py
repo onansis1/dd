@@ -28,6 +28,9 @@ def main():
         sb, orig, new_ser, info = B.plan_build(src, spec)
     except Exception as e:
         sys.exit("중단: 지도 패널을 만들 수 없습니다 (게임 업데이트로 ui_screens 구조가 달라졌을 수 있습니다): %r. 아무것도 바꾸지 않았습니다." % (e,))
+    if info.get("parent_children_before") != 9 or info.get("objects_before") != 2725:
+        sys.exit("중단: 이 ui_screens 에는 이미 다른 지도 UI(예전 개발 도구가 넣은 패널 등)가 들어 있거나 원본이 아닙니다 (MapHud 자식 %s개, 오브젝트 %s개). 겹쳐 쓰지 않고 아무것도 바꾸지 않았습니다. Steam '게임 파일 무결성 검사'로 원본을 복구한 뒤 다시 적용하세요."
+                 % (info.get("parent_children_before"), info.get("objects_before")))
     out = ufs.write_bundle(sb, B.SCENE, new_ser, "rebuild")
     tmp = tempfile.mkdtemp(prefix="itd_panel_")
     try:
