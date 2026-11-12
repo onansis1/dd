@@ -8,7 +8,7 @@ src = sys.argv[1]
 v1dir = sys.argv[2] if len(sys.argv) > 2 else None
 L = json.load(open(os.path.join(src, "layout.json"), encoding="utf-8"))
 sec = open(os.path.join(src, "section_itd2.bin"), "rb").read()
-assert len(sec) == 0x800
+assert len(sec) == 0xA00
 hk = L["hook"]
 V1 = [("HELP", 0x5A0, "cave_help.bin"), ("FAMS", 0x620, "table_fams.bin"), ("TAIL", 0x7B0, "cave_tail.bin"), ("ROWS", 0x830, "table_rows.bin"), ("MAIN", 0xD60, "cave_main.bin")]
 pieces = []

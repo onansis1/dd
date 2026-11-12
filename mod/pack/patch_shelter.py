@@ -17,7 +17,7 @@ ORIGINAL_SHA256 = "3F45B1F9FA8B5F28AD4A0ECAAA87DB1A1D711BC559DBB1A3672855D82F906
 ORIGINAL_SIZE = 103912960
 PAGE = 4096
 HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 패널 코드(.itd2 구역)가 더해졌을 때 SizeOfImage / 구역 수
-PAGE2 = 0x800                                                        # .itd2 구역 크기 (patch_panelcode.py)
+PAGE2 = 0xA00                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 CAVE_OFF = 0xA00                      # 새 구역 안의 위치 (파일: ORIGINAL_SIZE + 0xA00 = 0x631A000)
 CAVE = "84c0750983bb90000000007c0731d2e9310280fae94a0280facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c0750b4183bc2490000000007c0731d2e9910780fae9ac0780facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c07512488b4e104885c9740e83b990000000007c05e9f69761fae9619a61fa"

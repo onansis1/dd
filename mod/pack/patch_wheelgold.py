@@ -14,7 +14,7 @@ ORIGINAL_SHA256 = "3F45B1F9FA8B5F28AD4A0ECAAA87DB1A1D711BC559DBB1A3672855D82F906
 ORIGINAL_SIZE = 103912960
 PAGE = 4096
 HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 패널 코드(.itd2 구역)가 더해졌을 때 SizeOfImage / 구역 수
-PAGE2 = 0x800                                                        # .itd2 구역 크기 (patch_panelcode.py)
+PAGE2 = 0xA00                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 PAGE_RVA = 0x65E5000
 

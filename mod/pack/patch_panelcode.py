@@ -2,7 +2,7 @@
 사용: python patch_panelcode.py <check|apply|revert|status> <GameAssembly.dll 경로>
  - 지도 화면(MapHud.OnPush)이 열릴 때 한 번, 내 은신처 생존자와 그들의 특성을 읽어 패널(ui_screens 번들에 patch_panelbundle.py 가 만든 줄/칸)의 해당하는 줄과 칸만 켜고 나머지는 끈다.
    코드는 GameObject.SetActive 등 게임의 Unity 호출만 쓰고, 패널의 구조가 예상과 다르면(번들이 적용되지 않았거나 다른 버전) 아무것도 하지 않는다.
- - 구현: 스테이션 휠/문 엿보기 등 다른 패치가 쓰는 '.itdx' 구역(없으면 만든다) 뒤에 새 실행 구역 '.itd2'(0x800바이트)를 추가하고(구역 헤더 40바이트 + NumberOfSections + SizeOfImage + 파일 끝에 0x800바이트),
+ - 구현: 스테이션 휠/문 엿보기 등 다른 패치가 쓰는 '.itdx' 구역(없으면 만든다) 뒤에 새 실행 구역 '.itd2'(0xA00바이트)를 추가하고(구역 헤더 40바이트 + NumberOfSections + SizeOfImage + 파일 끝에 0xA00바이트),
    그 구역에 코드와 표를 한 덩어리로 쓰고, MapHud.OnPush 안의 8바이트(RVA 0xDE5DF3)를 그 코드로 점프하게 바꾼다.
  - 개발 중 도구(itd_panel_code_patch.py)로 적용한 '이전 버전' 코드(.itdx 안 5조각 + 후크)도 알아보고, 새 코드로 교체한다(후크 -> 조각 순서로 먼저 되돌림).
  - 적용 순서: (필요하면 .itdx) -> .itd2 구역 -> 코드 -> 후크(마지막). 되돌리기는 반대. 쓴 뒤 읽어서 확인한다.
@@ -16,7 +16,7 @@ if getattr(sys, "_MEIPASS", None):
 ORIGINAL_SHA256 = "3F45B1F9FA8B5F28AD4A0ECAAA87DB1A1D711BC559DBB1A3672855D82F9061C8"
 ORIGINAL_SIZE = 103912960
 PAGE = 4096
-PAGE2 = 0x800
+PAGE2 = 0xA00
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 HDR_ALT = {368: "00705e06", 294: "0900"}
 HEADER = [   # .itdx 구역 (다른 패치와 같은 값)
