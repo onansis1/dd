@@ -12,6 +12,7 @@
   --wheel-gold    스테이션 휠(F 길게)에서 지금 조작 중인 생존자의 특기와 맞는 작업 칸을 금색으로 강조 (게임 실행 파일 GameAssembly.dll 에 새 실행 구역을 추가하고 직접 수정. 이 게임 빌드 전용, 일반판만)
   --shelter-move  한 번이라도 살았던 거점(떠난 날 기록이 있는 거점)은 '수색해서 소탕' 없이 바로 은신처 이동이 가능 (GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만. 게임에서 동작 미확인)
   --random-start  사용자 지정 시나리오 화면에서 생존자를 아무도 안 고르고 시작을 누르면 후보 18명(Survivor Draw 후보에서 Bowman 제외) 중 랜덤 3명 + 랜덤 거점으로 시작 (GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만)
+  --panel        지도 화면에 '탐색 생존자 패널'(UI) 추가: 지금 내 은신처 생존자 중 탐색/근접/사격/정신 특성이 유리한 사람의 사진과 특성을 탭으로 보여 준다 (ui_screens 번들 + GameAssembly.dll 직접 수정. 이 게임 빌드 전용, 일반판만)
   --peek-standing 서 있는 상태에서도 문 엿보기 (게임 실행 파일 GameAssembly.dll 을 직접 수정. 이 게임 빌드 전용, 일반판만)
   --lock-notes    맵 정보의 장소 설명 끝에 '락픽/볼트 절단기 필요 개수'를 덧붙인다 (loc.korean/loc.english 번들 수정, 일반판만. 방문 전 장소도 표시)
   --ammo-all-levels 무기 작업대에서 모든 총알 종류(권총/리볼버/샷건/소총/돌격소총)를 1레벨부터 만들 수 있게 (레벨별 레시피 목록에 빠진 총알 레시피를 추가)
@@ -113,6 +114,7 @@ def main():
     ap.add_argument("--wheel-gold", action="store_true")
     ap.add_argument("--shelter-move", action="store_true")
     ap.add_argument("--random-start", action="store_true")
+    ap.add_argument("--panel", action="store_true")
     ap.add_argument("--keep-cleared", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--unarmed-sound", action="store_true")
     ap.add_argument("--random-traits", action="store_true")
@@ -147,7 +149,7 @@ def main():
     # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)은 절대 건드리지 않는다.
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
     use_dll = not os.path.exists(os.path.join(HERE, "edition_map.txt"))
-    DLL_PATCHES = (("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"))
+    DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
             if on_:
@@ -171,6 +173,18 @@ def main():
         files.append(VISF)
     elif a.unarmed_sound:
         sys.exit("맨손 처형 효과음(--unarmed-sound)은 일반판에서만 쓸 수 있고, data_visual 이 필요합니다.")
+    # 지도 UI 번들(ui_screens, 약 50MB)은 '탐색 생존자 패널' 옵션을 쓰거나 예전에 썼을 때만 관리한다
+    PUI = "ui_screens"
+    PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5"      # 이 게임 빌드의 원본 ui_screens
+    use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or PUI in man)
+    if use_panel:
+        files.append(PUI)
+        _pc, _pb, _pi = os.path.join(ab, PUI), os.path.join(bdir, PUI), os.path.join(ab, PUI + ".itd_orig")
+        if not os.path.exists(_pb) and sha(_pc) != PUI_ORIG_SHA and os.path.isfile(_pi) and sha(_pi) == PUI_ORIG_SHA:
+            shutil.copy2(_pi, _pb)       # 개발 중 도구가 만들어 둔 원본 백업을 원본으로 삼는다 (수정된 파일을 원본으로 착각하지 않게)
+            print("안내: 개발 중 도구로 수정된 ui_screens 를 알아봤습니다. 도구가 만든 원본 백업(ui_screens.itd_orig)을 원본으로 삼습니다.")
+    elif a.panel:
+        sys.exit("지도 탐색 생존자 패널(--panel)은 일반판에서만 쓸 수 있고, ui_screens 가 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
     for f in files:
@@ -182,6 +196,8 @@ def main():
             state = "이전 결과 (백업 기준으로 다시 계산)"
         elif has_bak and sha(bak_p) == cur:
             state = "원본 (수정 없음)"
+        elif f == PUI and has_bak and sha(bak_p) == PUI_ORIG_SHA and os.path.isfile(cur_p + ".itd_orig"):
+            state = "개발 도구 결과 (원본 백업 기준으로 다시 계산)"
         elif has_bak:
             print("안내: %s 이(가) 백업/이전 결과와 다릅니다. 게임 업데이트로 보고 현재 파일을 새 원본으로 삼습니다." % f)
             shutil.copy2(bak_p, bak_p + ".prev")
@@ -202,7 +218,7 @@ def main():
         json.dump(man, open(mpath, "w", encoding="utf-8"), indent=1)
         print("모든 수정을 되돌렸습니다 (원본 백업으로 복원).")
         if use_dll:
-            for script_, _on, _label in reversed(DLL_PATCHES):
+            for script_, _on, _label in [DLL_PATCHES[0]] + list(reversed(DLL_PATCHES[1:])):      # 패널 코드(.itd2)를 먼저 걷어야 나머지가 새 구역 페이지를 정리할 수 있다
                 out_ = run(script_, "revert", dll).strip()
                 if out_:
                     print(out_)
@@ -337,6 +353,8 @@ def main():
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         if a.lock_notes and use_loc:
             print(run("patch_lootnote.py", stage).strip())
+        if a.panel and use_panel:
+            print(run("patch_panelbundle.py", stage).strip())
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())

@@ -13,6 +13,8 @@ import hashlib, os, shutil, struct, subprocess, sys
 ORIGINAL_SHA256 = "3F45B1F9FA8B5F28AD4A0ECAAA87DB1A1D711BC559DBB1A3672855D82F9061C8"
 ORIGINAL_SIZE = 103912960
 PAGE = 4096
+HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 패널 코드(.itd2 구역)가 더해졌을 때 SizeOfImage / 구역 수
+PAGE2 = 0x800                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 PAGE_RVA = 0x65E5000
 
@@ -75,7 +77,7 @@ def verify_layout(dll):
         sys.exit("중단: PE 헤더의 모양이 이 패치와 다릅니다 (다른 빌드이거나 파일이 다릅니다).")
     if g["checksum"] != 0 or (g["sa"], g["fa"]) != (0x1000, 0x200):
         sys.exit("중단: PE 정렬/체크섬이 이 패치와 다릅니다.")
-    if g["nsec"] not in (7, 8):
+    if g["nsec"] not in (7, 8, 9):
         sys.exit("중단: 구역 수(%d)가 예상과 다릅니다." % g["nsec"])
     prev_end = 0
     for s in g["secs"]:
@@ -136,7 +138,7 @@ def hdrstate(dll):
     out = []
     for _n, off, orig, new in HEADER:
         cur = read_at(dll, off, len(orig) // 2).hex()
-        out.append("orig" if cur == orig else "new" if cur == new else "other")
+        out.append("orig" if cur == orig else "new" if cur in (new, HDR_ALT.get(off)) else "other")
     return out
 
 
@@ -145,7 +147,7 @@ def pagestate(dll):
     size = os.path.getsize(dll)
     if size == ORIGINAL_SIZE:
         return "orig", None
-    if size != ORIGINAL_SIZE + PAGE:
+    if size not in (ORIGINAL_SIZE + PAGE, ORIGINAL_SIZE + PAGE + PAGE2):
         return None, None
     regs = []
     for nm, po, hx in CODE:
@@ -165,7 +167,7 @@ def state(dll):
     if "other" in hs:
         return None, "구역 헤더 값이 원래도 패치된 값도 아닙니다: %s" % hs
     g = pe_geometry(dll)
-    if (g["nsec"] == 8) != (hs[2] == "new"):
+    if (g["nsec"] in (8, 9)) != (hs[2] == "new"):
         return None, "구역 수와 NumberOfSections 가 맞지 않습니다"
     # 헤더는 순서대로만: 구역 헤더 -> SizeOfImage -> NumberOfSections
     kh = 0
@@ -281,7 +283,7 @@ def cmd_apply(dll):
             os.fsync(f.fileno())
     for name, off, orig, new in HEADER:                                 # 2~4) 구역 헤더, SizeOfImage, 구역 수 (순서대로)
         cur = read_at(dll, off, len(orig) // 2).hex()
-        if cur == new:
+        if cur in (new, HDR_ALT.get(off)):
             continue
         _write(dll, off, bytes.fromhex(orig), bytes.fromhex(new))
     for name, po, hx in CODE:                                           # 5) 새 구역에 코드 쓰기 (점프는 아직 없음)
@@ -330,6 +332,8 @@ def cmd_revert(dll):
             keep[SHELTER_OFF:SHELTER_OFF + SHELTER_LEN] = cur[SHELTER_OFF:SHELTER_OFF + SHELTER_LEN]
         if cur != bytes(keep):
             _write(dll, ORIGINAL_SIZE, cur, bytes(keep))
+        if os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2:           # 지도 패널(.itd2)이 이 구역 뒤에 붙어 있으면 구역/헤더는 그쪽이 정리할 때까지 남긴다
+            shared = True
         if not shared:
             for name, off, orig, new in reversed(HEADER):               # 구역 수 -> SizeOfImage -> 구역 헤더
                 if read_at(dll, off, len(orig) // 2).hex() == new:

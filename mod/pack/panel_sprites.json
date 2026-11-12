@@ -1,0 +1,342 @@
+{
+ "faces": {
+  "Aubrey": {
+   "sprite": "icon_aubrey",
+   "pid": -8110937118643984035
+  },
+  "Barb": {
+   "sprite": "icon_barb",
+   "pid": -2934907242975876442
+  },
+  "Bowman": {
+   "sprite": "icon_bowman",
+   "pid": -6337444233121504912
+  },
+  "Candy": {
+   "sprite": "icon_candy",
+   "pid": -2933171658403797128
+  },
+  "Charlie": {
+   "sprite": "icon_charlie",
+   "pid": -1162942088914467768
+  },
+  "Christine": {
+   "sprite": "icon_christine",
+   "pid": 4050107880473510890
+  },
+  "Cooper": {
+   "sprite": "icon_cooper_a",
+   "pid": 7578510947273313343
+  },
+  "Daphne": {
+   "sprite": "icon_daphne",
+   "pid": -846223805287235025
+  },
+  "Darrel": {
+   "sprite": "icon_darrel",
+   "pid": -4265385941888914663
+  },
+  "Dianne": {
+   "sprite": "icon_dianne",
+   "pid": -8601361378169410975
+  },
+  "Eva": {
+   "sprite": "icon_eva",
+   "pid": -4083821658006052867
+  },
+  "Frank": {
+   "sprite": "icon_frank",
+   "pid": -6001084131388107131
+  },
+  "Hao": {
+   "sprite": "icon_hao",
+   "pid": 8377497416247352035
+  },
+  "Hector": {
+   "sprite": "icon_hector",
+   "pid": -5616199321178589476
+  },
+  "Hudson": {
+   "sprite": "icon_hudson",
+   "pid": -6471302574923030297
+  },
+  "Isabel": {
+   "sprite": "icon_isabel",
+   "pid": -4102005811356562351
+  },
+  "Isaiah": {
+   "sprite": "icon_isaiah",
+   "pid": -4433102520126426618
+  },
+  "Issac": {
+   "sprite": "icon_issac",
+   "pid": 4510961691196549259
+  },
+  "Jett": {
+   "sprite": "icon_jett",
+   "pid": -7584175822948553329
+  },
+  "Joe": {
+   "sprite": "icon_jo",
+   "pid": -977423161798096391
+  },
+  "Julie": {
+   "sprite": "icon_julie",
+   "pid": -2388204517862739391
+  },
+  "Kayla": {
+   "sprite": "icon_kayla",
+   "pid": 1447081385104571880
+  },
+  "Kirk": {
+   "sprite": "icon_kirk",
+   "pid": 7689686246259430697
+  },
+  "Leo": {
+   "sprite": "icon_leo",
+   "pid": 3437408125584372903
+  },
+  "Lester": {
+   "sprite": "icon_lester",
+   "pid": 1514488770776114982
+  },
+  "Mei": {
+   "sprite": "icon_mei",
+   "pid": -2972218055947945625
+  },
+  "Michelle": {
+   "sprite": "icon_michelle",
+   "pid": 103632796569780974
+  },
+  "Miguel": {
+   "sprite": "icon_miguel",
+   "pid": 858012414832404280
+  },
+  "Norman": {
+   "sprite": "icon_norman",
+   "pid": -3615311038504801393
+  },
+  "Otto": {
+   "sprite": "icon_otto",
+   "pid": -3557488175436546178
+  },
+  "Penny": {
+   "sprite": "icon_penny",
+   "pid": 1410024463499414671
+  },
+  "Rahul": {
+   "sprite": "icon_rahul",
+   "pid": 339011854043715723
+  },
+  "Robbie": {
+   "sprite": "icon_robbie",
+   "pid": 7190472573032373464
+  },
+  "Sebastian": {
+   "sprite": "icon_sebastian",
+   "pid": 7986269652787768537
+  },
+  "Taylor": {
+   "sprite": "icon_taylor",
+   "pid": 8177583770420867486
+  },
+  "Tracy": {
+   "sprite": "icon_tracy",
+   "pid": -8326972333192689402
+  },
+  "Vince": {
+   "sprite": "icon_vince",
+   "pid": 2396527648723501271
+  },
+  "Wayne": {
+   "sprite": "icon_wayne",
+   "pid": 3255087540554605156
+  }
+ },
+ "traits": {
+  "Trait+Agile": {
+   "sprite": "TraitAgile",
+   "pid": 8862331993658874303,
+   "nameKey": "TRAIT_AGILE_NAME",
+   "visual_pid": -607057269929116362
+  },
+  "Trait+ChiefwaysEmployee": {
+   "sprite": "TraitChiefwayEmployee",
+   "pid": 349784152297859961,
+   "nameKey": "TRAIT_CHIEFWAYSEMPLOYEE_NAME",
+   "visual_pid": -2807266604836442283
+  },
+  "Trait+Evasive_ME": {
+   "sprite": "TraitEvasive",
+   "pid": 5895768773532607032,
+   "nameKey": "TRAIT_EVASIVE_ME_NAME",
+   "visual_pid": -4459833928523768668
+  },
+  "Trait+Evasive": {
+   "sprite": "TraitEvasive",
+   "pid": 5895768773532607032,
+   "nameKey": "TRAIT_EVASIVE_NAME",
+   "visual_pid": 6824589949513544074
+  },
+  "Trait+Fortitude": {
+   "sprite": "TraitFortitude",
+   "pid": 3135722514115984718,
+   "nameKey": "TRAIT_FORTITUDE_NAME",
+   "visual_pid": -9045958079979770055
+  },
+  "Trait+Keyring": {
+   "sprite": "TraitKeyring",
+   "pid": 8430239300103548959,
+   "nameKey": "TRAIT_KEYRING_NAME",
+   "visual_pid": 1100273075036205040
+  },
+  "Trait+LockpickExpert": {
+   "sprite": "TraitLockpickExpert",
+   "pid": -495032373846465447,
+   "nameKey": "TRAIT_LOCKPICKEXPERT_NAME",
+   "visual_pid": -3205667626724473698
+  },
+  "Trait+MeticulousScavenger_ME": {
+   "sprite": "TraitMeticulousScavenger",
+   "pid": -4674989940892708670,
+   "nameKey": "TRAIT_METICULOUS_SCAVENGER_ME_NAME",
+   "visual_pid": -3335818089424303379
+  },
+  "Trait+Organised": {
+   "sprite": "TraitOrganized",
+   "pid": 7692343430677716313,
+   "nameKey": "TRAIT_ORGANISED_NAME",
+   "visual_pid": -8484195988301121698
+  },
+  "Trait+Sneaky": {
+   "sprite": "TraitSneaky",
+   "pid": -5414497923581450467,
+   "nameKey": "TRAIT_SNEAKY_NAME",
+   "visual_pid": -5110056457590371003
+  },
+  "Trait+Stealthy": {
+   "sprite": "TraitStealthy",
+   "pid": -3394830040077215564,
+   "nameKey": "TRAIT_STEALTHY_NAME",
+   "visual_pid": -6457557844172535613
+  },
+  "Trait+StrongShoulders": {
+   "sprite": "TraitStrongShoulders",
+   "pid": 6545032053821108137,
+   "nameKey": "TRAIT_STRONGSHOULDERS_NAME",
+   "visual_pid": 6796820589852577689
+  },
+  "Trait+Sturdy": {
+   "sprite": "TraitSturdy",
+   "pid": 6713953902209626770,
+   "nameKey": "TRAIT_STURDY_NAME",
+   "visual_pid": 4417113399314124457
+  },
+  "Trait+Tough_ME": {
+   "sprite": "TraitTough",
+   "pid": 8676622044385387398,
+   "nameKey": "TRAIT_TOUGH_NAME",
+   "visual_pid": 1216974936129545983
+  },
+  "Trait+Tough": {
+   "sprite": "TraitTough",
+   "pid": 8676622044385387398,
+   "nameKey": "TRAIT_TOUGH_NAME",
+   "visual_pid": -172245435258293763
+  },
+  "Trait+Unfazed": {
+   "sprite": "TraitUnfazed",
+   "pid": 3339968515231199651,
+   "nameKey": "TRAIT_UNFAZED_NAME",
+   "visual_pid": -8733919533569336232
+  },
+  "Trait+WillToLive_ME": {
+   "sprite": "TraitWillToLive",
+   "pid": 651259073596555470,
+   "nameKey": "TRAIT_WILL_TO_LIVE_NAME",
+   "visual_pid": -3983258414571567448
+  },
+  "Trait+WillToLive": {
+   "sprite": "TraitWillToLive",
+   "pid": 651259073596555470,
+   "nameKey": "TRAIT_WILL_TO_LIVE_NAME",
+   "visual_pid": -7085605738904528719
+  },
+  "Trait+Scrapper": {
+   "sprite": "TraitScrapper",
+   "pid": -6708086957578323534,
+   "nameKey": "TRAIT_SCRAPPER_NAME",
+   "visual_pid": 8525321945617168909
+  },
+  "Trait+ProfessionalWrestler": {
+   "sprite": "TraitProfessionalWrestler",
+   "pid": 2834833451933367918,
+   "nameKey": "TRAIT_WRESTLER_NAME",
+   "visual_pid": -6576926801234350102
+  },
+  "Trait+MartialArtist": {
+   "sprite": "TraitMartialArtist",
+   "pid": -2767612623713598553,
+   "nameKey": "TRAIT_MARTIAL_ARTIST_NAME",
+   "visual_pid": 7157003003638183902
+  },
+  "Trait+Slugger": {
+   "sprite": "TraitSlugger",
+   "pid": -7020685660932717753,
+   "nameKey": "TRAIT_SLUGGER_NAME",
+   "visual_pid": 6885074927760306538
+  },
+  "Trait+BladeExpert": {
+   "sprite": "TraitBladeExpert",
+   "pid": 7016134502765995648,
+   "nameKey": "TRAIT_BLADEEXPERT_NAME",
+   "visual_pid": 8055895508851570190
+  },
+  "Trait+HeavyHitter": {
+   "sprite": "TraitHeavyHitter",
+   "pid": -1137395677618499811,
+   "nameKey": "TRAIT_HEAVYHITTER_NAME",
+   "visual_pid": 4585999328936553755
+  },
+  "Trait+Slasher": {
+   "sprite": "TraitSlasher",
+   "pid": 1814870039743383609,
+   "nameKey": "TRAIT_SLASHER_NAME",
+   "visual_pid": 3099818873553271638
+  },
+  "Trait+Gunslinger": {
+   "sprite": "TraitGunSlinger",
+   "pid": -3812761801966841790,
+   "nameKey": "TRAIT_GUNSLINGER_NAME",
+   "visual_pid": 3051777795617663823
+  },
+  "Trait+Marksman": {
+   "sprite": "TraitMarksman",
+   "pid": -1101079522687632816,
+   "nameKey": "TRAIT_MARKSMAN_NAME",
+   "visual_pid": 2172910778032865523
+  },
+  "Trait+Sharpshooter": {
+   "sprite": "TraitSharpshooter",
+   "pid": 3979080008755406605,
+   "nameKey": "TRAIT_SHARPSHOOTER_NAME",
+   "visual_pid": -8731827060480487147
+  },
+  "Trait+Compartmentalizer": {
+   "sprite": "TraitCompartmentalizer",
+   "pid": -1754744954416389877,
+   "nameKey": "TRAIT_COMPARTMENTALIZER_NAME",
+   "visual_pid": -1072771766798334593
+  },
+  "Trait+Remorseless": {
+   "sprite": "TraitRemorseless",
+   "pid": -7142756206200738310,
+   "nameKey": "TRAIT_REMORSELESS_NAME",
+   "visual_pid": -3948985853467779889
+  }
+ },
+ "meta": {
+  "character_icons_cab": "CAB-48146c6a1aaa31d40140ec70e4519f11",
+  "data_visual_cab": "CAB-15047df5c7990a010027b13fb140852a"
+ }
+}

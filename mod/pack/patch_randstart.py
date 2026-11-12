@@ -16,6 +16,8 @@ import hashlib, os, shutil, struct, subprocess, sys
 ORIGINAL_SHA256 = "3F45B1F9FA8B5F28AD4A0ECAAA87DB1A1D711BC559DBB1A3672855D82F9061C8"
 ORIGINAL_SIZE = 103912960
 PAGE = 4096
+HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 패널 코드(.itd2 구역)가 더해졌을 때 SizeOfImage / 구역 수
+PAGE2 = 0x800                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 CAVE_OFF = 0xAA0                      # 새 구역 안의 위치 (파일: ORIGINAL_SIZE + 0xAA0 = 0x631A0A0)
 CAVE = "4883ec4048895c24304989c6488b8e080100004885c90f846a010000488b81f80000004885c00f845a010000837820000f85500100004883b900010000000f84420100004883b980000000000f84340100004883be18010000000f842601000031ff31db488b8e08010000488d052e0100004889da48c1e2040f1004100f11442420488d5424204531c0e851aa82fa84c075030fabdfffc383fb1272c785ff7505bfffff03000f3148c1e2204809d04889c5c74424380300000085ff0f84b300000089f831c985c074098d50ff21d0ffc1ebf348b8157c4a7fb979379e4801c54889e84889c248c1ea1e4831d048bab9e5e41c6d4758bf480fafc24889c248c1ea1b4831d048baeb113113bb49d094480fafc24889c248c1ea1f4831d048c1e820480fafc148c1e82089c289f885d274098d48ff21c8ffcaebf30fbcd80fb3df488b8e08010000488d05520000004889da48c1e2040f1004100f11442420488d5424204531c0e805ac82faff4c24380f8545ffffff488b86180100000f57c00f118090000000488b5c24304c89f04883c440488b8e08010000e9cc7782facccc82337d2c8974352cd8d06591cc51a066a22f941783815a93893969457239a80cc1d1a2c8bebdbf2c66a7bc190a9f587a81bf9c6e419efd226658e79e6feba745fd3d73e1705564575bc290f167ba6127b0fa8cc2fd756664eaf460a5486d3ad992f95004d5cd545ceff34de1beb17dba9009741c2f52d4f67c3b44ceba0c4ca95af15ed5ce0822d93ab498278dbf1ffa592b54ee6c3955f45d003ce69c0d973ccd9eb970912466300b45ab94aee8115b792422e9862224ff3b780bd9b8cb9395898e061e9d2165c50b05a3cfeb968161e7bc45fff9465a2fa297a5b41cb3552be72e95db55eab0eee2d1e394c74b250e62921bb0081574f73758bc6ed584185aa9768b67619548f91a54d201b8da2a8d27ac7f7378f9c84ba9ec99ac032992b3"
@@ -80,7 +82,7 @@ def verify_layout(dll):
     sa, fa, checksum = struct.unpack_from("<I", hdr, opt + 32)[0], struct.unpack_from("<I", hdr, opt + 36)[0], struct.unpack_from("<I", hdr, opt + 64)[0]
     if (fh + 2, soi_off, tab + 40 * 7) != (294, 368, 832):
         sys.exit("중단: PE 헤더의 모양이 이 패치와 다릅니다 (다른 빌드이거나 파일이 다릅니다).")
-    if checksum != 0 or (sa, fa) != (0x1000, 0x200) or nsec not in (7, 8):
+    if checksum != 0 or (sa, fa) != (0x1000, 0x200) or nsec not in (7, 8, 9):
         sys.exit("중단: PE 정렬/체크섬/구역 수가 이 패치와 다릅니다.")
     prev_end = 0
     for i in range(nsec):
@@ -96,7 +98,7 @@ def hdrstate(dll):
     out = []
     for _n, off, orig, new in HEADER:
         cur = read_at(dll, off, len(orig) // 2).hex()
-        out.append("orig" if cur == orig else "new" if cur == new else "other")
+        out.append("orig" if cur == orig else "new" if cur in (new, HDR_ALT.get(off)) else "other")
     return out
 
 
@@ -130,10 +132,10 @@ def state(dll):
         if nsec != 7 or any(x != "orig" for x in hdrstate(dll)) or any(x != "orig" for x in hs):
             return None, "새 구역이 없는데 헤더/후크가 바뀌어 있습니다"
         return "ok", 0
-    if size != ORIGINAL_SIZE + PAGE:
+    if size not in (ORIGINAL_SIZE + PAGE, ORIGINAL_SIZE + PAGE + PAGE2):
         return None, "파일 크기 %d 가 원본(%d)도 원본+%d 도 아닙니다" % (size, ORIGINAL_SIZE, PAGE)
     h3 = hdrstate(dll)
-    if h3 == ["new"] * 3 and nsec == 8:
+    if h3 == ["new"] * 3 and nsec in (8, 9):
         sec = "new"
     elif h3 == ["orig"] * 3 and nsec == 7:
         sec = "none"                                 # 페이지만 붙은 중간 상태 (스테이션 휠 패치와 같음)
@@ -229,7 +231,7 @@ def cmd_apply(dll):
             f.flush()
             os.fsync(f.fileno())
     for _n, off, orig, new in HEADER:                                   # 2~4) 구역 헤더, SizeOfImage, 구역 수 (순서대로)
-        if read_at(dll, off, len(orig) // 2).hex() != new:
+        if read_at(dll, off, len(orig) // 2).hex() not in (new, HDR_ALT.get(off)):
             _write(dll, off, bytes.fromhex(orig), bytes.fromhex(new))
     cb = bytes.fromhex(CAVE)                                            # 5) 동굴 코드 (점프는 아직 없음)
     if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) != cb:
@@ -260,7 +262,7 @@ def cmd_revert(dll):
     cb = bytes.fromhex(CAVE)                                            # 우리 코드 자리만 0xCC 로
     if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) == cb:
         _write(dll, ORIGINAL_SIZE + CAVE_OFF, cb, b"\xcc" * CAVE_LEN)
-    shared = not page_rest_clean(dll)
+    shared = (not page_rest_clean(dll)) or os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2
     if not shared:                                                      # 스테이션 휠 패치가 이 구역을 안 쓰면 구역/페이지도 제거
         for _n, off, orig, new in reversed(HEADER):                     # 구역 수 -> SizeOfImage -> 구역 헤더
             if read_at(dll, off, len(orig) // 2).hex() == new:

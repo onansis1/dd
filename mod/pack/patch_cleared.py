@@ -69,14 +69,15 @@ def sha256(path):
 
 # 스테이션 휠 특기 강조(patch_wheelgold.py)/거점 이동(patch_shelter.py)/랜덤 시작(patch_randstart.py) 패치가 건드리는 자리의 '원래' 상태 (그쪽이 적용돼 있어도 원본 판정이 되게): 파일 끝 4096바이트 페이지는 떼고, 헤더 3곳/후크 2곳은 원래 바이트로
 WHEEL_PAGE = 4096
-WHEEL_PRISTINE = [(832, "00" * 40), (368, "00505e06"), (294, "0700"), (0xD7197E, "660f7f442440"), (0xA58746, "488b1513cbff04"), (12575881, "84c00f8470020000"), (14570465, "84c0742233d2"), (14569023, "84c0742033d2"), (14730755, "488b8e08010000"), (14730519, "32d2"), (14764036, "32d2")]
+WHEEL_PAGE2 = 0x800                                                  # 지도 패널 코드(.itd2 구역)
+WHEEL_PRISTINE = [(832, "00" * 40), (368, "00505e06"), (294, "0700"), (0xD7197E, "660f7f442440"), (0xA58746, "488b1513cbff04"), (12575881, "84c00f8470020000"), (14570465, "84c0742233d2"), (14569023, "84c0742033d2"), (14730755, "488b8e08010000"), (14730519, "32d2"), (14764036, "32d2"), (0xDE4FF3, "4533c0488d542438"), (872, "00" * 40)]
 
 
 def pristine_sha(path):
     """엿보기 패치 자리를 원래 바이트로 되돌려 놓고 계산한 SHA-256 (엿보기 패치가 적용돼 있어도 원본 판정이 되게)."""
     with open(path, "rb") as f:
         data = bytearray(f.read())
-    if len(data) == ORIGINAL_SIZE + WHEEL_PAGE:
+    if len(data) in (ORIGINAL_SIZE + WHEEL_PAGE, ORIGINAL_SIZE + WHEEL_PAGE + WHEEL_PAGE2):
         del data[ORIGINAL_SIZE:]
     for off, hx in WHEEL_PRISTINE:
         b = bytes.fromhex(hx)
@@ -141,7 +142,7 @@ def need_dll(dll):
 
 def check_original(dll, k):
     """k==0(수정 없음)이면 이 게임 빌드의 원본이어야 한다."""
-    if k == 0 and (os.path.getsize(dll) not in (ORIGINAL_SIZE, ORIGINAL_SIZE + WHEEL_PAGE) or pristine_sha(dll) != ORIGINAL_SHA256):
+    if k == 0 and (os.path.getsize(dll) not in (ORIGINAL_SIZE, ORIGINAL_SIZE + WHEEL_PAGE, ORIGINAL_SIZE + WHEEL_PAGE + WHEEL_PAGE2) or pristine_sha(dll) != ORIGINAL_SHA256):
         sys.exit("소탕 거점 재생성 방지를 적용하지 못했습니다: 이 게임 버전의 GameAssembly.dll 이 아닙니다 (게임이 업데이트되었거나 다른 도구로 바뀐 파일).\n"
                  "이 패치는 특정 게임 빌드에서만 쓸 수 있습니다. 이 항목을 끄고 다시 적용하세요.")
 
