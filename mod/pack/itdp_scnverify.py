@@ -47,7 +47,7 @@ def verify_scene(o, n, info):
     replaced = set(info['replaced'])
     ck('S1 object count +%d, source pids all still present' % len(newp), len(n.s.objects) == len(o.s.objects) + len(newp) and all(p in n.P for p in o.P) and set(newp) == set(n.P) - set(o.P))
     changed = {p for p in o.P if o.b(p) != n.b(p)}
-    ck('S1b only the 3 replaced objects differ from the source scene (changed: %s)' % sorted(changed), changed == replaced)
+    ck('S1b only the replaced objects differ from the source scene (changed: %s)' % sorted(changed), changed == replaced)
     # PPtr validity
     bad = []
     for p in list(newp) + sorted(replaced):
@@ -87,6 +87,8 @@ def verify_scene(o, n, info):
     ck('S4b clone root GO renamed MartialStartButton (original keeps ConfirmButton)', nv[132]['m_Name'] == 'MartialStartButton' and o.val(132)['m_Name'] == 'ConfirmButton' and n.val(132)['m_Name'] == 'ConfirmButton')
     ck('S4c clone root RectTransform at (%s, %s), original unchanged' % (info['pos'][0], info['pos'][1]), abs(nv[648]['m_AnchoredPosition.x'] - info['pos'][0]) < 1e-6 and abs(nv[648]['m_AnchoredPosition.y'] - info['pos'][1]) < 1e-6 and n.b(648) == o.b(648) and nv[648]['m_Father.m_PathID'] == panels)
     ck('S4d clone Warning GO is inactive (hidden, so it cannot overlap the original warning); the original Warning GO is untouched', nv[3]['m_IsActive'] == 0 and n.b(3) == o.b(3), 'clone %s orig_changed %s' % (nv[3].get('m_IsActive'), n.b(3) != o.b(3)))
+    wr = info['warn_rt']; ow, nw = o.val(wr), n.val(wr)
+    ck('S4e original Warning RectTransform: scale (0,0,0) and every other field unchanged (the original warning bar is hidden)', all(nw['m_LocalScale.' + a_] == 0.0 for a_ in 'xyz') and all(ow['m_LocalScale.' + a_] == 1.0 for a_ in 'xyz') and {k: x for k, x in ow.items() if not k.startswith('m_LocalScale')} == {k: x for k, x in nw.items() if not k.startswith('m_LocalScale')}, str((ow, nw)))
     # calls
     cc = n.calls(cm[1091], 'm_OnClick'); audio = [p for p in subtree(o, 132) if o.cls(p) == 114 and any(k.startswith('m_clickFmodEvent') for k in o.val(p))][0]
     ok = len(cc) == 3

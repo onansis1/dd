@@ -39,7 +39,7 @@
 백업은 <AssetBundles>/_mods_backup 에 한 번만 만들고, 항상 거기서 다시 계산하므로 여러 번 실행해도 배수가 쌓이지 않는다.
 파일이 백업/이전 결과와 다르면(= 게임 업데이트) 현재 파일을 새 원본으로 인식하고 백업을 갱신한다. 게임을 끈 상태에서 실행할 것.
 """
-import argparse, hashlib, json, os, shutil, subprocess, sys, tempfile
+import time, argparse, hashlib, json, os, shutil, subprocess, sys, tempfile
 
 FROZEN = getattr(sys, "frozen", False)   # PyInstaller exe
 HERE = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))   # 스크립트/데이터가 있는 곳
@@ -63,6 +63,8 @@ def log(text):
     except OSError:
         pass
 
+STEP_TIMES = []
+
 def run(script, *args):
     """하위 단계를 실행한다. 출력은 버퍼 없이(UTF-8) 받고, 실패하면 종료 코드와 모든 출력을 보여주고 로그에 남긴다."""
     if FROZEN:
@@ -70,7 +72,9 @@ def run(script, *args):
     else:
         cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
+    t0 = time.perf_counter()
     r = subprocess.run(cmd, capture_output=True, env=env, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    STEP_TIMES.append((script, time.perf_counter() - t0))
     out = (r.stdout or b"").decode("utf-8", errors="replace")
     err = (r.stderr or b"").decode("utf-8", errors="replace")
     log("$ " + " ".join(cmd) + "\n[returncode %s]\n%s\n%s" % (r.returncode, out, err))
@@ -400,6 +404,7 @@ def main():
                 except SystemExit as e:
                     sys.exit("지도/데이터 수정은 적용되었지만 %s(게임 실행 파일) 처리에 실패했습니다: %s\n"
                              "GameAssembly.dll 상태를 확인하세요 (GameAssembly.dll.bak 으로 복원하거나 스팀 '게임 파일 무결성 검사')." % (label_, e))
+        log("단계별 시간(초): " + ", ".join("%s %.1f" % (n.replace(".py", ""), t) for n, t in STEP_TIMES) + " / 합계 %.1f" % sum(t for _n, t in STEP_TIMES))
         print("\n완료. 이제 스팀에서 게임을 켜고 새 게임을 시작하세요.")
         ok_done = True
     finally:

@@ -80,6 +80,8 @@ def plan_build(src_path, key='LABEL_STATE_AND_TYPE', fallback_text='Start with M
     rt_root = clone_of(conf_rt); rt_root.set('m_AnchoredPosition.x', float(x)); rt_root.set('m_AnchoredPosition.y', float(y))
     assert Obj(sr, trees, 3).val['m_Name'] == 'Warning' and 3 in sub, 'GO 3 is not the Warning child of ConfirmButton'
     clone_of(3).set('m_IsActive', 0)      # 복제본의 경고 문구('계속하려면 생존자를 1명 이상 선택해야 합니다')가 원본 경고와 겹쳐 보이므로 복제본 쪽은 숨긴다
+    warn_rt = rt_of_go(sr, trees, 3); wrt = Obj(sr, trees, warn_rt)      # 원본 [시작] 버튼의 경고 막대도 숨긴다: 이 패치에서는 0명이어도 시작되므로 경고가 사실과 다르고, 새 버튼 아래로 깔려 보인다
+    for ax in 'xyz': wrt.set('m_LocalScale.' + ax, 0.0)                  # 크기 0 = 게임이 켜고 꺼도 보이지 않는다
     btn = clone_of(G['button_mb']); a0, end = calls_range(btn, 'm_OnClick'); assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array.size'] == 2
     assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[0].m_MethodName'] == 'PlayClickSound' and btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[1].m_MethodName'] == 'StartGameWithParameters'
     assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[1].m_Target.m_PathID'] == G['screen_mb'], 'StartGame target must stay the screen'
@@ -111,11 +113,11 @@ def plan_build(src_path, key='LABEL_STATE_AND_TYPE', fallback_text='Start with M
     a0, end = calls_range(tog, 'm_onShow'); tog.b[a0:end] = struct.pack('<i', 2) + bytes(tog.b[a0 + 4:end]) + call_bytes(marker_go, 'SetActive', False)
     # ---- 5. rebuild
     app = [(newp[p], a[1], bytes(a[2].b)) for p, a in zip(sub, append)] + [(marker_go, gtid, mgo), (marker_rt, mrt.tid, bytes(mrt.b))]
-    new_ser = ser_edit.rebuild(orig, replace={menu_rt: bytes(menu.b), panels_rt: bytes(panels.b), G['toggle_mb']: bytes(tog.b)}, append=app)
+    new_ser = ser_edit.rebuild(orig, replace={menu_rt: bytes(menu.b), panels_rt: bytes(panels.b), G['toggle_mb']: bytes(tog.b), warn_rt: bytes(wrt.b)}, append=app)
     info = {'scene': SCENE, 'objects_before': len(sr.objects), 'objects_after': len(sr.objects) + len(app), 'new_pids': [a[0] for a in app], 'clone_map': {str(k): v for k, v in newp.items()},
             'clone_root_go': newp[G['confirm']], 'clone_root_rt': newp[conf_rt], 'clone_button_mb': newp[G['button_mb']], 'marker_go': marker_go, 'marker_rt': marker_rt, 'menu_parent_rt': menu_rt, 'panels_rt': panels_rt,
             'toggle_mb': G['toggle_mb'], 'screen_mb': G['screen_mb'], 'label_key': key, 'pos': [x, y], 'outward_references': sorted([list(map(str, t)) for t in outward]),
-            'replaced': [menu_rt, panels_rt, G['toggle_mb']]}
+            'replaced': [menu_rt, panels_rt, G['toggle_mb'], warn_rt], 'warn_rt': warn_rt}
     return sb, orig, new_ser, info
 
 def main(argv=None):
