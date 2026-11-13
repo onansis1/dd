@@ -20,6 +20,7 @@ OPTS = [
     ("move_posts", "교역소 5곳을 지도 중앙부로 이동", False),
     ("shuffle_shelters", "거점(은신처) 위치 섞기", False),
     ("move_spillzone", "유출구역 세트(치프웨이즈) 통째 이동", False),
+    ("trader_sure", "상인 방문 확률 제한 해제: 쿨다운마다 확정으로 방문 (자주 3일/기본 6일/드물게 10일)", False),
     ("bal", "총알 x5 / 가방·스테이션·시체 24칸 / 베일", False),
     ("vale_s12only", "베일 샷건만 판매 (위 항목 켠 경우)", False),
     ("leads", "탈출 퀘스트 조사 장소 3곳 -> 1곳", False),
@@ -47,7 +48,7 @@ OPTS = [
 # 화면에 묶어서 보여 줄 때의 그룹 (모든 OPTS 키가 정확히 한 번씩 들어 있어야 한다)
 GROUPS = [
     ("지도 · 단서", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads", "hod_start", "spillzone_start"]),
-    ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto"]),
+    ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto", "trader_sure"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
     ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound"]),
@@ -428,6 +429,7 @@ class App:
         if not o["map"]: a += ["--no-shuffle"]
         if o["leads"]: a += ["--leads", "1"]
         if trader != 10: a += ["--trader-start", str(trader)]
+        if o["trader_sure"]: a += ["--trader-sure"]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
                      ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("random_start", "--random-start"), ("panel", "--panel"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):

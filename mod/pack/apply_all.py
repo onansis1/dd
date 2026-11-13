@@ -2,6 +2,7 @@
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
+  --trader-sure   상인 이벤트의 확률 판정(사이클마다 약 10%만 통과하는 것으로 보임)을 없애 쿨다운(자주 3사이클, 기본 6, 드물게 10)마다 확정으로 오게 함
   --trader-start N  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 1~9, 10=원래)
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
@@ -131,6 +132,7 @@ def main():
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
+    ap.add_argument("--trader-sure", action="store_true")
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "s12only", "none"])
     a = ap.parse_args()
@@ -336,9 +338,9 @@ def main():
             out_cfg3 = os.path.join(stage, "data_config.out")
             print(run("patch_zombie.py", os.path.join(stage, "data_config"), out_cfg3).strip())
             os.replace(out_cfg3, os.path.join(stage, "data_config"))
-        if a.trader_start < 10:
+        if a.trader_start < 10 or a.trader_sure:
             out_bal = os.path.join(stage, "data_balancing.out")
-            print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal, a.trader_start).strip())
+            print(run("patch_traders.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"), out_bal, a.trader_start, *(["nochance"] if a.trader_sure else [])).strip())
             os.replace(out_bal, os.path.join(stage, "data_balancing"))
         print(run("widen_map_radius.py", stage, a.radius).strip().splitlines()[-2])
         if not a.no_shuffle:
