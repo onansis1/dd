@@ -148,6 +148,8 @@ def state(dll):
     if hk == "old3":
         if not (has_itd2 and scs == "old" and read_at(dll, HOOK_OFF, 8).hex() == next(h for o, h in OLD if o == sec)):
             return None, "이전 버전 후크는 있는데 짝이 되는 이전 버전 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
+    if hk == "v3" and has_itd2 and scs == "old":
+        return "old", "이전 버전 패널 코드(후크는 같음): 새 버전으로 교체 대상"
     if hk == "v3" and not (has_itd2 and scs == "final"):
         return None, "후크는 연결돼 있는데 새 구역에 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if hk == "v1" and v1 != "v1":
@@ -258,7 +260,7 @@ def cmd_apply(dll):
         _write(dll, ITD2_HDR_OFF, b"\x00" * 40, bytes.fromhex(ITD2_HDR))
         _write(dll, 294, bytes.fromhex("0800"), bytes.fromhex("0900"))
         _write(dll, 368, bytes.fromhex("00605e06"), bytes.fromhex("00705e06"))
-    if hookbytes(dll) == "old3":                                        # 이전 버전 후크를 먼저 걷어 낸 뒤 코드를 바꾼다 (코드가 바뀌는 동안 아무도 점프하지 않게)
+    if hookbytes(dll) == "old3" or (k[0] == "old" and hookbytes(dll) == "v3"):    # 이전 버전 후크를 먼저 걷어 낸 뒤 코드를 바꾼다 (코드가 바뀌는 동안 아무도 점프하지 않게)
         _write(dll, HOOK_OFF, read_at(dll, HOOK_OFF, 8), bytes.fromhex(HOOK_ORIG))
     cur = read_at(dll, ORIGINAL_SIZE + PAGE, PAGE2)
     if cur != SECTION:
