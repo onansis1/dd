@@ -3,6 +3,7 @@
  - 사용자 지정 시나리오 화면에서 생존자를 한 명도 고르지 않고 시작을 누르면, 후보 18명(Survivor Draw 후보에서 Bowman 제외: Cooper, Isaiah, Charlie, Hao, Kayla, Mei, Daphne, Dianne, Hector, Tracy,
    Otto, Leo, Sebastian, Taylor, Wayne, Eva, Penny, Darrel) 중 잠기지 않은 생존자를 중복 없이 3명 뽑아 선택 집합에 채우고, 시작 거점은 빈 값으로 써서 게임이 무작위 거점을 고르게 한다.
    1명 이상 직접 고르면 아무것도 바꾸지 않는다(원래 동작). 후보가 전부 잠겨 있으면 잠금을 무시하고 18명 전체에서 뽑는다.
+   [v2] 화면의 새 버튼 '무술가 포함 뽑기'(patch_scnbtn.py)를 누르고 시작하면 같은 랜덤 시작이되, 뽑는 3명 안에 '무술가 후보'(표의 마스크, apply_all 이 적용할 때 계산해서 환경변수 ITD_RS_MASK 로 넘김)가 한 명 반드시 들어간다.
  - 구현: 스테이션 휠/거점 이동 패치와 같은 새 실행 구역 '.itdx'(없으면 만든다)의 RVA 0x65E5AA0(파일 0x631A0A0)부터 704바이트(동굴 414바이트 + 후보표 288바이트)를 쓰고, 후크 3개를 연결한다.
    (2) StartGameWithParameters(0xE0D403): 선택 집합을 읽기 직전에 동굴로 점프 (게임 함수 OnSurvivorClicked/IsSurvivorLocked 를 부른다. 호출이 있는 첫 패치)
    (3) OnStateChanged(0xE0D317)와 (4) 화면을 열 때 도는 같은 로직의 인라인 복사본(0xE15604): 0명일 때 시작 버튼 비활성 값(xor dl,dl)을 활성(mov dl,1)으로. 반드시 마지막.
@@ -20,8 +21,11 @@ HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 �
 PAGE2 = 0xA00                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 CAVE_OFF = 0xAA0                      # 새 구역 안의 위치 (파일: ORIGINAL_SIZE + 0xAA0 = 0x631A0A0)
-CAVE = "4883ec4048895c24304989c6488b8e080100004885c90f846a010000488b81f80000004885c00f845a010000837820000f85500100004883b900010000000f84420100004883b980000000000f84340100004883be18010000000f842601000031ff31db488b8e08010000488d052e0100004889da48c1e2040f1004100f11442420488d5424204531c0e851aa82fa84c075030fabdfffc383fb1272c785ff7505bfffff03000f3148c1e2204809d04889c5c74424380300000085ff0f84b300000089f831c985c074098d50ff21d0ffc1ebf348b8157c4a7fb979379e4801c54889e84889c248c1ea1e4831d048bab9e5e41c6d4758bf480fafc24889c248c1ea1b4831d048baeb113113bb49d094480fafc24889c248c1ea1f4831d048c1e820480fafc148c1e82089c289f885d274098d48ff21c8ffcaebf30fbcd80fb3df488b8e08010000488d05520000004889da48c1e2040f1004100f11442420488d5424204531c0e805ac82faff4c24380f8545ffffff488b86180100000f57c00f118090000000488b5c24304c89f04883c440488b8e08010000e9cc7782facccc82337d2c8974352cd8d06591cc51a066a22f941783815a93893969457239a80cc1d1a2c8bebdbf2c66a7bc190a9f587a81bf9c6e419efd226658e79e6feba745fd3d73e1705564575bc290f167ba6127b0fa8cc2fd756664eaf460a5486d3ad992f95004d5cd545ceff34de1beb17dba9009741c2f52d4f67c3b44ceba0c4ca95af15ed5ce0822d93ab498278dbf1ffa592b54ee6c3955f45d003ce69c0d973ccd9eb970912466300b45ab94aee8115b792422e9862224ff3b780bd9b8cb9395898e061e9d2165c50b05a3cfeb968161e7bc45fff9465a2fa297a5b41cb3552be72e95db55eab0eee2d1e394c74b250e62921bb0081574f73758bc6ed584185aa9768b67619548f91a54d201b8da2a8d27ac7f7378f9c84ba9ec99ac032992b3"
+OLD_CAVE = "4883ec4048895c24304989c6488b8e080100004885c90f846a010000488b81f80000004885c00f845a010000837820000f85500100004883b900010000000f84420100004883b980000000000f84340100004883be18010000000f842601000031ff31db488b8e08010000488d052e0100004889da48c1e2040f1004100f11442420488d5424204531c0e851aa82fa84c075030fabdfffc383fb1272c785ff7505bfffff03000f3148c1e2204809d04889c5c74424380300000085ff0f84b300000089f831c985c074098d50ff21d0ffc1ebf348b8157c4a7fb979379e4801c54889e84889c248c1ea1e4831d048bab9e5e41c6d4758bf480fafc24889c248c1ea1b4831d048baeb113113bb49d094480fafc24889c248c1ea1f4831d048c1e820480fafc148c1e82089c289f885d274098d48ff21c8ffcaebf30fbcd80fb3df488b8e08010000488d05520000004889da48c1e2040f1004100f11442420488d5424204531c0e805ac82faff4c24380f8545ffffff488b86180100000f57c00f118090000000488b5c24304c89f04883c440488b8e08010000e9cc7782facccc82337d2c8974352cd8d06591cc51a066a22f941783815a93893969457239a80cc1d1a2c8bebdbf2c66a7bc190a9f587a81bf9c6e419efd226658e79e6feba745fd3d73e1705564575bc290f167ba6127b0fa8cc2fd756664eaf460a5486d3ad992f95004d5cd545ceff34de1beb17dba9009741c2f52d4f67c3b44ceba0c4ca95af15ed5ce0822d93ab498278dbf1ffa592b54ee6c3955f45d003ce69c0d973ccd9eb970912466300b45ab94aee8115b792422e9862224ff3b780bd9b8cb9395898e061e9d2165c50b05a3cfeb968161e7bc45fff9465a2fa297a5b41cb3552be72e95db55eab0eee2d1e394c74b250e62921bb0081574f73758bc6ed584185aa9768b67619548f91a54d201b8da2a8d27ac7f7378f9c84ba9ec99ac032992b3"        # 이전 버전(v1, 704바이트: 코드 414 + 후보표 288 + 여백). 새 버전으로 교체 대상
+CAVE = "4883ec5048895c24304989c6c7442444000000004889f1e804bdbbfd4885c0747f488378100074784889c34889d9e8ad94bdfd83f80675684889d9ba05000000e8bb70bdfd4885c074564883781000744f4889c1e8e7bbbbfd4885c074424883781000743b4889c74889f931d2e86e18bcfd84c0742a4889f931d24531c0e87d11bcfd48837f100074164889f931d2e84c18bcfd84c07508c744244401000000488b8e080100004885c90f84a1010000488b81f80000004885c00f8491010000837820000f85870100004883b900010000000f84790100004883b980000000000f846b0100004883be18010000000f845d01000031ff31db488b8e08010000488d056a0100004889da48c1e2040f1004100f11442420488d5424204531c0e8bda982fa84c075030fabdfffc383fb1272c785ff7505bfffff03000f3148c1e2204809d04889c5c744243803000000c744244000000000837c244400740c8b052d02000021f88944244085ff0f84cf0000004189f98b44244085c0740fc74424400000000021f874034189c14489c831c985c074098d50ff21d0ffc1ebf348b8157c4a7fb979379e4801c54889e84889c248c1ea1e4831d048bab9e5e41c6d4758bf480fafc24889c248c1ea1b4831d048baeb113113bb49d094480fafc24889c248c1ea1f4831d048c1e820480fafc148c1e82089c24489c885d274098d48ff21c8ffcaebf30fbcd80fb3df488b8e08010000488d05570000004889da48c1e2040f1004100f11442420488d5424204531c0e83aab82faff4c24380f8529ffffff488b86180100000f57c00f118090000000488b5c24304c89f04883c450488b8e08010000e9017782facccccccccccccc82337d2c8974352cd8d06591cc51a066a22f941783815a93893969457239a80cc1d1a2c8bebdbf2c66a7bc190a9f587a81bf9c6e419efd226658e79e6feba745fd3d73e1705564575bc290f167ba6127b0fa8cc2fd756664eaf460a5486d3ad992f95004d5cd545ceff34de1beb17dba9009741c2f52d4f67c3b44ceba0c4ca95af15ed5ce0822d93ab498278dbf1ffa592b54ee6c3955f45d003ce69c0d973ccd9eb970912466300b45ab94aee8115b792422e9862224ff3b780bd9b8cb9395898e061e9d2165c50b05a3cfeb968161e7bc45fff9465a2fa297a5b41cb3552be72e95db55eab0eee2d1e394c74b250e62921bb0081574f73758bc6ed584185aa9768b67619548f91a54d201b8da2a8d27ac7f7378f9c84ba9ec99ac032992b300000000000000000000000000000000"            # v2 (928바이트: 코드 617 + 후보표 288 + 무술가 마스크 4 + 여백). 마스크 자리(MASK_OFF)는 0 으로 두고 적용할 때 값을 쓴다
+MASK_OFF = 912                       # CAVE 안의 u32(little-endian) 위치 = 파일 0x631A430: 비트 i = 후보 i (후보표 순서)가 '무술가 후보'
 CAVE_LEN = len(CAVE) // 2
+OLD_LEN = len(OLD_CAVE) // 2
 
 # --- PE 헤더 3곳 (구역 .itdx 추가; 스테이션 휠 패치와 같은 값)
 HEADER = [
@@ -52,6 +56,44 @@ def read_at(path, off, n):
     with open(path, "rb") as f:
         f.seek(off)
         return f.read(n)
+
+
+def cave_kind(dll):
+    """새 구역의 우리 코드 자리: 'cc'(비어 있음) | 'final'(v2, 마스크 값은 무시) | 'old'(v1 704바이트) | 'other'"""
+    cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
+    if cur == b"\xcc" * CAVE_LEN:
+        return "cc"
+    if cur[:MASK_OFF] + b"\0\0\0\0" + cur[MASK_OFF + 4:] == bytes.fromhex(CAVE):
+        return "final"
+    if cur[:OLD_LEN] == bytes.fromhex(OLD_CAVE) and cur[OLD_LEN:] == b"\xcc" * (CAVE_LEN - OLD_LEN):
+        return "old"
+    return "other"
+
+
+def want_mask():
+    """apply_all 이 적용할 때 계산해 환경변수 ITD_RS_MASK(16진수)로 넘기는 '무술가 후보' 마스크. 없으면 None."""
+    v = os.environ.get("ITD_RS_MASK", "").strip()
+    return (int(v, 16) & 0x3FFFF) if v else None
+
+
+def cur_mask(dll):
+    return struct.unpack("<I", read_at(dll, ORIGINAL_SIZE + CAVE_OFF + MASK_OFF, 4))[0]
+
+
+def new_blob(dll, kind):
+    m = want_mask()
+    if m is None:
+        m = cur_mask(dll) if kind == "final" else 0
+    b = bytearray.fromhex(CAVE)
+    b[MASK_OFF:MASK_OFF + 4] = struct.pack("<I", m)
+    return bytes(b)
+
+
+def refresh_mask(dll):
+    m = want_mask()
+    if m is not None and cave_kind(dll) == "final" and cur_mask(dll) != m:
+        _write(dll, ORIGINAL_SIZE + CAVE_OFF + MASK_OFF, read_at(dll, ORIGINAL_SIZE + CAVE_OFF + MASK_OFF, 4), struct.pack("<I", m))
+        print("무술가 후보 마스크 갱신: 0x%05X" % m)
 
 
 def game_running():
@@ -141,15 +183,16 @@ def state(dll):
         sec = "none"                                 # 페이지만 붙은 중간 상태 (스테이션 휠 패치와 같음)
     else:
         return None, "구역 헤더 상태가 알려진 어떤 단계와도 맞지 않습니다: %s" % h3
-    cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
-    cave = "cc" if cur == b"\xcc" * CAVE_LEN else "final" if cur == bytes.fromhex(CAVE) else "other"
+    cave = cave_kind(dll)
     if cave == "other":
         return None, "새 구역의 우리 코드 자리가 0xCC 도, 우리 코드도 아닙니다"
-    if any(x == "final" for x in hs) and (cave != "final" or sec != "new"):
+    if any(x == "final" for x in hs) and (cave not in ("final", "old") or sec != "new"):
         return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if cave == "cc":
         return "ok", 0                               # 코드가 없으면 우리 패치는 적용 전 (구역이 있든 없든)
     nfin = hs.count("final")
+    if cave == "old":
+        return "ok", "old"                           # v1 코드: 새 버전으로 교체 대상
     if hs == ["final"] * nfin + ["orig"] * (3 - nfin):
         return "ok", 1 + nfin
     return "ok", "partial"
@@ -219,12 +262,18 @@ def cmd_apply(dll):
     if k[0] is None:
         sys.exit("랜덤 시작: 알 수 없는 상태입니다 (%s). 건드리지 않았습니다." % k[1])
     if k[1] == 4:
+        refresh_mask(dll)
         print("랜덤 시작: 이미 적용되어 있습니다.")
         return
     check_hook_context(dll)
     if game_running():
         sys.exit("게임이 실행 중입니다. 게임을 완전히 끄고 다시 시도하세요.")
     need_bak(dll, k[1] if isinstance(k[1], int) else 4)
+    if k[1] == "old":                                                   # v1 -> v2: 후크를 먼저 걷고(반대 순서) 코드를 바꾼 뒤 다시 연결한다
+        for h in reversed(HOOKS):
+            if hookstate(dll, h) == "final":
+                _write(dll, h[1], bytes.fromhex(h[3]), bytes.fromhex(h[2]))
+        print("이전 버전 랜덤 시작 코드를 새 버전(무술가 포함 뽑기 지원)으로 교체합니다.")
     if os.path.getsize(dll) == ORIGINAL_SIZE:                           # 1) 새 페이지(0xCC) 붙이기 (스테이션 휠 패치가 이미 만들었으면 건너뜀)
         with open(dll, "ab") as f:
             f.write(b"\xcc" * PAGE)
@@ -233,9 +282,10 @@ def cmd_apply(dll):
     for _n, off, orig, new in HEADER:                                   # 2~4) 구역 헤더, SizeOfImage, 구역 수 (순서대로)
         if read_at(dll, off, len(orig) // 2).hex() not in (new, HDR_ALT.get(off)):
             _write(dll, off, bytes.fromhex(orig), bytes.fromhex(new))
-    cb = bytes.fromhex(CAVE)                                            # 5) 동굴 코드 (점프는 아직 없음)
-    if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) != cb:
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, b"\xcc" * CAVE_LEN, cb)
+    cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)              # 5) 동굴 코드 (점프는 아직 없음)
+    cb = new_blob(dll, cave_kind(dll))
+    if cur != cb:
+        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cur, cb)
     for h in HOOKS:                                                     # 6~8) 후크 연결 (StartGame 먼저, 시작 버튼 활성 후크는 마지막)
         if hookstate(dll, h) == "orig":
             _write(dll, h[1], bytes.fromhex(h[2]), bytes.fromhex(h[3]))
@@ -243,6 +293,8 @@ def cmd_apply(dll):
     if k2 != ("ok", 4):
         sys.exit("중단: 쓴 뒤 검증에 실패했습니다 (%s). 'revert' 로 되돌리거나 GameAssembly.dll.bak 으로 복원하세요." % (k2,))
     print("랜덤 시작 적용: 4/4 단계 (검증 완료)")
+    if want_mask() is not None:
+        print("무술가 후보 마스크: 0x%05X" % cur_mask(dll))
 
 
 def cmd_revert(dll):
@@ -259,9 +311,9 @@ def cmd_revert(dll):
     for h in reversed(HOOKS):                                           # 후크 먼저 (코드가 있는 동안에), 반대 순서
         if hookstate(dll, h) == "final":
             _write(dll, h[1], bytes.fromhex(h[3]), bytes.fromhex(h[2]))
-    cb = bytes.fromhex(CAVE)                                            # 우리 코드 자리만 0xCC 로
-    if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) == cb:
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cb, b"\xcc" * CAVE_LEN)
+    if cave_kind(dll) in ("final", "old"):                              # 우리 코드 자리만 0xCC 로
+        cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
+        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cur, b"\xcc" * CAVE_LEN)
     shared = (not page_rest_clean(dll)) or os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2
     if not shared:                                                      # 스테이션 휠 패치가 이 구역을 안 쓰면 구역/페이지도 제거
         for _n, off, orig, new in reversed(HEADER):                     # 구역 수 -> SizeOfImage -> 구역 헤더

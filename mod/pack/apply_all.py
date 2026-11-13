@@ -161,7 +161,7 @@ def main():
     # 로컬라이제이션 번들은 '장소 설명 문구' 옵션을 쓰거나 예전에 썼을 때만 관리한다 (공유용/옵션 안 쓰는 사용자는 이 파일을 건드리지 않음)
     files = list(FILES)
     LOCF = ["loc.korean", "loc.english"]
-    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.panel or any(f in man for f in LOCF))
+    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.panel or a.random_start or any(f in man for f in LOCF))
     if use_loc:
         files += LOCF
     elif a.lock_notes:
@@ -176,14 +176,14 @@ def main():
     # 지도 UI 번들(ui_screens, 약 50MB)은 '탐색 생존자 패널' 옵션을 쓰거나 예전에 썼을 때만 관리한다
     PUI = "ui_screens"
     PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5".lower()      # 이 게임 빌드의 원본 ui_screens
-    use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or PUI in man)
+    use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or a.random_start or PUI in man)
     if use_panel:
         files.append(PUI)
         _pc, _pb, _pi = os.path.join(ab, PUI), os.path.join(bdir, PUI), os.path.join(ab, PUI + ".itd_orig")
         if not os.path.exists(_pb) and sha(_pc) != PUI_ORIG_SHA and os.path.isfile(_pi) and sha(_pi) == PUI_ORIG_SHA:
             shutil.copy2(_pi, _pb)       # 개발 중 도구가 만들어 둔 원본 백업을 원본으로 삼는다 (수정된 파일을 원본으로 착각하지 않게)
             print("안내: 개발 중 도구로 수정된 ui_screens 를 알아봤습니다. 도구가 만든 원본 백업(ui_screens.itd_orig)을 원본으로 삼습니다.")
-    elif a.panel:
+    elif a.panel or a.random_start:
         sys.exit("지도 탐색 생존자 패널(--panel)은 일반판에서만 쓸 수 있고, ui_screens 가 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
@@ -358,14 +358,28 @@ def main():
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         if a.lock_notes and use_loc:
             print(run("patch_lootnote.py", stage).strip())
+        if a.random_start and use_panel:
+            if not use_loc:
+                sys.exit("랜덤 시작의 '무술가 포함 뽑기' 버튼 라벨에는 loc.korean/loc.english 가 필요합니다. 게임 파일을 확인하세요 (스팀 '게임 파일 무결성 검사').")
         if a.panel and use_panel:
             print(run("patch_panelbundle.py", stage).strip())
             if use_loc:
                 print(run("patch_loclabel.py", stage).strip())      # 종합 탭 라벨 '추천' (loc.korean 한 항목의 값)
+        if a.random_start and use_panel:
+            print(run("patch_scnbtn.py", stage).strip())              # 사용자 지정 시나리오 화면의 새 버튼 '무술가 포함 뽑기'
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())
             os.replace(out_vis, os.path.join(stage, VISF))
+        if a.random_start:
+            _mo = run("patch_rsmask.py", os.path.join(stage, "data_balancing"), os.path.join(stage, "data_config"))
+            for _l in _mo.strip().splitlines():
+                if _l.startswith("MASK "):
+                    os.environ["ITD_RS_MASK"] = _l.split()[1]         # patch_randstart.py 가 코드 표에 쓴다 (섞기/맨손격투 보정까지 반영한 데이터 기준)
+                elif _l.strip():
+                    print(_l)
+        else:
+            os.environ.pop("ITD_RS_MASK", None)
         # 3) 결과를 설치 폴더에 반영
         for f in files:
             tmp = os.path.join(ab, f + ".tmp")

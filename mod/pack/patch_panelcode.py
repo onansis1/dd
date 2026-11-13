@@ -113,7 +113,8 @@ def v1_state(dll):
     if all(x == "blank" for x in st):
         return "none"
     if "other" in st:
-        return "other"
+        # 그 자리를 다른 패치(랜덤 시작 v2 가 0xAA0~0xE40 을 씀)가 쓰고 있을 수 있다. 개발 도구의 v1 후크가 연결돼 있을 때만 이상으로 본다.
+        return "other" if hookbytes(dll) == "v1" else "none"
     return "v1" if all(x == "v1" for x in st) else "partial"
 
 
