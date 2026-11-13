@@ -333,6 +333,12 @@
    "pid": -7142756206200738310,
    "nameKey": "TRAIT_REMORSELESS_NAME",
    "visual_pid": -3948985853467779889
+  },
+  "Trait+HandToHandExpert": {
+   "sprite": "TraitHandToHandExpert",
+   "pid": 2806674533937899192,
+   "nameKey": "TRAIT_HANDTOHANDEXPERT_NAME",
+   "visual_pid": 5154025339125966060
   }
  },
  "meta": {
