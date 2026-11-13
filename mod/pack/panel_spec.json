@@ -77,7 +77,7 @@
       ]
      },
      "text": {
-      "key": "LABEL_TRAITS",
+      "key": "LABEL_BENCHMARK_RECOMMENDED",
       "size": 16,
       "align": "MiddleCenter",
       "font": "Body-Bold",
@@ -333,7 +333,7 @@
             ]
            },
            "text": {
-            "key": "LABEL_TRAITS",
+            "key": "LABEL_BENCHMARK_RECOMMENDED",
             "size": 16,
             "align": "MiddleCenter",
             "font": "Body-Bold",
@@ -15938,7 +15938,7 @@
             ]
            },
            "text": {
-            "key": "LABEL_TRAITS",
+            "key": "LABEL_BENCHMARK_RECOMMENDED",
             "size": 16,
             "align": "MiddleCenter",
             "font": "Body-Bold",
@@ -49772,7 +49772,7 @@
             ]
            },
            "text": {
-            "key": "LABEL_TRAITS",
+            "key": "LABEL_BENCHMARK_RECOMMENDED",
             "size": 16,
             "align": "MiddleCenter",
             "font": "Body-Bold",
@@ -70686,7 +70686,7 @@
             ]
            },
            "text": {
-            "key": "LABEL_TRAITS",
+            "key": "LABEL_BENCHMARK_RECOMMENDED",
             "size": 16,
             "align": "MiddleCenter",
             "font": "Body-Bold",
@@ -81264,7 +81264,7 @@
             ]
            },
            "text": {
-            "key": "LABEL_TRAITS",
+            "key": "LABEL_BENCHMARK_RECOMMENDED",
             "size": 16,
             "align": "MiddleCenter",
             "font": "Body-Bold",

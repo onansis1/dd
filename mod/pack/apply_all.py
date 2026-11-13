@@ -161,7 +161,7 @@ def main():
     # 로컬라이제이션 번들은 '장소 설명 문구' 옵션을 쓰거나 예전에 썼을 때만 관리한다 (공유용/옵션 안 쓰는 사용자는 이 파일을 건드리지 않음)
     files = list(FILES)
     LOCF = ["loc.korean", "loc.english"]
-    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or any(f in man for f in LOCF))
+    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.panel or any(f in man for f in LOCF))
     if use_loc:
         files += LOCF
     elif a.lock_notes:
@@ -360,6 +360,8 @@ def main():
             print(run("patch_lootnote.py", stage).strip())
         if a.panel and use_panel:
             print(run("patch_panelbundle.py", stage).strip())
+            if use_loc:
+                print(run("patch_loclabel.py", stage).strip())      # 종합 탭 라벨 '추천' (loc.korean 한 항목의 값)
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())
