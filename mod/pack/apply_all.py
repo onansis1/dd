@@ -70,7 +70,7 @@ def run(script, *args):
     if FROZEN:
         cmd = [sys.executable, "--run-script", os.path.join(HERE, script)] + [str(a) for a in args]
     else:
-        cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
+        cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, "itd_fastload.py"), os.path.join(HERE, script)] + [str(a) for a in args]
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
     t0 = time.perf_counter()
     r = subprocess.run(cmd, capture_output=True, env=env, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))

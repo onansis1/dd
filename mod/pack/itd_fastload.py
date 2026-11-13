@@ -7,8 +7,9 @@ import os, runpy, sys
 
 
 def apply():
-    import UnityPy.files.SerializedFile as SF
-    import UnityPy.files.ObjectReader as OR
+    import UnityPy.files.SerializedFile, UnityPy.files.ObjectReader  # noqa  (모듈과 같은 이름의 클래스가 패키지에 다시 내보내져 있으므로 sys.modules 에서 모듈을 꺼낸다)
+    SF = sys.modules["UnityPy.files.SerializedFile"]
+    OR = sys.modules["UnityPy.files.ObjectReader"]
     from UnityPy.enums import ClassIDType
     if getattr(SF, "_itd_fastload", False):
         return
