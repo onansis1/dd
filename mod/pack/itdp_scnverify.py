@@ -71,7 +71,7 @@ def verify_scene(o, n, info):
     got = {(p, val) for p in replaced for path, off, val, fid in n.pptrs(p) if fid == 0 and val in set(newp)}
     ck('S3e replaced objects point at new objects exactly: %s' % sorted(exp_refs), got == exp_refs, str(sorted(got)))
     # byte-for-byte clone check
-    allowed_diff = {132: 'name', 648: 'pos', 1091: 'calls'}
+    allowed_diff = {132: 'name', 648: 'pos', 1091: 'calls', 3: 'warning-hidden'}
     txt_go = [p for p in subtree(o, 132) if o.cls(p) == 1 and o.val(p)['m_Name'] == 'Text'][0]; tv = o.val(txt_go); comps = [tv['m_Component.Array[%d].component.m_PathID' % i] for i in range(tv['m_Component.Array.size'])]
     loc = [c for c in comps if 'm_key' in o.val(c)][0]; stx = [c for c in comps if 'm_text' in o.val(c) and 'm_fontData.m_fontSize' in o.val(c)][0]; allowed_diff[loc] = 'key'; allowed_diff[stx] = 'text'
     diffs = []
@@ -86,6 +86,7 @@ def verify_scene(o, n, info):
     nv = {p: n.val(cm[p]) for p in allowed_diff}; ov = {p: o.val(p) for p in allowed_diff}
     ck('S4b clone root GO renamed MartialStartButton (original keeps ConfirmButton)', nv[132]['m_Name'] == 'MartialStartButton' and o.val(132)['m_Name'] == 'ConfirmButton' and n.val(132)['m_Name'] == 'ConfirmButton')
     ck('S4c clone root RectTransform at (%s, %s), original unchanged' % (info['pos'][0], info['pos'][1]), abs(nv[648]['m_AnchoredPosition.x'] - info['pos'][0]) < 1e-6 and abs(nv[648]['m_AnchoredPosition.y'] - info['pos'][1]) < 1e-6 and n.b(648) == o.b(648) and nv[648]['m_Father.m_PathID'] == panels)
+    ck('S4d clone Warning GO is inactive (hidden, so it cannot overlap the original warning); the original Warning GO is untouched', nv[3]['m_IsActive'] == 0 and n.b(3) == o.b(3), 'clone %s orig_changed %s' % (nv[3].get('m_IsActive'), n.b(3) != o.b(3)))
     # calls
     cc = n.calls(cm[1091], 'm_OnClick'); audio = [p for p in subtree(o, 132) if o.cls(p) == 114 and any(k.startswith('m_clickFmodEvent') for k in o.val(p))][0]
     ok = len(cc) == 3

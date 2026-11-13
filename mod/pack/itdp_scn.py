@@ -78,6 +78,8 @@ def plan_build(src_path, key='LABEL_STATE_AND_TYPE', fallback_text='Start with M
     def clone_of(orig_pid): return objs[newp[orig_pid]]
     go_root = clone_of(G['confirm']); go_root.set_str('m_Name', NEW_NAME); go_root.val['m_Name'] = NEW_NAME
     rt_root = clone_of(conf_rt); rt_root.set('m_AnchoredPosition.x', float(x)); rt_root.set('m_AnchoredPosition.y', float(y))
+    assert Obj(sr, trees, 3).val['m_Name'] == 'Warning' and 3 in sub, 'GO 3 is not the Warning child of ConfirmButton'
+    clone_of(3).set('m_IsActive', 0)      # 복제본의 경고 문구('계속하려면 생존자를 1명 이상 선택해야 합니다')가 원본 경고와 겹쳐 보이므로 복제본 쪽은 숨긴다
     btn = clone_of(G['button_mb']); a0, end = calls_range(btn, 'm_OnClick'); assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array.size'] == 2
     assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[0].m_MethodName'] == 'PlayClickSound' and btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[1].m_MethodName'] == 'StartGameWithParameters'
     assert btn.val['m_OnClick.m_PersistentCalls.m_Calls.Array[1].m_Target.m_PathID'] == G['screen_mb'], 'StartGame target must stay the screen'
