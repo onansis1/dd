@@ -74,7 +74,7 @@ def _chunks(data, level):
         else: out.append(((len(ch), len(c), 3), c))
     return out
 
-def write_bundle(src, node_name, new_bytes, mode='rebuild', level=12):
+def write_bundle(src, node_name, new_bytes, mode='rebuild', level=6):   # level 12 -> 6: 압축 시간 약 7배 단축, 파일 크기 +0.4% (같은 LZ4 블록 형식이라 게임이 읽는 방식은 같다)
     """Return bytes of a new bundle in which node `node_name` has content new_bytes.
     mode 'rebuild': node stays in place, later nodes shift; blocks before the first changed block are reused verbatim.
     mode 'append' : old stream untouched; new node data appended at stream end (old bytes stay as an unreferenced gap)."""

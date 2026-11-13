@@ -1,13 +1,17 @@
 """PyInstaller 진입점. exe 하나로 메뉴(launcher)와 하위 스크립트 실행(--run-script)을 모두 처리한다."""
 import argparse, hashlib, json, math, os, random, re, runpy, shutil, struct, subprocess, sys, tempfile  # 하위 스크립트가 쓰는 표준 모듈을 번들에 포함
-import lz4.block  # noqa  (preset_tool 이 세이브 압축을 풀 때 사용)
-import UnityPy, UnityPy.helpers.TypeTreeHelper, UnityPy.helpers.TypeTreeNode, UnityPy.streams, UnityPy.files  # noqa
+def _pyinstaller_hints():
+    """PyInstaller 가 분석해서 번들에 넣도록 하는 import 목록 (실행되지 않는다). 실제로 쓰는 스크립트가 각자 import 하므로, 쓰지 않는 단계(예: GameAssembly.dll 단계)는 시작이 빨라진다."""
+    import lz4.block  # noqa  (preset_tool 이 세이브 압축을 풀 때 사용)
+    import UnityPy, UnityPy.helpers.TypeTreeHelper, UnityPy.helpers.TypeTreeNode, UnityPy.streams, UnityPy.files  # noqa
+
 for _st in (sys.stdout, sys.stderr, sys.stdin):   # 파이프/리다이렉트일 때 cp1252 등으로 한글이 깨지거나 죽는 것 방지
     try:
         if _st is not None and (_st.encoding or "").lower().replace("-", "") != "utf8":
             _st.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
+_NO_UNITYPY = {"patch_panelcode.py", "patch_peek.py", "patch_cleared.py", "patch_wheelgold.py", "patch_shelter.py", "patch_randstart.py", "patch_lootlock.py"}   # UnityPy 를 쓰지 않는 GameAssembly.dll 단계
 try:
     import winreg  # noqa
 except ImportError:
@@ -21,14 +25,16 @@ if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
     except Exception as e:
         print("GUI 모듈 오류:", repr(e)); sys.exit(1)
     miss = [n for n in need if not os.path.exists(os.path.join(base, n))]
+    import UnityPy, lz4.block  # noqa  (시작 시험은 두 모듈이 번들에 들어 있는지도 확인한다)
     print("UnityPy", getattr(UnityPy, "__version__", "?"), "| 누락 파일:", miss or "없음")
     sys.exit(1 if miss else 0)
 elif len(sys.argv) > 2 and sys.argv[1] == "--run-script":
     script = sys.argv[2]
     sys.argv = [script] + sys.argv[3:]
     try:
-        import itd_fastload
-        itd_fastload.apply()          # UnityPy 가 번들을 열 때마다 AssetBundle 경로 목록을 통째로 파싱하는 시간(단계당 약 10초)을 건너뜀
+        if os.path.basename(script) not in _NO_UNITYPY:
+            import itd_fastload
+            itd_fastload.apply()          # UnityPy 가 번들을 열 때마다 AssetBundle 경로 목록을 통째로 파싱하는 시간(단계당 약 10초)을 건너뜀
     except Exception:
         pass
     runpy.run_path(script, run_name="__main__")
