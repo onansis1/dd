@@ -116,7 +116,7 @@ def detect_k(path):
 
 def game_running():
     try:
-        out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq " + GAME_EXE], capture_output=True, text=True).stdout
+        out = subprocess.run(["tasklist", "/FI", "IMAGENAME eq " + GAME_EXE], capture_output=True, text=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
         return GAME_EXE.lower() in out.lower()
     except Exception:
         return False

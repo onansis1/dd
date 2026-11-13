@@ -1,5 +1,5 @@
 """Into the Dead: Our Darkest Days - 지도 도구 (창 + 버튼 방식, 공유용 지도 전용 배포판).
-더블클릭하면 창이 열리고 [새 지도 적용] / [원래대로 되돌리기] 버튼만 누르면 됩니다.
+더블클릭하면 창이 열리고 [적용] / [원래대로 되돌리기] 버튼만 누르면 됩니다.
 실제 작업은 apply_all.py 가 하고, 이 창은 옵션을 모아서 실행한 뒤 결과를 보여 줄 뿐입니다.
 """
 import os
@@ -89,7 +89,7 @@ class App:
         self.root = root
         root.title("Into the Dead: Our Darkest Days - 지도 도구")
         root.configure(bg=BG)
-        self.W, self.H = (900, 1038) if FULL else (580, 601)
+        self.W, self.H = (900, 1038) if FULL else (580, 647)
         if FULL:
             try:     # 화면보다 창이 크면 아래가 잘리므로, 화면 높이에 맞춰 줄인다 (옵션 영역은 스크롤)
                 self.H = max(620, min(self.H, root.winfo_screenheight() - 96))
@@ -104,6 +104,8 @@ class App:
         self.busy = False
         self.var_ab = tk.StringVar(value=self.opts.get("gui_ab", "") or "")
         self.var_seed = tk.StringVar(value="")
+        self.var_rmap = tk.BooleanVar(value=bool(self.opts.get("share_map", True)))        # 공유판: 선택지는 이 둘뿐
+        self.var_rtrait = tk.BooleanVar(value=bool(self.opts.get("share_traits", False)))
         self.ov = {k: tk.BooleanVar(value=bool(self.opts.get(k, d))) for k, _l, d in OPTS}
         self.var_vale = tk.StringVar(value=str(self.opts.get("vale_start", 20)))
         self.var_trader = tk.StringVar(value=str(self.opts.get("trader_start", 10)))
@@ -208,14 +210,18 @@ class App:
         self._shadow_text(cv, 24, Y + 104, "시드 (비우면 무작위)", TOXIC, 10)
         e2 = ttk.Entry(cv, textvariable=self.var_seed)
         cv.create_window(24, Y + 122, anchor="nw", window=e2, width=190, height=30)
-        self.btn_go = ttk.Button(cv, text="새 지도 적용", style="Go.TButton", command=self._apply)
-        cv.create_window(24, Y + 176, anchor="nw", window=self.btn_go, width=W - 220, height=48)
+        for i, (var, txt) in enumerate(((self.var_rmap, "랜덤 지도"), (self.var_rtrait, "랜덤 특성"))):
+            cb = tk.Checkbutton(cv, text=txt, variable=var, bg=BG, fg=FG, selectcolor=PANEL, activebackground=BG, activeforeground=FG,
+                                highlightthickness=0, bd=0, font=(FONT, 10, "bold"), anchor="w")
+            cv.create_window(24 + 150 * i, Y + 162, anchor="nw", window=cb, width=140, height=26)
+        self.btn_go = ttk.Button(cv, text="적용", style="Go.TButton", command=self._apply)
+        cv.create_window(24, Y + 222, anchor="nw", window=self.btn_go, width=W - 220, height=48)
         self.btn_back = ttk.Button(cv, text="원래대로 되돌리기", style="Back.TButton", command=self._restore)
-        cv.create_window(W - 184, Y + 176, anchor="nw", window=self.btn_back, width=160, height=48)
-        self._shadow_text(cv, 24, Y + 248, "", TOXIC, 11, var=self.seed_shown)
-        self._shadow_text(cv, 24, Y + 274, "", "#d9d4c4", 10, bold=False, var=self.status)
+        cv.create_window(W - 184, Y + 222, anchor="nw", window=self.btn_back, width=160, height=48)
+        self._shadow_text(cv, 24, Y + 294, "", TOXIC, 11, var=self.seed_shown)
+        self._shadow_text(cv, 24, Y + 320, "", "#d9d4c4", 10, bold=False, var=self.status)
         self.prog = ttk.Progressbar(cv, mode="indeterminate", style="Blood.Horizontal.TProgressbar")
-        self._prog_item = cv.create_window(24, Y + 300, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
+        self._prog_item = cv.create_window(24, Y + 346, anchor="nw", window=self.prog, width=W - 48, height=10, state="hidden")
         self._shadow_text(cv, W - 16, self.H - 18, "Made by 줿", "#b9b39d", 9, anchor="e")
         self._cv = cv
         self.log = None
@@ -359,6 +365,9 @@ class App:
 
     def _save(self):
         self.opts.update({"gui_ab": self.var_ab.get().strip()})
+        if not FULL:
+            self.opts["share_map"] = self.var_rmap.get()
+            self.opts["share_traits"] = self.var_rtrait.get()
         if FULL:
             for k, v in self.ov.items():
                 self.opts[k] = v.get()
@@ -396,12 +405,16 @@ class App:
         if launcher.game_running():
             messagebox.showwarning("게임 실행 중", "게임이 실행 중입니다. 게임과 스팀을 완전히 끄고 다시 눌러 주세요.")
             return
-        if not messagebox.askyesno("적용", "새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).\n\n지금 새 지도를 적용할까요?"):
+        if not messagebox.askyesno("적용", "새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).\n\n이 도구는 게임 파일(지도 화면 UI)과 GameAssembly.dll(스테이션 휠 금색 강조, 지도 패널)도 고칩니다. 이 게임 버전에서만 동작하고, 게임 업데이트나 스팀 '게임 파일 무결성 검사' 후에는 다시 적용해야 하며, [원래대로 되돌리기]로 되돌릴 수 있습니다.\n\n지금 적용할까요?"):
             return
         if FULL:
             args = self._full_args()
         else:
-            args = ["--only-map", "--move-posts", "--shuffle-shelters", "--move-spillzone"]
+            # 공유판: 선택지는 '랜덤 지도'/'랜덤 특성'뿐, 나머지(교역소/거점/유출구역 이동, 스테이션 휠 금색, 지도 패널)는 항상 켠다
+            args = ["--only-map", "--wheel-gold", "--panel"]
+            args += ["--move-posts", "--shuffle-shelters", "--move-spillzone"] if self.var_rmap.get() else ["--no-shuffle"]
+            if self.var_rtrait.get():
+                args += ["--random-traits"]
         if seed:
             args += ["--seed", seed]
         self._save()
@@ -500,7 +513,7 @@ class App:
             self._log("---- 오류 내용 (마지막 줄) ----")
             for l in lines[-14:]:
                 self._log(l)
-            tail = "" if FULL else "\n\n" + "\n".join(lines[-6:])
+            tail = "" if FULL else "\n\n" + "\n".join(l[:160] for l in lines[-2:])
             messagebox.showerror("문제가 생겼습니다", "작업에 실패했습니다.\n" + ("창의 아래 내용과, " if FULL else "") + "exe 와 같은 폴더의 apply_all.log 를 알려 주세요.\n(게임 파일은 바뀌지 않았습니다)" + tail)
 
 

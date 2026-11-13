@@ -85,7 +85,7 @@ def ask_ab():
 
 def game_running():
     try:
-        out = subprocess.run(["tasklist"], capture_output=True, text=True, errors="ignore").stdout
+        out = subprocess.run(["tasklist"], capture_output=True, text=True, errors="ignore", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
         return "intothedead" in out.lower()
     except Exception:
         return False
@@ -146,6 +146,7 @@ def main():
             o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = True; o["move_spillzone"] = True
             o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
             o["trader_start"] = 10
+            o["wheel_gold"] = True; o["panel"] = True
         else:
             o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
         if not MAPONLY:
@@ -182,7 +183,7 @@ def main():
             o["spillzone_start"] = yn("유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작", o.get("spillzone_start", False))
             o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
         else:
-            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["wheel_gold"] = False; o["shelter_move"] = False; o["random_start"] = False; o["panel"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
+            o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["shelter_move"] = False; o["random_start"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
         save_opts(o)
         if not o["bal"]: args += ["--only-map"]
         if not o["map"]: args += ["--no-shuffle"]

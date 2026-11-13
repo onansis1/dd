@@ -70,7 +70,7 @@ def run(script, *args):
     else:
         cmd = [sys.executable, "-X", "utf8", "-X", "faulthandler", "-u", os.path.join(HERE, script)] + [str(a) for a in args]
     env = dict(os.environ, PYTHONUTF8="1", PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
-    r = subprocess.run(cmd, capture_output=True, env=env)
+    r = subprocess.run(cmd, capture_output=True, env=env, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     out = (r.stdout or b"").decode("utf-8", errors="replace")
     err = (r.stderr or b"").decode("utf-8", errors="replace")
     log("$ " + " ".join(cmd) + "\n[returncode %s]\n%s\n%s" % (r.returncode, out, err))
@@ -146,9 +146,9 @@ def main():
     for f in FILES:
         if not os.path.isfile(os.path.join(ab, f)):
             sys.exit("%s 를 찾을 수 없습니다: %s" % (f, os.path.join(ab, f)))
-    # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)은 절대 건드리지 않는다.
+    # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)도 금색 강조/지도 패널을 위해 쓴다 (켠 항목만, 원래대로 되돌릴 수 있음).
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
-    use_dll = not os.path.exists(os.path.join(HERE, "edition_map.txt"))
+    use_dll = True
     DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
