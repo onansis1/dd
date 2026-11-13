@@ -158,6 +158,7 @@ def main():
             o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
             s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 1~9, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
             o["trader_start"] = int(s) if s.isdigit() and 0 <= int(s) <= 10 else o.get("trader_start", 10)
+            o["unarmed_crit"] = yn("맨손 무기 2종(무술가/레슬링)의 크리티컬 확률 2% -> 10%", o.get("unarmed_crit", False))
             o["trader_sure"] = yn("상인 방문 확률 제한 해제: 쿨다운(자주 3일/기본 6일/드물게 10일)마다 확정으로 방문 (원래는 쿨다운이 지나도 사이클마다 약 10%만 통과하는 것으로 보임)", o.get("trader_sure", False))
             o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
             o["shuffle_shelters"] = yn("메사냉방/치프웨이즈를 뺀 거점 16곳끼리 위치를 서로 바꾸기 (지도 섞기를 켠 경우에만. 스토리와 충돌할 위험은 게임에서 직접 확인하지 못함)", o.get("shuffle_shelters", False))
@@ -191,6 +192,7 @@ def main():
         if o["leads"]: args += ["--leads", "1"]
         if o.get("trader_start", 10) != 10: args += ["--trader-start", str(o["trader_start"])]
         if o.get("trader_sure"): args += ["--trader-sure"]
+        if o.get("unarmed_crit"): args += ["--unarmed-crit"]
         if o["move_posts"]: args += ["--move-posts"]
         if o["shuffle_shelters"]: args += ["--shuffle-shelters"]
         if o.get("move_spillzone"): args += ["--move-spillzone"]

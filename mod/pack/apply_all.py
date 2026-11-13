@@ -2,6 +2,7 @@
 사용: python apply_all.py <AssetBundles 폴더 경로> [옵션]
   --seed N        지도 섞기 시드 (생략하면 무작위)
   --leads 1       탈출 퀘스트를 열기 위해 조사해야 하는 단서(장소) 수 (기본 3 = 원래대로)
+  --unarmed-crit  맨손 무기 2종(무술가/레슬링)의 크리티컬(치명 처형) 확률 2% -> 10%
   --trader-sure   상인 이벤트의 확률 판정(사이클마다 약 10%만 통과하는 것으로 보임)을 없애 쿨다운(자주 3사이클, 기본 6, 드물게 10)마다 확정으로 오게 함
   --trader-start N  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 1~9, 10=원래)
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
@@ -133,6 +134,7 @@ def main():
     ap.add_argument("--romance-all", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
     ap.add_argument("--trader-sure", action="store_true")
+    ap.add_argument("--unarmed-crit", action="store_true")
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "s12only", "none"])
     a = ap.parse_args()
@@ -330,6 +332,10 @@ def main():
             out_cfg2 = os.path.join(stage, "data_config.out")
             print(run("patch_romance.py", os.path.join(stage, "data_config"), out_cfg2, *((["all"] if a.romance else ["keep2"]) if a.romance_all else [])).strip())
             os.replace(out_cfg2, os.path.join(stage, "data_config"))
+        if a.unarmed_crit:
+            out_balc = os.path.join(stage, "data_balancing.out")
+            print(run("patch_unarmedcrit.py", os.path.join(stage, "data_balancing"), out_balc).strip())
+            os.replace(out_balc, os.path.join(stage, "data_balancing"))
         if a.quiet_steps:
             out_bal4 = os.path.join(stage, "data_balancing.out")
             print(run("patch_noise.py", os.path.join(stage, "data_balancing"), out_bal4).strip())

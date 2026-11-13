@@ -27,6 +27,7 @@ OPTS = [
     ("romance_all", "연애 제한 모두 해제", False),
     ("zombie", "죽은 생존자 좀비화 100%", False),
     ("quiet", "걷기/달리기 발소리 없음", False),
+    ("unarmed_crit", "맨손 무기(무술가/레슬링) 크리티컬 확률 2% -> 10%", False),
     ("hod_start", "어둠의 심연 단서 시작부터 보유", False),
     ("spillzone_start", "유출구역 단서 시작부터 보유", False),
     ("repair", "정비 작업대 레벨 제한 없이 모든 무기 수리", False),
@@ -49,7 +50,7 @@ OPTS = [
 GROUPS = [
     ("지도 · 단서", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads", "hod_start", "spillzone_start"]),
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto", "trader_sure"]),
-    ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet"]),
+    ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet", "unarmed_crit"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
     ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound"]),
 ]
@@ -430,6 +431,7 @@ class App:
         if o["leads"]: a += ["--leads", "1"]
         if trader != 10: a += ["--trader-start", str(trader)]
         if o["trader_sure"]: a += ["--trader-sure"]
+        if o["unarmed_crit"]: a += ["--unarmed-crit"]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
                      ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("random_start", "--random-start"), ("panel", "--panel"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):
