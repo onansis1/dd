@@ -143,6 +143,8 @@ def main():
     if not a.folder:
         sys.exit(__doc__)
     ab = a.folder
+    if a.quiet_toggle and a.quiet_steps:
+        sys.exit("--quiet-toggle(게임 안에서 켜고 끄는 발걸음 소리 무음)과 --quiet-steps(발소리 항상 없음)는 같이 쓸 수 없습니다. 하나만 고르세요.")
     try:
         open(LOG, "w", encoding="utf-8").close()
     except OSError:

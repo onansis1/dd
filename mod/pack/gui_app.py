@@ -26,7 +26,7 @@ OPTS = [
     ("leads", "탈출 퀘스트 조사 장소 3곳 -> 1곳", False),
     ("romance_all", "연애 제한 모두 해제", False),
     ("zombie", "죽은 생존자 좀비화 100%", False),
-    ("quiet", "걷기/달리기 발소리 없음", False),
+    ("quiet", "걷기/달리기 발소리 항상 없음 (아래 '발걸음 소리 무음' 옵션 줄과 같이 못 씀)", False),
     ("unarmed_crit", "맨손 무기(무술가/레슬링) 크리티컬 확률 2% -> 10%", False),
     ("hod_start", "어둠의 심연 단서 시작부터 보유", False),
     ("spillzone_start", "유출구역 단서 시작부터 보유", False),
@@ -37,7 +37,7 @@ OPTS = [
     ("random_skills", "모든 생존자 스킬 트리 티어별 랜덤", False),
     ("martial_h2h", "무술가/프로레슬러 특성 보유자는 4티어 맨손격투 전문가 보장", False),
     ("unarmed_sound", "맨손 처형 효과음을 모든 생존자에게 (효과음 번들 수정)", False),
-    ("quiet_toggle", "게임 옵션에 '발걸음 소리 무음' 켜기/끄기 줄 추가 (접근성 맨 끝, 게임 파일 수정, 미확인)", False),
+    ("quiet_toggle", "게임 옵션에 '발걸음 소리 무음' 켜기/끄기 줄 추가 (접근성 맨 끝, 게임 파일 수정. 위 '발소리 항상 없음'과 같이 못 씀)", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정)", False),
     ("wheel_gold", "스테이션 휠: 내 생존자의 특기 작업 칸을 금색으로 (게임 실행 파일 수정)", False),
     ("shelter_move", "살았던 거점은 수색 없이 바로 이동 (게임 실행 파일 수정, 미확인)", False),
@@ -110,6 +110,17 @@ class App:
         self.var_rmap = tk.BooleanVar(value=bool(self.opts.get("share_map", True)))        # 공유판: 선택지는 이 둘뿐
         self.var_rtrait = tk.BooleanVar(value=bool(self.opts.get("share_traits", False)))
         self.ov = {k: tk.BooleanVar(value=bool(self.opts.get(k, d))) for k, _l, d in OPTS}
+        if self.ov["quiet"].get() and self.ov["quiet_toggle"].get():
+            self.ov["quiet"].set(False)           # 두 옵션은 같이 쓸 수 없다 (항상 없음이 켜져 있으면 토글이 의미가 없음)
+        def _excl(me, other, msg):
+            def f(*_a):
+                if self.ov[me].get() and self.ov[other].get():
+                    self.ov[other].set(False)
+                    try: self._say(msg)
+                    except Exception: pass
+            return f
+        self.ov["quiet"].trace_add("write", _excl("quiet", "quiet_toggle", "'발소리 항상 없음'을 켜서 '발걸음 소리 무음' 옵션 줄 추가는 껐습니다 (같이 쓸 수 없음)."))
+        self.ov["quiet_toggle"].trace_add("write", _excl("quiet_toggle", "quiet", "'발걸음 소리 무음' 옵션 줄 추가를 켜서 '발소리 항상 없음'은 껐습니다 (같이 쓸 수 없음)."))
         self.var_vale = tk.StringVar(value=str(self.opts.get("vale_start", 20)))
         self.var_trader = tk.StringVar(value=str(self.opts.get("trader_start", 10)))
         self.status = tk.StringVar(value="준비되었습니다.")
@@ -333,6 +344,9 @@ class App:
     def _set_all(self, v):
         for var in self.ov.values():
             var.set(bool(v))
+        if v:
+            self.ov["quiet"].set(False)           # 같이 쓸 수 없는 쌍: 게임 안에서 끄고 켤 수 있는 쪽만 선택
+            self.ov["quiet_toggle"].set(True)
         self._say("모든 항목을 선택했습니다." if v else "모든 항목을 해제했습니다.")
 
     # ------------------------------------------------------------------ 동작
@@ -434,6 +448,7 @@ class App:
         if o["trader_sure"]: a += ["--trader-sure"]
         if o["unarmed_crit"]: a += ["--unarmed-crit"]
         if o["quiet_toggle"]: a += ["--quiet-toggle"]
+        if o["quiet_toggle"]: o["quiet"] = False
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
                      ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("random_start", "--random-start"), ("panel", "--panel"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):

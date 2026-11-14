@@ -184,7 +184,7 @@ def main():
             o["lock_notes"] = yn("맵 정보의 장소 설명 끝에 락픽/볼트 절단기 필요 개수 적기 (방문 전 장소도 표시. 서랍/로커 + 열쇠가 필요한 문 기준, 지식으로 여는 문 제외. 장소 이름 글자 파일 loc.* 수정, 백업 생성)", o.get("lock_notes", False))
             o["june"] = yn("스필존 스킵의 스쿱 준에게 방호복 받기: 칠리 콘 카르네 4개 -> 락픽 1개 (대사 문구는 그대로일 수 있음)", o.get("june", False))
             o["spillzone_start"] = yn("유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 시작", o.get("spillzone_start", False))
-            o["quiet"] = yn("생존자가 걷거나 달려도 발소리(소음)가 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로)", o.get("quiet", False))
+            o["quiet"] = False if o.get("quiet_toggle") else yn("생존자가 걷거나 달려도 발소리(소음)가 항상 나지 않게 하기 (웅크릴 때와 같음. 문/루팅/전투 소음은 그대로. 위 '발걸음 소리 무음' 옵션 줄을 고르면 쓸 수 없음)", o.get("quiet", False))
         else:
             o["quiet"] = False; o["hod_start"] = False; o["june"] = False; o["repair"] = False; o["dismantle"] = False; o["ammo_levels"] = False; o["random_traits"] = False; o["random_skills"] = False; o["martial_h2h"] = False; o["peek"] = False; o["shelter_move"] = False; o["random_start"] = False; o["unarmed_sound"] = False; o["otto"] = False; o["lock_notes"] = False; o["spillzone_start"] = False
         save_opts(o)
