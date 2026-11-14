@@ -412,8 +412,8 @@ class App:
         if FULL:
             args = self._full_args()
         else:
-            # 공유판: 선택지는 '랜덤 지도'/'랜덤 특성'뿐, 나머지(교역소/거점/유출구역 이동, 스테이션 휠 금색, 지도 패널)는 항상 켠다
-            args = ["--only-map", "--wheel-gold", "--panel"]
+            # 공유판: 선택지는 '랜덤 지도'/'랜덤 특성'뿐, 나머지(교역소/거점/유출구역 이동, 스테이션 휠 금색, 지도 패널, 맨손 처형 효과음)는 항상 켠다
+            args = ["--only-map", "--wheel-gold", "--panel", "--unarmed-sound"]
             args += ["--move-posts", "--shuffle-shelters", "--move-spillzone"] if self.var_rmap.get() else ["--no-shuffle"]
             if self.var_rtrait.get():
                 args += ["--random-traits", "--martial-h2h"]      # 랜덤 특성에는 '프로레슬러/무술가를 가진 생존자는 4티어에 맨손격투 전문가 보장'이 함께 들어간다

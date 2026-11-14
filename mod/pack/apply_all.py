@@ -180,7 +180,7 @@ def main():
     if use_vis:
         files.append(VISF)
     elif a.unarmed_sound:
-        sys.exit("맨손 처형 효과음(--unarmed-sound)은 일반판에서만 쓸 수 있고, data_visual 이 필요합니다.")
+        sys.exit("맨손 처형 효과음(--unarmed-sound)에는 data_visual(효과음 번들)이 필요한데 찾지 못했습니다. 게임 파일을 확인하세요 (스팀 '게임 파일 무결성 검사').")
     # 지도 UI 번들(ui_screens, 약 50MB)은 '탐색 생존자 패널' 옵션을 쓰거나 예전에 썼을 때만 관리한다
     PUI = "ui_screens"
     PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5".lower()      # 이 게임 빌드의 원본 ui_screens
