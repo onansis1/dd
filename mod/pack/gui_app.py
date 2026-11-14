@@ -431,7 +431,7 @@ class App:
             args = ["--only-map", "--wheel-gold", "--panel", "--unarmed-sound"]
             args += ["--move-posts", "--shuffle-shelters", "--move-spillzone"] if self.var_rmap.get() else ["--no-shuffle"]
             if self.var_rtrait.get():
-                args += ["--random-traits", "--martial-h2h"]      # 랜덤 특성에는 '프로레슬러/무술가를 가진 생존자는 4티어에 맨손격투 전문가 보장'이 함께 들어간다
+                args += ["--random-traits", "--random-skills", "--martial-h2h"]      # 랜덤 특성에는 '프로레슬러/무술가를 가진 생존자는 4티어에 맨손격투 전문가 보장'이 함께 들어간다
         if seed:
             args += ["--seed", seed]
         self._save()
