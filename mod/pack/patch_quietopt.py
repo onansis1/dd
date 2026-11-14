@@ -22,7 +22,8 @@ def main():
         sys.exit("중단: data_user_settings 가 예상한 구조가 아니거나 이미 수정돼 있습니다 (%s). 게임 버전이 달라졌을 수 있습니다. 아무것도 바꾸지 않았습니다." % (str(e)[:160],))
     out = c.b.build(c.node, new_ser)
     tmp = pth + ".new"
-    open(tmp, "wb").write(out)
+    with open(tmp, "wb") as f:
+        f.write(out)
     try:
         res = V.verify(pth, tmp, info)
         bad = [n for n, ok, _ in res if not ok]
@@ -31,6 +32,7 @@ def main():
     if bad:
         os.remove(tmp)
         sys.exit("중단: data_user_settings 편집 결과 검증 실패 (%s). 아무것도 바꾸지 않았습니다." % "; ".join(b[:80] for b in bad[:3]))
+    import gc; gc.collect()
     os.replace(tmp, pth)
     print("옵션 항목 추가: 접근성 '발걸음 소리 무음' (data_user_settings, 검증 %d개 통과)." % len(res))
 

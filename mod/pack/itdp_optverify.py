@@ -13,7 +13,8 @@ if not getattr(TypeTreeNode, '_itd_patched', False):
     def _pb(cls, reader, version): reader.read(28); return _o(cls, reader, version)
     TypeTreeNode.parse_blob = classmethod(_pb); TypeTreeNode._itd_patched = True
 def unity_objs(path):
-    env = UnityPy.load(path); out = {}
+    with open(path, 'rb') as f: data = f.read()
+    env = UnityPy.load(data); out = {}
     for o in env.objects:
         try: out[o.path_id] = o.read_typetree()
         except Exception as e: out[o.path_id] = ('ERR', str(e)[:60])
