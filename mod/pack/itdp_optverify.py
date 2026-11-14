@@ -50,6 +50,12 @@ def verify(src, new, info, ub_src=None, ub_new=None):
         ko, kn = ua[info['keygroup_pid']], ub[info['keygroup_pid']]; suffix = info['key'][len(ko['m_prefix']) + 1:]
         ck('K1 key group m_settingIDs = source + [%s] (prefix %s), nothing else changed' % (suffix, ko['m_prefix']), kn['m_settingIDs'] == ko['m_settingIDs'] + [suffix] and {k: v for k, v in kn.items() if k != 'm_settingIDs'} == {k: v for k, v in ko.items() if k != 'm_settingIDs'})
     else: ck('K1 key group untouched (--no-keygroup)', info['keygroup_pid'] is None and info['keygroup_pid'] not in repl)
+    abp = info['assetbundle_pid']; ao, an = ua[abp], ub[abp]; pto = [x['m_PathID'] for x in ao['m_PreloadTable']]; ptn = [x['m_PathID'] for x in an['m_PreloadTable']]; ns, nz = info['preload_slice']; co_, cz = info['collection_old_slice']
+    cont_o = {k: v for k, v in ao['m_Container']}; cont_n = {k: v for k, v in an['m_Container']}; ckey = [k for k, v in cont_o.items() if v['asset']['m_PathID'] == info['collection_pid']]
+    ok = len(ptn) == len(pto) + nz and ptn[:len(pto)] == pto and ns == len(pto) and len(ckey) == 1 and set(cont_o) == set(cont_n) and all((cont_o[k] == cont_n[k]) for k in cont_o if k != ckey[0])
+    if ok:
+        sl = ptn[ns:ns + nz]; nc = cont_n[ckey[0]]; ok = nc['preloadIndex'] == ns and nc['preloadSize'] == nz and sl[:cz] == pto[co_:co_ + cz] and info['new_pid'] in sl and nc['asset'] == cont_o[ckey[0]]['asset'] and all(x in set(pto) | {info['new_pid']} for x in sl)
+    ck('P1 AssetBundle: preload table = source + one appended slice (old collection slice + the new provider + the bool-provider script), only the collection container entry repointed, everything else equal', ok and {k: v for k, v in an.items() if k not in ('m_PreloadTable', 'm_Container')} == {k: v for k, v in ao.items() if k not in ('m_PreloadTable', 'm_Container')})
     keys = [v['m_settingKey'] for v in ub.values() if isinstance(v, dict) and 'm_settingKey' in v]
     ck('X1 the new setting key is unique among all %d settings' % len(keys), keys.count(info['key']) == 1)
     return R

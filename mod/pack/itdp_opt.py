@@ -64,9 +64,23 @@ def plan_build(src, key='drs.accessibility.quiet_footsteps', name_key='LABEL_VIT
     if keygroup:
         ka = kf['m_settingIDs.Array.size'][0]; kn = kf['m_settingIDs.Array.size'][2]; end = kf['m_categories.Array.size'][0]
         suffix = key[len(KEYGROUP['prefix']) + 1:]; kb[end:end] = _s(suffix); struct.pack_into('<i', kb, ka, kn + 1); replace[KEYGROUP['pid']] = bytes(kb)
+    # ---- AssetBundle 객체: 새 제공자를 '미리 불러오기 목록'에 넣는다 (목록에 없으면 게임이 이 PPtr 을 null 로 읽어 옵션 초기화에서 NullReferenceException 이 난다)
+    abp = next(p for p in c.P if any(ch.name == 'm_PreloadTable' for ch in c.trees[c.tid(p)].children)); af = c.full(abp); ab = bytearray(c.raw(abp))
+    so = af['m_PreloadTable.Array.size'][0]; npre = af['m_PreloadTable.Array.size'][2]; ncon = af['m_Container.Array.size'][2]
+    def _ent(i): return bytes(ab[so + 4 + 12 * i: so + 16 + 12 * i])
+    def _con(pid):
+        r = [i for i in range(ncon) if af['m_Container.Array[%d].second.asset.m_PathID' % i][2] == pid]; assert len(r) == 1, 'container entry of %d not unique' % pid; return r[0]
+    ci = _con(COLLECTION['pid']); ti = _con(TEMPLATE['pid'])
+    cidx, csz = af['m_Container.Array[%d].second.preloadIndex' % ci][2], af['m_Container.Array[%d].second.preloadSize' % ci][2]
+    tidx, tsz = af['m_Container.Array[%d].second.preloadIndex' % ti][2], af['m_Container.Array[%d].second.preloadSize' % ti][2]
+    tmpl_ent = struct.pack('<iq', 0, TEMPLATE['pid']); script_ents = [_ent(j) for j in range(tidx, tidx + tsz) if _ent(j) != tmpl_ent]
+    assert cidx + csz <= npre and tidx + tsz <= npre and len(script_ents) == 1 and tmpl_ent in [_ent(j) for j in range(tidx, tidx + tsz)], 'preload slices differ from the expected layout'
+    add = b''.join(_ent(j) for j in range(cidx, cidx + csz)) + struct.pack('<iq', 0, newpid) + script_ents[0]; nadd = csz + 2
+    struct.pack_into('<i', ab, af['m_Container.Array[%d].second.preloadIndex' % ci][0], npre); struct.pack_into('<i', ab, af['m_Container.Array[%d].second.preloadSize' % ci][0], nadd)
+    struct.pack_into('<i', ab, so, npre + nadd); ab[so + 4 + 12 * npre: so + 4 + 12 * npre] = add; replace[abp] = bytes(ab)
     new_ser = ser_edit.rebuild(c.orig, replace=replace, append=[(newpid, c.tid(TEMPLATE['pid']), nb)])
     info = dict(src_objects=len(c.s.objects), new_objects=len(c.s.objects) + 1, new_pid=newpid, template_pid=TEMPLATE['pid'], collection_pid=COLLECTION['pid'], keygroup_pid=KEYGROUP['pid'] if keygroup else None, key=key, name_key=name_key, desc_key=desc_key,
-                m_name=mname, position=idx, new_off_rid=NEW_OFF, new_on_rid=NEW_ON, replaced=sorted(replace), keygroup=keygroup, scene_bytes=len(c.orig), new_scene_bytes=len(new_ser))
+                m_name=mname, position=idx, new_off_rid=NEW_OFF, assetbundle_pid=abp, preload_old=npre, preload_slice=[npre, nadd], collection_old_slice=[cidx, csz], new_on_rid=NEW_ON, replaced=sorted(replace), keygroup=keygroup, scene_bytes=len(c.orig), new_scene_bytes=len(new_ser))
     return c, new_ser, info
 
 def main(argv=None):
