@@ -407,7 +407,7 @@ class App:
         if launcher.game_running():
             messagebox.showwarning("게임 실행 중", "게임이 실행 중입니다. 게임과 스팀을 완전히 끄고 다시 눌러 주세요.")
             return
-        if not messagebox.askyesno("적용", "새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).\n\n이 도구는 게임 파일(지도 화면 UI)과 GameAssembly.dll(스테이션 휠 금색 강조, 지도 패널)도 고칩니다. 이 게임 버전에서만 동작하고, 게임 업데이트나 스팀 '게임 파일 무결성 검사' 후에는 다시 적용해야 하며, [원래대로 되돌리기]로 되돌릴 수 있습니다.\n\n지금 적용할까요?"):
+        if not messagebox.askyesno("적용", "새 게임을 시작하기 전에만 사용하세요. 진행 중인 세이브에는 쓰지 마세요 (지도가 바뀝니다).\n\n지금 적용할까요?"):
             return
         if FULL:
             args = self._full_args()
