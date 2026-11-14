@@ -8,6 +8,7 @@
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
+  --quiet-toggle  게임 옵션(접근성) 맨 끝에 '발걸음 소리 무음' 켜기/끄기 줄을 추가한다 (기본 끔. data_user_settings/loc.* 번들 + GameAssembly.dll 코드 수정, 일반판만)
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 
   --repair-any-level 정비 작업대 레벨(2/3) 때문에 수리하지 못하던 무기를 레벨 제한 없이 수리 (수리공/건스미스 특성·재료 조건은 그대로)
@@ -130,6 +131,7 @@ def main():
     ap.add_argument("--hod-start", action="store_true")
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
+    ap.add_argument("--quiet-toggle", action="store_true")
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
@@ -157,7 +159,7 @@ def main():
     # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)도 금색 강조/지도 패널을 위해 쓴다 (켠 항목만, 원래대로 되돌릴 수 있음).
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
     use_dll = True
-    DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"))
+    DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"), ("patch_quietfoot.py", a.quiet_toggle, "발걸음 소리 무음 옵션(코드)"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
             if on_:
@@ -169,9 +171,18 @@ def main():
     # 로컬라이제이션 번들은 '장소 설명 문구' 옵션을 쓰거나 예전에 썼을 때만 관리한다 (공유용/옵션 안 쓰는 사용자는 이 파일을 건드리지 않음)
     files = list(FILES)
     LOCF = ["loc.korean", "loc.english"]
-    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.panel or a.random_start or any(f in man for f in LOCF))
+    QOPT = "data_user_settings"      # 옵션 화면 번들: '발걸음 소리 무음' 토글(일반판 전용)을 쓰거나 예전에 썼을 때만 관리한다
+    use_quiet = use_dll and os.path.isfile(os.path.join(ab, QOPT)) and (a.quiet_toggle or QOPT in man)
+    if a.quiet_toggle and not use_quiet:
+        sys.exit("발걸음 소리 무음 옵션(--quiet-toggle)에는 data_user_settings(옵션 번들)가 필요한데 찾지 못했습니다. 게임 파일을 확인하세요 (스팀 '게임 파일 무결성 검사').")
+    use_loc = use_dll and all(os.path.isfile(os.path.join(ab, f)) for f in LOCF) and (a.lock_notes or a.panel or a.random_start or use_quiet or any(f in man for f in LOCF))
+    if use_quiet and not use_loc:
+        sys.exit("발걸음 소리 무음 옵션에는 loc.korean/loc.english 가 필요합니다. 게임 파일을 확인하세요.")
     if use_loc:
         files += LOCF
+    if use_quiet:
+        files.append(QOPT)
+        files += sorted(n for n in os.listdir(ab) if n.startswith("loc.") and n not in LOCF and not n.endswith((".tmp", ".new", ".prev")) and os.path.isfile(os.path.join(ab, n)))
     elif a.lock_notes:
         sys.exit("장소 설명 문구(--lock-notes)는 일반판에서만 쓸 수 있고, loc.korean/loc.english 가 필요합니다.")
     # 효과음 번들(data_visual, 약 530MB)도 '맨손 처형 효과음' 옵션을 쓰거나 예전에 썼을 때만 관리한다
@@ -370,6 +381,9 @@ def main():
             print(run("add_trading_posts.py", stage, a.posts_min).strip())
         if a.lock_notes and use_loc:
             print(run("patch_lootnote.py", stage).strip())
+        if a.quiet_toggle and use_quiet:
+            print(run("patch_quietopt.py", stage).strip())
+            print(run("patch_quietloc.py", stage).strip())
         if a.random_start and use_panel:
             if not use_loc:
                 sys.exit("랜덤 시작의 '무술가 포함 뽑기' 버튼 라벨에는 loc.korean/loc.english 가 필요합니다. 게임 파일을 확인하세요 (스팀 '게임 파일 무결성 검사').")

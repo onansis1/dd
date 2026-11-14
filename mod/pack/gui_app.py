@@ -37,6 +37,7 @@ OPTS = [
     ("random_skills", "모든 생존자 스킬 트리 티어별 랜덤", False),
     ("martial_h2h", "무술가/프로레슬러 특성 보유자는 4티어 맨손격투 전문가 보장", False),
     ("unarmed_sound", "맨손 처형 효과음을 모든 생존자에게 (효과음 번들 수정)", False),
+    ("quiet_toggle", "게임 옵션에 '발걸음 소리 무음' 켜기/끄기 줄 추가 (접근성 맨 끝, 게임 파일 수정, 미확인)", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정)", False),
     ("wheel_gold", "스테이션 휠: 내 생존자의 특기 작업 칸을 금색으로 (게임 실행 파일 수정)", False),
     ("shelter_move", "살았던 거점은 수색 없이 바로 이동 (게임 실행 파일 수정, 미확인)", False),
@@ -52,7 +53,7 @@ GROUPS = [
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto", "trader_sure"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet", "unarmed_crit"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
-    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound"]),
+    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound", "quiet_toggle"]),
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
 BG = "#0c0e0b"          # 어두운 검정-이끼색
@@ -432,6 +433,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         if o["trader_sure"]: a += ["--trader-sure"]
         if o["unarmed_crit"]: a += ["--unarmed-crit"]
+        if o["quiet_toggle"]: a += ["--quiet-toggle"]
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
                      ("spillzone_start", "--spillzone-start"), ("june", "--june-lockpick"), ("repair", "--repair-any-level"), ("dismantle", "--dismantle-any-level"), ("ammo_levels", "--ammo-all-levels"), ("random_traits", "--random-traits"), ("random_skills", "--random-skills"), ("martial_h2h", "--martial-h2h"), ("peek", "--peek-standing"), ("wheel_gold", "--wheel-gold"), ("shelter_move", "--shelter-move"), ("random_start", "--random-start"), ("panel", "--panel"), ("unarmed_sound", "--unarmed-sound"), ("otto", "--otto-lockpick"), ("lock_notes", "--lock-notes")):

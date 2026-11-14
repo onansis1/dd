@@ -11,7 +11,7 @@ for _st in (sys.stdout, sys.stderr, sys.stdin):   # 파이프/리다이렉트일
             _st.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
-_NO_UNITYPY = {"patch_panelcode.py", "patch_peek.py", "patch_cleared.py", "patch_wheelgold.py", "patch_shelter.py", "patch_randstart.py", "patch_lootlock.py"}   # UnityPy 를 쓰지 않는 GameAssembly.dll 단계
+_NO_UNITYPY = {"patch_panelcode.py", "patch_peek.py", "patch_cleared.py", "patch_wheelgold.py", "patch_shelter.py", "patch_randstart.py", "patch_lootlock.py", "patch_quietfoot.py"}   # UnityPy 를 쓰지 않는 GameAssembly.dll 단계
 try:
     import winreg  # noqa
 except ImportError:
@@ -19,7 +19,7 @@ except ImportError:
 
 if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
     base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "patch_repair.py", "patch_peek.py", "patch_traits.py", "patch_skills.py", "patch_cleared.py", "patch_wheelgold.py", "patch_shelter.py", "patch_randstart.py", "patch_panelbundle.py", "patch_loclabel.py", "patch_scnbtn.py", "patch_unarmedcrit.py", "itd_fastload.py", "patch_rsmask.py", "itdp_scn.py", "itdp_scnverify.py", "patch_panelcode.py", "itdp_build.py", "itdp_ufs.py", "itdp_ser.py", "itdp_tt.py", "itdp_edit.py", "itdp_verify.py", "panel_code.json", "panel_spec.json", "panel_sprites.json", "patch_otto.py", "patch_unarmedsound.py", "patch_ammolevel.py", "patch_lootnote.py", "lootnotes.json", "telescopes.json", "gui_app.py", "assets/bg_map.png", "assets/bg_full.png", "assets/BusanDandiGothicM.ttf"]
+    need = ["apply_all.py", "launcher.py", "patch_balance.py", "patch_config.py", "widen_map_radius.py", "shuffle_map.py", "scan_telescopes.py", "preset_tool.py", "patch_leads.py", "patch_traders.py", "add_trading_posts.py", "patch_romance.py", "patch_romance_compat.py", "patch_zombie.py", "patch_noise.py", "patch_hod.py", "patch_june.py", "patch_hod_shelters.py", "patch_repair.py", "patch_peek.py", "patch_traits.py", "patch_skills.py", "patch_cleared.py", "patch_wheelgold.py", "patch_shelter.py", "patch_randstart.py", "patch_panelbundle.py", "patch_loclabel.py", "patch_scnbtn.py", "patch_quietopt.py", "patch_quietloc.py", "patch_quietfoot.py", "itdp_opt.py", "itdp_optverify.py", "itdp_ufs2.py", "patch_unarmedcrit.py", "itd_fastload.py", "patch_rsmask.py", "itdp_scn.py", "itdp_scnverify.py", "patch_panelcode.py", "itdp_build.py", "itdp_ufs.py", "itdp_ser.py", "itdp_tt.py", "itdp_edit.py", "itdp_verify.py", "panel_code.json", "panel_spec.json", "panel_sprites.json", "patch_otto.py", "patch_unarmedsound.py", "patch_ammolevel.py", "patch_lootnote.py", "lootnotes.json", "telescopes.json", "gui_app.py", "assets/bg_map.png", "assets/bg_full.png", "assets/BusanDandiGothicM.ttf"]
     try:
         import tkinter, gui_app  # noqa
     except Exception as e:
