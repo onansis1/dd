@@ -7,6 +7,7 @@
   --trader-start N  상인(마와 파/베일/리키)이 처음 나올 수 있는 시점 (0=게임 시작부터, 1~9, 10=원래)
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
+  --upgrade-occ   작업대에서 만드는 스테이션 업그레이드 레시피 52개의 필요 작업량을 3 -> 2 로 낮춘다 (data_balancing, 일반판만)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
   --quiet-toggle  게임 옵션(접근성) 맨 끝에 '발걸음 소리 무음' 켜기/끄기 줄을 추가한다 (기본 끔. data_user_settings/loc.* 번들 + GameAssembly.dll 코드 수정, 일반판만)
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식)
@@ -138,6 +139,7 @@ def main():
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
     ap.add_argument("--trader-sure", action="store_true")
     ap.add_argument("--unarmed-crit", action="store_true")
+    ap.add_argument("--upgrade-occ", action="store_true")
     ap.add_argument("--vale-start", type=int, default=20, choices=[0, 10, 20])
     ap.add_argument("--vale", default="random", choices=["random", "crossbow", "s12riot", "s12only", "none"])
     a = ap.parse_args()
@@ -350,6 +352,10 @@ def main():
             out_balc = os.path.join(stage, "data_balancing.out")
             print(run("patch_unarmedcrit.py", os.path.join(stage, "data_balancing"), out_balc).strip())
             os.replace(out_balc, os.path.join(stage, "data_balancing"))
+        if a.upgrade_occ:
+            out_balo = os.path.join(stage, "data_balancing.out")
+            print(run("patch_upgradeocc.py", os.path.join(stage, "data_balancing"), out_balo).strip())
+            os.replace(out_balo, os.path.join(stage, "data_balancing"))
         if a.quiet_steps:
             out_bal4 = os.path.join(stage, "data_balancing.out")
             print(run("patch_noise.py", os.path.join(stage, "data_balancing"), out_bal4).strip())

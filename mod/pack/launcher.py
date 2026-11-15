@@ -146,7 +146,7 @@ def main():
             o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = True; o["move_spillzone"] = True
             o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
             o["trader_start"] = 10
-            o["wheel_gold"] = True; o["panel"] = True; o["quiet_toggle"] = False
+            o["wheel_gold"] = True; o["panel"] = True; o["quiet_toggle"] = False; o["upgrade_occ"] = False
         else:
             o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
         if not MAPONLY:
@@ -158,6 +158,7 @@ def main():
             o["leads"] = yn("탈출 퀘스트를 열기 위한 조사 장소(단서) 3곳 -> 1곳", o.get("leads", False))
             s = input("상인(마와 파/베일/리키)이 처음 나오는 사이클 - 0=게임 시작부터, 1~9, 10=원래 [%s]: " % o.get("trader_start", 10)).strip()
             o["trader_start"] = int(s) if s.isdigit() and 0 <= int(s) <= 10 else o.get("trader_start", 10)
+            o["upgrade_occ"] = yn("스테이션 업그레이드(작업대에서 만드는 *EquipmentL* 레시피 52개)의 필요 작업량 3 -> 2 (여러 개를 대기열에 넣었을 때 한 번에 끝나는 개수가 늘어남)", o.get("upgrade_occ", False))
             o["unarmed_crit"] = yn("맨손 무기 2종(무술가/레슬링)의 크리티컬 확률 2% -> 10%", o.get("unarmed_crit", False))
             o["trader_sure"] = yn("상인 방문 확률 제한 해제: 쿨다운(자주 3일/기본 6일/드물게 10일)마다 확정으로 방문 (원래는 쿨다운이 지나도 사이클마다 약 10%만 통과하는 것으로 보임)", o.get("trader_sure", False))
             o["move_posts"] = yn("교역소 5곳을 지도 중앙부로 옮겨 모든 거점의 원 안에 교역소가 1곳 이상 있게 하기 (지도 섞기를 켠 경우에만. 모든 거점의 원 크기는 그대로 같음)", o.get("move_posts", False))
@@ -194,6 +195,7 @@ def main():
         if o.get("trader_start", 10) != 10: args += ["--trader-start", str(o["trader_start"])]
         if o.get("trader_sure"): args += ["--trader-sure"]
         if o.get("unarmed_crit"): args += ["--unarmed-crit"]
+        if o.get("upgrade_occ"): args += ["--upgrade-occ"]
         if o["move_posts"]: args += ["--move-posts"]
         if o["shuffle_shelters"]: args += ["--shuffle-shelters"]
         if o.get("move_spillzone"): args += ["--move-spillzone"]

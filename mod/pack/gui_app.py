@@ -27,6 +27,7 @@ OPTS = [
     ("romance_all", "연애 제한 모두 해제", False),
     ("zombie", "죽은 생존자 좀비화 100%", False),
     ("quiet", "걷기/달리기 발소리 항상 없음 (아래 '발걸음 소리 무음' 옵션 줄과 같이 못 씀)", False),
+    ("upgrade_occ", "스테이션 업그레이드(작업대 제작) 필요 작업량 3 -> 2", False),
     ("unarmed_crit", "맨손 무기(무술가/레슬링) 크리티컬 확률 2% -> 10%", False),
     ("hod_start", "어둠의 심연 단서 시작부터 보유", False),
     ("spillzone_start", "유출구역 단서 시작부터 보유", False),
@@ -52,7 +53,7 @@ GROUPS = [
     ("지도 · 단서", ["map", "move_posts", "shuffle_shelters", "move_spillzone", "leads", "hod_start", "spillzone_start"]),
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto", "trader_sure"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet", "unarmed_crit"]),
-    ("작업대 · 표시", ["repair", "dismantle", "lock_notes"]),
+    ("작업대 · 표시", ["repair", "dismantle", "lock_notes", "upgrade_occ"]),
     ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound", "quiet_toggle"])
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
@@ -447,6 +448,7 @@ class App:
         if trader != 10: a += ["--trader-start", str(trader)]
         if o["trader_sure"]: a += ["--trader-sure"]
         if o["unarmed_crit"]: a += ["--unarmed-crit"]
+        if o["upgrade_occ"]: a += ["--upgrade-occ"]
         if o["quiet_toggle"]: a += ["--quiet-toggle"]
         if o["quiet_toggle"]: o["quiet"] = False
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
