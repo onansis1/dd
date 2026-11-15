@@ -1,8 +1,9 @@
-"""Into the Dead: Our Darkest Days - 한 번이라도 살았던 거점은 수색 없이 '은신처로 이동' 가능 (GameAssembly.dll 패치, 이 게임 빌드 전용).
+"""Into the Dead: Our Darkest Days - 한 번이라도 살았거나 방문한 적 있는 거점은 수색 없이 '은신처로 이동' 가능 (GameAssembly.dll 패치, 이 게임 빌드 전용).
 사용: python patch_shelter.py <check|apply|revert|status> <GameAssembly.dll 경로>
  - 거점으로 이동할 때 게임은 '소탕됨(Cleared)'을 요구한다. 떠난 거점은 시간이 지나면 다시 언데드로 채워져 소탕 상태가 풀리고, 그러면 '수색하라'며 이동이 막힌다.
    이 패치는 은신처 이동 기능의 판정 세 곳(MapHud.IsAvailableShelter, MapHud.PopulateLocationInfo, LocationsManager.MoveShelter)에서만
-   '원래 결과가 거짓이어도 그 거점의 DayLeftShelter(떠난 날, ShelterLocationModel+0x90) 가 0 이상이면 통과'로 바꾼다. 한 번도 살아 본 적 없는 거점(-1)은 그대로 수색이 필요하다.
+   '원래 결과가 거짓이어도 그 거점의 DayLeftShelter(떠난 날, ShelterLocationModel+0x90) 가 0 이상이거나, 방문한 적이 있으면(LocationModel+0x51 m_visited != 0) 통과'로 바꾼다.
+   살아 본 적도 방문한 적도 없는 거점은 그대로 수색이 필요하다. (소탕하지 못하고 떠난 거점도 방문 표시가 있으면 포함된다. 게임에 '소탕한 적 있음' 기록은 없다.)
  - 도달 가능(Reachable)/이용 불가(Unavailable)/발견 규칙은 건드리지 않는다. 게임 모델에는 아무것도 쓰지 않는다(읽기 판정만) -> 세이브 형식/내용 불변.
    Cleared 를 읽는 다른 곳(조건 시스템, 소탕 전이 감지, HUD 상태 제공자)은 고치지 않는다.
  - 구현: 스테이션 휠 패치와 같은 새 실행 구역 '.itdx'(4096바이트)를 쓴다(없으면 만든다). 그 구역의 파일 위치 0x631A000(RVA 0x65E5A00)부터 160바이트에 동굴 코드 3개를 쓰고, 후크 3개를 연결한다.
@@ -20,7 +21,8 @@ HDR_ALT = {368: "00705e06", 294: "0900"}                              # 지도 �
 PAGE2 = 0xA00                                                        # .itd2 구역 크기 (patch_panelcode.py)
 GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 CAVE_OFF = 0xA00                      # 새 구역 안의 위치 (파일: ORIGINAL_SIZE + 0xA00 = 0x631A000)
-CAVE = "84c0750983bb90000000007c0731d2e9310280fae94a0280facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c0750b4183bc2490000000007c0731d2e9910780fae9ac0780facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c07512488b4e104885c9740e83b990000000007c05e9f69761fae9619a61fa"
+OLD_CAVE = "84c0750983bb90000000007c0731d2e9310280fae94a0280facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c0750b4183bc2490000000007c0731d2e9910780fae9ac0780facccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c07512488b4e104885c9740e83b990000000007c05e9f69761fae9619a61fa"      # 이전 버전(Cleared 이거나 DayLeftShelter >= 0): 이미 적용돼 있으면 새 코드로 교체
+CAVE = "84c0750f83bb90000000007d06807b5100740731d2e92b0280fae9440280facc83b990000000000f8d649861fa807951000f855a9861fae9c59a61facccccccc84c075134183bc2490000000007d0841807c245100740731d2e9890780fae9a40780facccccccccccccccccccccccccccccccccccccccccccccccccccccccccc84c0750e488b4e104885c9740ae98effffffe9fa9761fae9659a61facccccccc"      # 현재 버전: 위 조건 + 방문한 적 있는 거점(LocationModel+0x51 m_visited)
 CAVE_LEN = len(CAVE) // 2
 
 # --- PE 헤더 3곳 (구역 .itdx 추가; 스테이션 휠 패치와 같은 값)
@@ -142,15 +144,17 @@ def state(dll):
     else:
         return None, "구역 헤더 상태가 알려진 어떤 단계와도 맞지 않습니다: %s" % h3
     cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
-    cave = "cc" if cur == b"\xcc" * CAVE_LEN else "final" if cur == bytes.fromhex(CAVE) else "other"
+    cave = "cc" if cur == b"\xcc" * CAVE_LEN else "final" if cur == bytes.fromhex(CAVE) else "oldcave" if cur == bytes.fromhex(OLD_CAVE) else "other"
     if cave == "other":
         return None, "새 구역의 우리 코드 자리가 0xCC 도, 우리 코드도 아닙니다"
-    if any(x == "final" for x in hs) and (cave != "final" or sec != "new"):
+    if any(x == "final" for x in hs) and (cave not in ("final", "oldcave") or sec != "new"):
         return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if cave == "cc":
         return "ok", 0                               # 코드가 없으면 우리 패치는 적용 전 (구역이 있든 없든)
     nfin = hs.count("final")
     if hs == ["final"] * nfin + ["orig"] * (3 - nfin):
+        if cave == "oldcave" and nfin == 3:
+            return "ok", "old"                       # 이전 버전 코드가 적용돼 있음 (apply 하면 새 코드로 교체)
         return "ok", 1 + nfin
     return "ok", "partial"
 
@@ -210,7 +214,7 @@ def cmd_check(dll):
     need_bak(dll, k[1] if isinstance(k[1], int) else 4, create=False)
     if game_running():
         sys.exit("게임이 실행 중입니다. 게임을 완전히 끄고 다시 시도하세요.")
-    print("거점 수색 없이 이동: 적용 가능 (현재 %s)" % (("%d/4 단계" % k[1]) if isinstance(k[1], int) else "중간 단계"))
+    print("거점 수색 없이 이동: 적용 가능 (현재 %s)" % (("%d/4 단계" % k[1]) if isinstance(k[1], int) else "이전 버전" if k[1] == "old" else "중간 단계"))
 
 
 def cmd_apply(dll):
@@ -234,8 +238,9 @@ def cmd_apply(dll):
         if read_at(dll, off, len(orig) // 2).hex() not in (new, HDR_ALT.get(off)):
             _write(dll, off, bytes.fromhex(orig), bytes.fromhex(new))
     cb = bytes.fromhex(CAVE)                                            # 5) 동굴 코드 (점프는 아직 없음)
-    if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) != cb:
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, b"\xcc" * CAVE_LEN, cb)
+    cur_cave = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
+    if cur_cave != cb:
+        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cur_cave, cb)             # 0xCC 자리 또는 이전 버전 코드 자리를 새 코드로 (후크가 가리키는 시작 위치는 같다)
     for h in HOOKS:                                                     # 6~8) 후크 연결 (MoveShelter 먼저: UI 가 열리기 전에 이동이 막히지 않게)
         if hookstate(dll, h) == "orig":
             _write(dll, h[1], bytes.fromhex(h[2]), bytes.fromhex(h[3]))
@@ -259,9 +264,9 @@ def cmd_revert(dll):
     for h in reversed(HOOKS):                                           # 후크 먼저 (코드가 있는 동안에), 반대 순서
         if hookstate(dll, h) == "final":
             _write(dll, h[1], bytes.fromhex(h[3]), bytes.fromhex(h[2]))
-    cb = bytes.fromhex(CAVE)                                            # 우리 코드 자리만 0xCC 로
-    if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) == cb:
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cb, b"\xcc" * CAVE_LEN)
+    cur_cave = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)         # 우리 코드(현재/이전 버전) 자리만 0xCC 로
+    if cur_cave in (bytes.fromhex(CAVE), bytes.fromhex(OLD_CAVE)):
+        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cur_cave, b"\xcc" * CAVE_LEN)
     shared = (not page_rest_clean(dll)) or os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2
     if not shared:                                                      # 스테이션 휠 패치가 이 구역을 안 쓰면 구역/페이지도 제거
         for _n, off, orig, new in reversed(HEADER):                     # 구역 수 -> SizeOfImage -> 구역 헤더
