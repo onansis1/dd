@@ -3,7 +3,9 @@
  - 후크 2개: AWorkstation.IsValidCraftingSlot(RVA 0xA42280)은 '슬롯 0만 유효'인데, 정의 GUID 가 작업대(47bed4f7...208f)일 때만 슬롯 1도 유효하게 한다.
    AWorkstation.FillInSlotWithCapacity(RVA 0xA41BA0)는 슬롯 목록에 항목 1개를 넣는데, 작업대일 때만 원래 함수를 한 번 더 실행해 항목이 2개가 되게 한다.
    다른 스테이션(의무실, 정비 작업대, 요리/분해/무기 작업대 등)은 정의 GUID 가 달라 원래와 완전히 같게 동작한다. 번들(씬/UI)은 고치지 않는다.
- - 한계: 두 번째 생존자는 첫 번째와 같은 위치에서 작업하고(겹쳐 보임), 배치 화면에는 첫 번째만 보일 수 있다. 한 명이 빠지면 대기열이 환불될 수 있다. 게임에서 동작 미확인.
+   대기열 보존(4단계): AWorkstation.TryUnassignCharacter(0xA439D1)와 OnOperationSlotCleared(0xA42610)가 한 명이 빠질 때 대기열 전체를 환불하는데, 작업대에 다른 작업자가 남아 있으면 이 환불을 건너뛴다(마지막 작업자가 빠지면 원래대로 환불).
+   이 코드(202B)는 .itdx 페이지의 빈 자리 RVA 0x65E57C0(파일 0x6319DC0)에 둔다.
+ - 한계: 두 번째 생존자는 첫 번째와 같은 위치에서 작업하고(겹쳐 보임), 배치 화면에는 첫 번째만 보일 수 있다. 게임에서 동작 미확인(특히 대기열 보존).
  - 구현: 스테이션 휠/랜덤 시작과 같은 새 실행 구역 '.itdx'(없으면 만든다) 페이지 꼬리 RVA 0x65E5F10(파일 0x631A510)에 152바이트를 쓴다(쓰기 가능한 데이터 없음).
    적용 순서: 코드 -> IsValidCraftingSlot 후크 -> FillInSlotWithCapacity 후크 (슬롯 1이 유효해진 뒤에 슬롯을 늘린다), 되돌리기는 반대. 되돌리기 전에 작업대 슬롯 1의 생존자를 해제하는 것을 권장한다.
  - 이 게임 빌드(SHA-256 3F45B1F9...)에서만 적용한다. 쓰기 전에 GameAssembly.dll.bak 이 원본인지 확인하고(없으면 파일이 원본일 때만 만든다), 후크 앞뒤 20바이트가 예상과 같은지 확인하고, 쓴 뒤 읽어서 검증한다.
@@ -20,6 +22,10 @@ GAME_EXE = "IntoTheDeadOurDarkestDays.exe"
 CAVE_OFF = 0xF10                      # 새 구역 안의 위치 (파일: ORIGINAL_SIZE + 0xF10 = 0x631A510)
 CAVE = "488b41484885c0743d49ba47bed4f76531d5374c395018752d49ba3510ba9e4e91208f4c395020751d53564883ec284889cb4889d6e80c0000004889d94889f24883c4285e5b40534883ec20e945bc45facccccccccccccccccccccccccccccc85d2742e83fa01752c488b41484885c0742349ba47bed4f76531d5374c395018751349ba3510ba9e4e91208f4c3950207503b001c331c0c3"
 CAVE_LEN = len(CAVE) // 2
+CAVE4_OFF = 0x7C0                     # 대기열 보존 코드(4단계): 휠 금색 끝(0x7B0)과 거점 이동 시작(0xA00) 사이의 빈 자리 (파일: ORIGINAL_SIZE + 0x7C0 = 0x6319DC0)
+CAVE4 = "488b41484885c0746c49ba47bed4f76531d5374c395018755c49ba3510ba9e4e91208f4c395020754c488b41184885c07443488b40204885c0743a448b4018488b40104885c0742d31d24531c94539c17d204183f9107d1a4d89ca49c1e2044e8b5c10204e0b5c10287402ffc241ffc1ebdb89d0c3b8ffffffffc3cccccccccc415041514889d9e874ffffff4159415883f8027c05e981e145fa31d24889d9e972e145facccccccccccccccccccccccc41504151e847ffffff4159415883f8017c01c331d2e9a6db45fa"
+CAVE4_LEN = len(CAVE4) // 2
+CAVES = [(CAVE_OFF, CAVE, CAVE_LEN), (CAVE4_OFF, CAVE4, CAVE4_LEN)]
 
 # --- PE 헤더 3곳 (구역 .itdx 추가; 스테이션 휠 패치와 같은 값)
 HEADER = [
@@ -31,10 +37,14 @@ HEADER = [
 HOOKS = [
     ('2-hook-IsValidCraftingSlot', 10753152, '85d20f94c0', 'e9eb3cba05',
      'c3e87e5dc6ffcccccccccccccccccccccccccccc', 'c3cccccccccccccccccccc488bc4488948085356'),
+    ('4a-hook-TryUnassignCharacter', 10759121, '33d2488bcb', 'e96a1eba05',
+     '498b80280300004d8b8030030000ffd084c0740a', 'e855faffff48897424304885ff7507beffffffff'),
+    ('4b-hook-OnOperationSlotCleared', 10754064, '33d2e9190e0000', 'e95b32ba059090',
+     'ff90e89d5ac6ffcce82781c6ffcccccccccccccc', 'cccccccccccccccccc4489442418565741544157'),
     ('3-hook-FillInSlotWithCapacity', 10751392, '40534883ec20', 'e96b43ba0590',
      '488b5c24304883c4205fc3cccccccccccccccccc', '803dbdad340500488bda7513488d0de75b0805e8'),
 ]
-FULL = 1 + len(HOOKS)
+FULL = 2 + len(HOOKS)          # 코드 2곳(작업대 2명, 대기열 보존) + 후크 4개
 
 
 def sha256(path):
@@ -116,18 +126,20 @@ def check_hook_context(dll):
 
 
 def page_rest_clean(dll):
-    """새 구역에서 우리 코드 자리를 뺀 나머지가 전부 0xCC 인지 (다른 패치(스테이션 휠)가 이 구역을 쓰고 있지 않은지)"""
-    data = read_at(dll, ORIGINAL_SIZE, PAGE)
-    rest = data[:CAVE_OFF] + data[CAVE_OFF + CAVE_LEN:]
-    return rest == b"\xcc" * len(rest)
+    """새 구역에서 우리 코드 자리들을 뺀 나머지가 전부 0xCC 인지 (다른 패치가 이 구역을 쓰고 있지 않은지)"""
+    data = bytearray(read_at(dll, ORIGINAL_SIZE, PAGE))
+    for off, _c, ln in CAVES:
+        data[off:off + ln] = b"\xcc" * ln
+    return bytes(data) == b"\xcc" * PAGE
 
 
 def cave_kind(dll):
-    """새 구역의 우리 코드 자리: 'cc'(비어 있음) | 'final' | 'other'"""
-    cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
-    if cur == b"\xcc" * CAVE_LEN:
-        return "cc"
-    return "final" if cur == bytes.fromhex(CAVE) else "other"
+    """코드 2곳의 상태: 각각 'cc'(비어 있음) | 'final' | 'other'"""
+    out = []
+    for off, code, ln in CAVES:
+        cur = read_at(dll, ORIGINAL_SIZE + off, ln)
+        out.append("cc" if cur == b"\xcc" * ln else "final" if cur == bytes.fromhex(code) else "other")
+    return out
 
 
 def state(dll):
@@ -150,18 +162,26 @@ def state(dll):
         sec = "none"
     else:
         return None, "구역 헤더 상태가 알려진 어떤 단계와도 맞지 않습니다: %s" % h3
-    cave = cave_kind(dll)
-    if cave == "other":
+    c1, c4 = cave_kind(dll)
+    if "other" in (c1, c4):
         return None, "새 구역의 우리 코드 자리가 0xCC 도, 우리 코드도 아닙니다"
-    if any(x == "final" for x in hs) and (cave != "final" or sec != "new"):
-        return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
-    if cave == "cc":
-        return "ok", 0
     nfin = hs.count("final")
+    legacy = (c1, c4) == ("final", "cc") and hs == ["final", "orig", "orig", "final"]          # 이전 버전(대기열 보존 없는 3단계)이 적용된 상태
+    if (c1, c4) == ("cc", "cc") and nfin == 0:
+        return "ok", 0                               # 코드가 없으면 우리 패치는 적용 전 (구역이 있든 없든)
+    if nfin and sec != "new":
+        return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
+    if legacy:
+        return "ok", "old3"
+    if c1 != "final" and (c4 == "final" or nfin):
+        return None, "작업대 2명 코드 없이 다른 코드/후크만 있습니다"
+    if (hs[0] == "final" or hs[3] == "final") and c1 != "final":
+        return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
+    if (hs[1] == "final" or hs[2] == "final") and c4 != "final":
+        return None, "후크는 연결돼 있는데 새 구역에 우리 코드가 없습니다 (그대로 두면 게임이 멈춥니다)"
     if hs != ["final"] * nfin + ["orig"] * (len(HOOKS) - nfin):
-        return None, "후크 연결 순서가 알려진 단계와 다릅니다 (슬롯을 늘리는 후크만 연결돼 있으면 작업 틱마다 오류가 납니다): %s" % hs
-    return "ok", 1 + nfin
-
+        return None, "후크 연결 순서가 알려진 단계와 다릅니다 (슬롯을 늘리는 후크만 먼저 연결돼 있으면 작업 틱마다 오류가 납니다): %s" % hs
+    return "ok", (c1 == "final") + (c4 == "final") + nfin
 
 
 def need_bak(dll, k, create=True):
@@ -203,7 +223,7 @@ def cmd_status(dll):
     print("파일:", dll)
     print("크기:", os.path.getsize(dll), "(원본 %d)" % ORIGINAL_SIZE)
     print("SHA-256:", sha256(dll))
-    print("상태:", ("알 수 없음 - " + k[1]) if k[0] is None else "%d/%d 단계" % (k[1], FULL))
+    print("상태:", ("알 수 없음 - " + k[1]) if k[0] is None else ("이전 버전(대기열 보존 없음): 적용하면 보강됨" if k[1] == "old3" else "%d/%d 단계" % (k[1], FULL)))
 
 
 def cmd_check(dll):
@@ -216,7 +236,7 @@ def cmd_check(dll):
     need_bak(dll, k[1], create=False)
     if game_running():
         sys.exit("게임이 실행 중입니다. 게임을 완전히 끄고 다시 시도하세요.")
-    print("작업대 2명 동시(코드): 적용 가능 (현재 %d/%d 단계)" % (k[1], FULL))
+    print("작업대 2명 동시(코드): 적용 가능 (현재 %s)" % ("이전 버전(대기열 보존 없음)" if k[1] == "old3" else "%d/%d 단계" % (k[1], FULL)))
 
 
 def cmd_apply(dll):
@@ -239,9 +259,10 @@ def cmd_apply(dll):
     for _n, off, orig, new in HEADER:                                   # 2~4) 구역 헤더, SizeOfImage, 구역 수 (순서대로)
         if read_at(dll, off, len(orig) // 2).hex() not in (new, HDR_ALT.get(off)):
             _write(dll, off, bytes.fromhex(orig), bytes.fromhex(new))
-    cb = bytes.fromhex(CAVE)                                            # 5) 코드 (점프는 아직 없음)
-    if read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN) != cb:
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, b"\xcc" * CAVE_LEN, cb)
+    for off_, code_, ln_ in CAVES:                                      # 5) 코드 2곳 (점프는 아직 없음)
+        cb = bytes.fromhex(code_)
+        if read_at(dll, ORIGINAL_SIZE + off_, ln_) != cb:
+            _write(dll, ORIGINAL_SIZE + off_, b"\xcc" * ln_, cb)
     for h in HOOKS:                                                     # 6) 후크 연결 (마지막)
         if hookstate(dll, h) == "orig":
             _write(dll, h[1], bytes.fromhex(h[2]), bytes.fromhex(h[3]))
@@ -265,9 +286,10 @@ def cmd_revert(dll):
     for h in reversed(HOOKS):                                           # 후크 먼저 (코드가 있는 동안에)
         if hookstate(dll, h) == "final":
             _write(dll, h[1], bytes.fromhex(h[3]), bytes.fromhex(h[2]))
-    if cave_kind(dll) == "final":                                       # 우리 코드 자리만 0xCC 로
-        cur = read_at(dll, ORIGINAL_SIZE + CAVE_OFF, CAVE_LEN)
-        _write(dll, ORIGINAL_SIZE + CAVE_OFF, cur, b"\xcc" * CAVE_LEN)
+    for (off_, _code, ln_), kind_ in zip(CAVES, cave_kind(dll)):        # 우리 코드 자리만 0xCC 로
+        if kind_ == "final":
+            cur = read_at(dll, ORIGINAL_SIZE + off_, ln_)
+            _write(dll, ORIGINAL_SIZE + off_, cur, b"\xcc" * ln_)
     shared = (not page_rest_clean(dll)) or os.path.getsize(dll) == ORIGINAL_SIZE + PAGE + PAGE2
     if not shared:                                                      # 다른 패치가 이 구역을 안 쓰면 구역/페이지도 제거
         for _n, off, orig, new in reversed(HEADER):
