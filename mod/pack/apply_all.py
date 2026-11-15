@@ -8,7 +8,6 @@
   --posts         모든 거점의 탐색 반경 안에 교역소가 최소 2곳 들어가게 한다 (모자란 거점만 반경을 늘림. --posts-min N 으로 최소 곳수 변경)
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
-  --workbench2    작업대(Workbench)를 동시에 2명이 쓸 수 있게 한다 (GameAssembly.dll 코드 수정, 일반판만. 두 번째 생존자는 같은 자리에 겹쳐 보일 수 있음)
   --quiet-toggle  게임 옵션(접근성) 맨 끝에 '발걸음 소리 무음' 켜기/끄기 줄을 추가한다 (기본 끔. data_user_settings/loc.* 번들 + GameAssembly.dll 코드 수정, 일반판만)
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 
@@ -133,7 +132,7 @@ def main():
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
     ap.add_argument("--quiet-toggle", action="store_true")
-    ap.add_argument("--workbench2", action="store_true")
+    ap.add_argument("--workbench2", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
     ap.add_argument("--trader-start", type=int, default=10, choices=list(range(0, 11)))
@@ -163,7 +162,7 @@ def main():
     # 게임 실행 파일(GameAssembly.dll): AssetBundles 에서 세 단계 위가 게임 폴더. 공유용(지도 전용)도 금색 강조/지도 패널을 위해 쓴다 (켠 항목만, 원래대로 되돌릴 수 있음).
     dll = os.path.normpath(os.path.join(ab, "..", "..", "..", "GameAssembly.dll"))
     use_dll = True
-    DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"), ("patch_quietfoot.py", a.quiet_toggle, "발걸음 소리 무음 옵션(코드)"), ("patch_workbench2.py", a.workbench2, "작업대 2명 동시(코드)"))
+    DLL_PATCHES = (("patch_panelcode.py", a.panel, "지도 탐색 생존자 패널(코드)"), ("patch_peek.py", a.peek_standing, "서서 문 엿보기"), ("patch_cleared.py", False, "소탕 거점 재생성 방지(제거된 기능: 이전에 적용돼 있으면 되돌림)"), ("patch_wheelgold.py", a.wheel_gold, "스테이션 휠 특기 강조"), ("patch_shelter.py", a.shelter_move, "거점 수색 없이 이동"), ("patch_randstart.py", a.random_start, "시나리오 랜덤 시작"), ("patch_quietfoot.py", a.quiet_toggle, "발걸음 소리 무음 옵션(코드)"), ("patch_workbench2.py", False, "작업대 2명 동시(제거된 기능: 이전에 적용돼 있으면 되돌림)"))
     if use_dll and not a.restore:
         for script_, on_, label_ in DLL_PATCHES:
             if on_:

@@ -146,7 +146,7 @@ def main():
             o["map"] = True; o["move_posts"] = True; o["shuffle_shelters"] = True; o["move_spillzone"] = True
             o["bal"] = o["leads"] = o["romance_all"] = o["zombie"] = False
             o["trader_start"] = 10
-            o["wheel_gold"] = True; o["panel"] = True; o["quiet_toggle"] = False; o["workbench2"] = False
+            o["wheel_gold"] = True; o["panel"] = True; o["quiet_toggle"] = False
         else:
             o["map"] = yn("지도 건물 위치 랜덤 섞기", o.get("map", True))
         if not MAPONLY:
@@ -179,7 +179,6 @@ def main():
             o["shelter_move"] = yn("[게임 실행 파일 수정, 게임에서 동작 미확인] 한 번이라도 살았거나 방문한 거점은 '수색해서 소탕'하지 않아도 바로 은신처로 이동 (한 번도 안 살아 본 거점은 그대로. GameAssembly.dll 에 새 실행 구역을 쓰며 이 게임 빌드 전용이고 게임 업데이트/스팀 무결성 검사 때 되돌아갈 수 있음. 원래대로 되돌릴 수 있음)", False)
             o["random_start"] = yn("[게임 실행 파일 수정] 사용자 지정 시나리오에서 생존자를 아무도 안 고르고 시작하면 후보 18명(Bowman 제외) 중 랜덤 3명 + 랜덤 거점으로 시작 (GameAssembly.dll 에 새 실행 구역을 쓰며 이 게임 빌드 전용이고 게임 업데이트/스팀 무결성 검사 때 되돌아갈 수 있음. 원래대로 되돌릴 수 있음)", False)
             o["quiet_toggle"] = yn("[게임 파일 수정, 게임에서 동작 미확인] 게임 옵션(접근성 맨 끝)에 '발걸음 소리 무음' 켜기/끄기 줄 추가 (기본 끔. 켜면 생존자 발소리만 사라짐)", o.get("quiet_toggle", False))
-            o["workbench2"] = yn("[게임 실행 파일 수정, 게임에서 동작 미확인] 작업대(Workbench)를 동시에 2명이 사용 (두 번째 생존자는 같은 자리에 겹쳐 보일 수 있음. 다른 스테이션은 그대로)", o.get("workbench2", False))
             o["panel"] = yn("[게임 파일 수정] 지도 화면에 '탐색 생존자 패널' 표시: 지금 내 은신처 생존자 중 탐색/근접/사격/정신 특성이 유리한 사람의 사진과 특성을 탭으로 보여 줌 (ui_screens 번들 + GameAssembly.dll 을 고치며 이 게임 빌드 전용이고 게임 업데이트/스팀 무결성 검사 때 되돌아갈 수 있음. 원래대로 되돌릴 수 있음)", False)
             o["peek"] = yn("[게임 실행 파일 수정] 서 있는 상태에서도 문 엿보기 (이 게임 빌드 전용. 게임 업데이트 후엔 다시 안 맞을 수 있고, 스팀 파일 검사로 원복됨. GameAssembly.dll 백업을 만듦)", o.get("peek", False))
             o["lock_notes"] = yn("맵 정보의 장소 설명 끝에 락픽/볼트 절단기 필요 개수 적기 (방문 전 장소도 표시. 서랍/로커 + 열쇠가 필요한 문 기준, 지식으로 여는 문 제외. 장소 이름 글자 파일 loc.* 수정, 백업 생성)", o.get("lock_notes", False))
@@ -218,7 +217,6 @@ def main():
         if o.get("random_start"): args += ["--random-start"]
         if o.get("panel"): args += ["--panel"]
         if o.get("quiet_toggle"): args += ["--quiet-toggle"]
-        if o.get("workbench2"): args += ["--workbench2"]
         if o.get("lock_notes"): args += ["--lock-notes"]
         if o["bal"] and o.get("vale_start", 20) != 20: args += ["--vale-start", str(o["vale_start"])]
         if o["bal"] and o.get("vale_s12only"): args += ["--vale", "s12only"]
