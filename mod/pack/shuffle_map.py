@@ -274,13 +274,6 @@ def main():
         solid_pts = [allpos[g] for g in shelters if g not in cluster] + [allpos[g] for g in locs if g in fixed and g not in cluster] + [allpos[g] for g in post_gs]
         solid_pts += list(post_target.values())
 
-    # 공중호송 임무에 필요한 장소(연료 4곳 + 시작 단계 2곳)와 헬리콥터가 있는 은신처(메사 냉방)
-    AIR_PATS = ("airfield_01_fairwind", "storageunit_01_keylinestorage", "gasstation_01_texwaygreen", "school_01_mercerhigh", "substation_01_rodessa")
-    air_req = [g for g in movable if any(p in names.get(g, "").lower() for p in AIR_PATS)]
-    air_mesa = next((g for g in shelters if "highmesacooling" in names.get(g, "").lower()), None)
-    if keep_mode or air_mesa is None or len(air_req) != len(AIR_PATS):
-        air_req = []                                  # 구조가 예상과 다르면 보정하지 않는다
-    air_swapped = 0
     # 무작위 순열 (모든 장소가 다른 자리로 가는 derangement) + 은신처별 최소 접근 가능 수 검사
     rnd = random.Random(seed)
     slots = [allpos[g] for g in movable]
@@ -289,7 +282,6 @@ def main():
         newpos = dict(allpos)
     else:
         for attempt in range(500):
-            air_swapped = 0
             cl_new, blocked = {}, set()
             if cluster:
                 # 세트를 놓을 자리를 고른다: 지도 범위 안, 은신처/고정 장소/교역소 목표 자리와 CLEAR 이상 떨어짐,
@@ -344,24 +336,6 @@ def main():
             if cluster:
                 for g, q in cl_new.items():
                     newpos[g] = q
-            if air_req and air_mesa is not None:
-                # 공중호송(Airlift) 보정: 헬리콥터가 있는 메사 냉방은 제자리라, 연료 장소 4곳과 시작 장소(페어윈드, 로데사 변전소)가
-                # 그 은신처 반경 안에 있어야 임무가 풀린다. 반경 밖에 놓인 장소는 반경 안의 다른 일반 장소와 자리를 맞바꾼다 (자리의 집합은 그대로).
-                Rm = shelters[air_mesa]["data"]["m_scavengeRadius"] * 0.97
-                mx, my = newpos[air_mesa]
-                inside = lambda g: math.hypot(newpos[g][0] - mx, newpos[g][1] - my) <= Rm
-                need = [g for g in air_req if not inside(g)]
-                if need:
-                    ra = random.Random(seed * 32452843 + attempt)
-                    partners = [g for g in movable if g not in air_req and inside(g)]
-                    ra.shuffle(partners)
-                    if len(partners) < len(need):
-                        continue
-                    for A_, B_ in zip(need, partners):
-                        newpos[A_], newpos[B_] = newpos[B_], newpos[A_]
-                    if any(newpos[g] == allpos[g] for g in movable):
-                        continue
-                    air_swapped = len(need)
             ok = True
             for sg, r in shelters.items():
                 if cluster and sg in cluster:
@@ -377,8 +351,6 @@ def main():
         else:
             sys.exit("조건을 만족하는 배치를 찾지 못했습니다. 다른 시드로 다시 시도하세요.")
 
-    if air_req:
-        print("공중호송 보정: 연료/시작 장소 %d곳이 헬리콥터 은신처(메사 냉방) 반경 안에 오도록 배치했습니다 (자리를 맞바꾼 장소 %d곳)." % (len(air_req), air_swapped))
     for g in movable + (post_gs if post_target else []):
         locs[g]["data"]["m_position"]["x"], locs[g]["data"]["m_position"]["y"] = newpos[g]
     for g in sh_movable:
