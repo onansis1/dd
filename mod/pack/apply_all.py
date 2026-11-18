@@ -9,6 +9,8 @@
   --zombie        탐험 중 죽은 생존자가 좀비가 될 확률 50% -> 100% + 예외(첫 이탈자/좀비 아닌 것에게 죽음) 전부 해제 + 강제 좀비화 (깊은 상처 감염 좀비화는 별개라 그대로)
   --upgrade-occ   작업대에서 만드는 스테이션 업그레이드 레시피 52개의 필요 작업량을 3 -> 2 로 낮춘다 (data_balancing, 일반판만)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
+  --date-notice   게임 속 8월 30일 낮에 날짜 안내 화면에 '발걸음 소리를 켜세요' 문구를 띄운다 (ui_screens/data_config 번들 수정, 일반판만, 게임에서 동작 미확인)
+  --date-notice-test  위 문구를 모든 날짜 안내 화면에 항상 띄운다 (글자/위치 확인용 시험 모드)
   --quiet-toggle  게임 옵션(접근성) 맨 끝에 '발걸음 소리 무음' 켜기/끄기 줄을 추가한다 (기본 끔. data_user_settings/loc.* 번들 + GameAssembly.dll 코드 수정, 일반판만)
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 
@@ -133,6 +135,8 @@ def main():
     ap.add_argument("--spillzone-start", action="store_true")
     ap.add_argument("--quiet-steps", action="store_true")
     ap.add_argument("--quiet-toggle", action="store_true")
+    ap.add_argument("--date-notice", action="store_true")
+    ap.add_argument("--date-notice-test", action="store_true")
     ap.add_argument("--workbench2", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
@@ -200,15 +204,15 @@ def main():
     # 지도 UI 번들(ui_screens, 약 50MB)은 '탐색 생존자 패널' 옵션을 쓰거나 예전에 썼을 때만 관리한다
     PUI = "ui_screens"
     PUI_ORIG_SHA = "2DF7CE7FF7EC20F15C8CABA4F548550DDE5EC73097600B2C7E8727F1A2FF11C5".lower()      # 이 게임 빌드의 원본 ui_screens
-    use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or a.random_start or PUI in man)
+    use_panel = use_dll and os.path.isfile(os.path.join(ab, PUI)) and (a.panel or a.random_start or a.date_notice or a.date_notice_test or PUI in man)
     if use_panel:
         files.append(PUI)
         _pc, _pb, _pi = os.path.join(ab, PUI), os.path.join(bdir, PUI), os.path.join(ab, PUI + ".itd_orig")
         if not os.path.exists(_pb) and sha(_pc) != PUI_ORIG_SHA and os.path.isfile(_pi) and sha(_pi) == PUI_ORIG_SHA:
             shutil.copy2(_pi, _pb)       # 개발 중 도구가 만들어 둔 원본 백업을 원본으로 삼는다 (수정된 파일을 원본으로 착각하지 않게)
             print("안내: 개발 중 도구로 수정된 ui_screens 를 알아봤습니다. 도구가 만든 원본 백업(ui_screens.itd_orig)을 원본으로 삼습니다.")
-    elif a.panel or a.random_start:
-        sys.exit("지도 탐색 생존자 패널(--panel)은 일반판에서만 쓸 수 있고, ui_screens 가 필요합니다.")
+    elif a.panel or a.random_start or a.date_notice or a.date_notice_test:
+        sys.exit("지도 탐색 생존자 패널(--panel)/날짜 안내 문구는 일반판에서만 쓸 수 있고, ui_screens 가 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
     for f in files:
@@ -402,6 +406,8 @@ def main():
                 print(run("patch_loclabel.py", stage).strip())      # 종합 탭 라벨 '추천' (loc.korean 한 항목의 값)
         if a.random_start and use_panel:
             print(run("patch_scnbtn.py", stage).strip())              # 사용자 지정 시나리오 화면의 새 버튼 '무술가 포함 뽑기'
+        if (a.date_notice or a.date_notice_test) and use_panel:
+            print(run("patch_datenotice.py", stage, "test_always" if a.date_notice_test else "prod").strip())      # 날짜 안내 화면에 8월 30일 낮 문구 (ui_screens + data_config)
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())

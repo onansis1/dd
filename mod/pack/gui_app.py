@@ -38,6 +38,8 @@ OPTS = [
     ("random_skills", "모든 생존자 스킬 트리 티어별 랜덤", False),
     ("martial_h2h", "무술가/프로레슬러 특성 보유자는 4티어 맨손격투 전문가 보장", False),
     ("unarmed_sound", "맨손 처형 효과음을 모든 생존자에게 (효과음 번들 수정)", False),
+    ("date_notice", "8월 30일 낮 날짜 안내 화면에 '발걸음 소리를 켜세요' 문구 (게임 파일 수정, 미확인)", False),
+    ("date_notice_test", "  └ 시험 모드: 모든 날짜 안내 화면에 항상 표시 (글자·위치 확인용, 확인 후 끄세요)", False),
     ("quiet_toggle", "게임 옵션에 '발걸음 소리 무음' 켜기/끄기 줄 추가 (접근성 맨 끝, 게임 파일 수정. 위 '발소리 항상 없음'과 같이 못 씀)", False),
     ("peek", "서서 문 엿보기 (게임 실행 파일 수정)", False),
     ("wheel_gold", "스테이션 휠: 내 생존자의 특기 작업 칸을 금색으로 (게임 실행 파일 수정)", False),
@@ -54,7 +56,7 @@ GROUPS = [
     ("물자 · 거래", ["bal", "vale_s12only", "ammo_levels", "june", "otto", "trader_sure"]),
     ("생존자", ["random_traits", "random_skills", "martial_h2h", "romance_all", "zombie", "quiet", "unarmed_crit"]),
     ("작업대 · 표시", ["repair", "dismantle", "lock_notes", "upgrade_occ"]),
-    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound", "quiet_toggle"])
+    ("게임 파일 직접 수정 (이 게임 빌드 전용)", ["peek", "wheel_gold", "shelter_move", "random_start", "panel", "unarmed_sound", "quiet_toggle", "date_notice", "date_notice_test"])
 ]
 assert sorted(k for _g, ks in GROUPS for k in ks) == sorted(k for k, _l, _d in OPTS), "GROUPS 와 OPTS 가 다릅니다"
 BG = "#0c0e0b"          # 어두운 검정-이끼색
@@ -450,6 +452,8 @@ class App:
         if o["unarmed_crit"]: a += ["--unarmed-crit"]
         if o["upgrade_occ"]: a += ["--upgrade-occ"]
         if o["quiet_toggle"]: a += ["--quiet-toggle"]
+        if o["date_notice_test"]: a += ["--date-notice-test"]
+        elif o["date_notice"]: a += ["--date-notice"]
         if o["quiet_toggle"]: o["quiet"] = False
         for k, f in (("move_posts", "--move-posts"), ("shuffle_shelters", "--shuffle-shelters"), ("move_spillzone", "--move-spillzone"),
                      ("romance_all", "--romance-all"), ("zombie", "--zombie"), ("quiet", "--quiet-steps"), ("hod_start", "--hod-start"),
