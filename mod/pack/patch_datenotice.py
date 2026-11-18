@@ -5,6 +5,7 @@
        test_day    : 모든 낮에 보인다 (조건 평가/초기화 시험, data_config 는 건드리지 않음)
        test_always : 항상 보인다 (컴포넌트/글꼴/위치 시험, data_config 는 건드리지 않음)
        test_range  : [min, max] 사이클에서 보인다 (예: 2 3 = 둘째 날 낮, 새 조건과 등록부 시험)
+       test_probe_a / test_b / test_c1 / test_c2 / test_d / test_e / test_e_day : "referenced script ... is missing" 원인 가르기용 시험 변형 (ui_screens 만; 설명은 itdp_datenotice_var.py 맨 위와 README_variants.md). 한 번에 하나만 적용.
  - data_config: 새 조건 IsCycleWithinRange(min=20, max=21) 1개 추가 + 초기화 등록부(InitialisableScriptableObjectsConfig)에 1항목 (기존 객체 중 바뀌는 것은 등록부 하나뿐).
  - ui_screens : BuildPlayer-NewCycleCard 장면에 글자 오브젝트(복제) + 조건 컴포넌트 오브젝트 추가 (기존 객체 중 바뀌는 것은 Panel RectTransform 하나뿐). 다른 노드(지도 패널, 시나리오 버튼 포함)는 바이트 그대로.
  - 쓰기 전에 두 번들 검증(구조/참조/계층/UnityPy 재파싱)을 통과해야 한다. 하나라도 실패하면 아무것도 바꾸지 않는다.
@@ -29,6 +30,32 @@ def is_applied(ui_path):
     return any(class_of(sr, p) == CLS['GO'] and Obj(sr, trees, p).val['m_Name'] in (N.NEW_NAME, N.COND_NAME) for p in sr.by_pid())
 
 
+VARIANT_MODES = {"test_probe_a": "probe_a", "test_b": "b", "test_c1": "c1", "test_c2": "c2", "test_d": "d", "test_e": "e", "test_e_day": "e_day"}
+
+
+def apply_variant(stage, variant, write=True):
+    """원인 가르기용 시험 변형 (itdp_datenotice_var). ui_screens 만 고친다 (c2/e 는 같은 번들 안의 NewCycleCard.sharedAssets 도). 검증 실패 시 아무것도 바꾸지 않는다."""
+    import itdp_datenotice_var as VAR, itdp_datenotice_varverify as VV
+    ui = os.path.join(stage, "ui_screens")
+    tmp = tempfile.mkdtemp(prefix="itd_datenotice_var_")
+    try:
+        try:
+            sb, nodes, info = VAR.plan_variant(ui, variant)
+        except Exception as e:
+            sys.exit("중단: 시험 변형 %s 을 만들 수 없습니다 (게임 업데이트로 구조가 달라졌거나 이미 편집된 파일일 수 있습니다): %r. 아무것도 바꾸지 않았습니다." % (variant, e))
+        out = VAR.write_variant(sb, nodes); ui_new = os.path.join(tmp, "ui_screens.new"); open(ui_new, "wb").write(out)
+        info.update({"out": ui_new, "sha256": hashlib.sha256(out).hexdigest(), "src_sha256": hashlib.sha256(sb.raw).hexdigest(), "size": len(out)})
+        R = VV.verify_variant(ui, ui_new, info)
+        if R.fails():
+            sys.exit("중단: 변형 %s 검증에 실패했습니다. 아무것도 바꾸지 않았습니다.\n" % variant + "\n".join("%s -> %s" % (n, note) for n, ok, note in R.fails()[:8]))
+        if write:
+            import gc; gc.collect()
+            shutil.copyfile(ui_new, ui + ".out"); os.replace(ui + ".out", ui)
+        return {"ui": info, "cfg": None, "variant": variant}
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def apply(stage, mode="prod", cmin=20, cmax=21, write=True, exit_delay=None):
     """returns dict(info...). 실패하면 SystemExit(메시지) — 파일은 바뀌지 않는다."""
     import itdp_ufs as ufs, itdp_datenotice as N, itdp_datenotice_cfg as C, itdp_datenotice_verify as V
@@ -40,6 +67,8 @@ def apply(stage, mode="prod", cmin=20, cmax=21, write=True, exit_delay=None):
         sys.exit("data_config 를 찾을 수 없습니다: %s" % cfgp)
     if is_applied(ui):
         print("날짜 안내 문구: 이미 적용되어 있습니다."); return {"already": True}
+    if mode in VARIANT_MODES:
+        return apply_variant(stage, VARIANT_MODES[mode], write)
     tmp = tempfile.mkdtemp(prefix="itd_datenotice_")
     try:
         cfg_info = None; cfg_new = None
@@ -80,8 +109,8 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     mode = sys.argv[2] if len(sys.argv) > 2 else "prod"
-    if mode not in ("prod", "test_day", "test_always", "test_range", "test_static"):
-        sys.exit("mode 는 prod / test_day / test_always / test_range 중 하나: %r" % mode)
+    if mode not in ("prod", "test_day", "test_always", "test_range", "test_static") + tuple(VARIANT_MODES):
+        sys.exit("mode 는 prod / test_day / test_always / test_range / %s 중 하나: %r" % (" / ".join(VARIANT_MODES), mode))
     cmin, cmax = (int(sys.argv[3]), int(sys.argv[4])) if len(sys.argv) > 4 else (20, 21)
     exit_delay = float(sys.argv[5]) if len(sys.argv) > 5 else None
     r = apply(sys.argv[1], mode, cmin, cmax, exit_delay=exit_delay)
