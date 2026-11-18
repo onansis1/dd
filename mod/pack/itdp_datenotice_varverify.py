@@ -129,7 +129,7 @@ def verify_variant(orig_ui, new_ui, info, R=None, full=True):
         R.add('스크립트 소스: MapScreen.sharedAssets 의 MonoScript %d 존재, 클래스 이름 맞음' % lid, lid in mp and msa.types[msa.objects[mp[lid]][3]].class_id == 115 and want in msa.object_bytes(mp[lid]), want)
         R.add('스크립트 외부 번호 %d = MapScreen.sharedAssets' % fid, sn.externals[fid - 1]['path'].endswith(V.MSA))
     # ---- PreloadData
-    if variant in ('e', 'e_day'):
+    if variant in V.PRELOAD_VARIANTS:
         sa0 = S.Ser(b0.node_data(V.SA)); sa1 = S.Ser(b1.node_data(V.SA)); pp = info['sa']['preload_pid']
         e0 = V.preload_parse(sa0.object_bytes(sa0.by_pid()[pp])); e1 = V.preload_parse(sa1.object_bytes(sa1.by_pid()[pp]))
         added = [tuple(x) for x in info['sa']['preload_added']]
@@ -149,11 +149,11 @@ def verify_variant(orig_ui, new_ui, info, R=None, full=True):
             cnt += 1
             if o.assets_file.name == N.SCENE and o.path_id == info['cond_mb']:
                 t = o.read_typetree(); found = t
-            if variant in ('e', 'e_day') and o.assets_file.name == V.SA and o.path_id == info['sa']['preload_pid']:
+            if variant in V.PRELOAD_VARIANTS and o.assets_file.name == V.SA and o.path_id == info['sa']['preload_pid']:
                 t = o.read_typetree(); pre_ok = len(t['m_Assets'])
         R.add('UnityPy: 번들 전체 로드 + 객체 %d개 열거' % cnt, cnt > 70000)
         R.add('UnityPy: 조건 MB(%d) 타입 트리 읽힘, m_Script = %s' % (info['cond_mb'], list(ns)), found is not None and (found['m_Script']['m_FileID'], found['m_Script']['m_PathID']) == ns, found and found['m_Script'])
-        if variant in ('e', 'e_day'):
+        if variant in V.PRELOAD_VARIANTS:
             R.add('UnityPy: PreloadData m_Assets %d개 읽힘' % info['sa']['preload_after'], pre_ok == info['sa']['preload_after'])
     return R
 

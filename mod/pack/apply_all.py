@@ -10,7 +10,7 @@
   --upgrade-occ   작업대에서 만드는 스테이션 업그레이드 레시피 52개의 필요 작업량을 3 -> 2 로 낮춘다 (data_balancing, 일반판만)
   --quiet-steps   생존자가 걷거나 달려도 발소리(소음)가 나지 않게 한다 (웅크릴 때와 같게). 문/루팅/전투 소음은 그대로
   --date-notice   게임 속 8월 30일 낮에 날짜 안내 화면에 '발걸음 소리를 켜세요' 문구를 띄운다 (ui_screens/data_config 번들 수정, 일반판만, 게임에서 동작 미확인)
-  --date-notice-test static|day|always|e|e_day  시험 모드: static=조건 없이 문구만 항상 표시(그려지는지 확인), day=낮마다 표시, always=조건 컴포넌트를 쓰되 조건 없이 항상 표시, e=조건 컴포넌트 + 미리읽기(PreloadData) 수정(항상 표시), e_day=e + 낮마다 표시
+  --date-notice-test static|day|always|e|e_day  시험 모드: static=조건 없이 문구만 항상 표시(그려지는지 확인), day=낮마다 표시, always=조건 컴포넌트를 쓰되 조건 없이 항상 표시, e=조건 컴포넌트 + 미리읽기(PreloadData) 수정(항상 표시), e_day=e + 낮마다 표시, prod23=실제 모드와 같은 구성에서 날짜만 8월 21일 낮(사이클 2~3의 낮)으로 바꿔 날짜 조건을 시험
   --quiet-toggle  게임 옵션(접근성) 맨 끝에 '발걸음 소리 무음' 켜기/끄기 줄을 추가한다 (기본 끔. data_user_settings/loc.* 번들 + GameAssembly.dll 코드 수정, 일반판만)
   --spillzone-start 유출구역(스필존) 단서 3개를 게임 시작부터 얻은 상태로 (--hod-start 와 같은 방식)
   --hod-start     어둠의 심연 단서 3개를 게임 시작부터 얻은 상태로 
@@ -136,7 +136,7 @@ def main():
     ap.add_argument("--quiet-steps", action="store_true")
     ap.add_argument("--quiet-toggle", action="store_true")
     ap.add_argument("--date-notice", action="store_true")
-    ap.add_argument("--date-notice-test", default="", choices=["", "static", "day", "always", "e", "e_day"])
+    ap.add_argument("--date-notice-test", default="", choices=["", "static", "day", "always", "e", "e_day", "prod23"])
     ap.add_argument("--workbench2", action="store_true", help=argparse.SUPPRESS)   # 제거된 기능(옛 인자 호환용, 무시)
     ap.add_argument("--romance", action="store_true")
     ap.add_argument("--romance-all", action="store_true")
@@ -407,7 +407,7 @@ def main():
         if a.random_start and use_panel:
             print(run("patch_scnbtn.py", stage).strip())              # 사용자 지정 시나리오 화면의 새 버튼 '무술가 포함 뽑기'
         if (a.date_notice or a.date_notice_test) and use_panel:
-            print(run("patch_datenotice.py", stage, ("test_" + a.date_notice_test) if a.date_notice_test else "prod").strip())      # 날짜 안내 화면에 8월 30일 낮 문구 (ui_screens + data_config)
+            print(run("patch_datenotice.py", stage, *(["prod", "2", "3"] if a.date_notice_test == "prod23" else [("test_" + a.date_notice_test) if a.date_notice_test else "prod"])).strip())      # 날짜 안내 화면에 8월 30일 낮 문구 (ui_screens + data_config)
         if a.unarmed_sound and use_vis:
             out_vis = os.path.join(stage, VISF + ".out")
             print(run("patch_unarmedsound.py", os.path.join(stage, VISF), out_vis).strip())

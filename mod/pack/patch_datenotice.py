@@ -83,6 +83,26 @@ def apply(stage, mode="prod", cmin=20, cmax=21, write=True, exit_delay=None):
             if R.fails():
                 sys.exit("중단: data_config 검증에 실패했습니다. 아무것도 바꾸지 않았습니다.\n" + "\n".join("%s -> %s" % (n, note) for n, ok, note in R.fails()[:8]))
         cond_pid = cfg_info["new_pid"] if cfg_info else None
+        if mode == "prod":
+            # 실제 8월 30일 낮 모드: 조건 컴포넌트 + 장면의 PreloadData(미리 읽기 목록)에 스크립트와 조건 2개를 추가한다 (게임 시험 3/4 로 확인된 방식)
+            import itdp_datenotice_var as VAR, itdp_datenotice_varverify as VV
+            try:
+                sb, nodes, info = VAR.plan_variant(ui, "prod", cond_pid=cond_pid)
+            except Exception as e:
+                sys.exit("중단: 날짜 안내 문구를 만들 수 없습니다 (게임 업데이트로 ui_screens 구조가 달라졌을 수 있습니다): %r. 아무것도 바꾸지 않았습니다." % (e,))
+            out = VAR.write_variant(sb, nodes); ui_new = os.path.join(tmp, "ui_screens.new"); open(ui_new, "wb").write(out)
+            info.update({"out": ui_new, "sha256": hashlib.sha256(out).hexdigest(), "src_sha256": hashlib.sha256(sb.raw).hexdigest(), "size": len(out)})
+            R = VV.verify_variant(ui, ui_new, info)
+            if R.fails():
+                sys.exit("중단: ui_screens 검증에 실패했습니다. 아무것도 바꾸지 않았습니다.\n" + "\n".join("%s -> %s" % (n, note) for n, ok, note in R.fails()[:8]))
+            if write:
+                import gc; gc.collect()
+                pairs = [(ui_new, ui), (cfg_new, cfgp)]
+                for src, dst in pairs:
+                    shutil.copyfile(src, dst + ".out")
+                for src, dst in pairs:
+                    os.replace(dst + ".out", dst)
+            return {"ui": info, "cfg": cfg_info}
         try:
             sb, orig, new_ser, info = N.plan_build(ui, cond_pid, mode, exit_delay=exit_delay)
         except Exception as e:

@@ -25,7 +25,8 @@ from itdp_build import Obj, make_go, in_game_folder
 from itdp_scn import subtree, rt_of_go, pptr_leaves, class_of, CLS
 import itdp_datenotice as N
 
-VARIANTS = ('probe_a', 'b', 'c1', 'c2', 'd', 'e', 'e_day')
+VARIANTS = ('probe_a', 'b', 'c1', 'c2', 'd', 'e', 'e_day', 'prod')
+PRELOAD_VARIANTS = ('e', 'e_day', 'prod')      # 'prod' = 실제 8월 30일 낮 모드 (조건 [NotNight, 새 IsCycleWithinRange] + 미리읽기 항목 3개)
 SA = 'BuildPlayer-NewCycleCard.sharedAssets'; MSA = 'BuildPlayer-MapScreen.sharedAssets'; SHUD = 'BuildPlayer-ShelterHud'
 SHUD_MB = 1216; PROBE_SCRIPT = 151; PROBE_NAME = 'DateNoticeProbe'
 PRELOAD_CLASS = 150
@@ -56,8 +57,9 @@ def _ext_index(externals, suffix):
     return None
 
 
-def plan_variant(src_path, variant, text=N.TEXT):
+def plan_variant(src_path, variant, text=N.TEXT, cond_pid=None):
     assert variant in VARIANTS, variant
+    assert variant != 'prod' or cond_pid, 'prod 에는 data_config 에 추가한 새 조건의 path id(cond_pid)가 필요합니다'
     sb = ufs.Bundle(src_path); orig = sb.node_data(N.SCENE); sr = S.Ser(orig); trees = [tt.build_tree(t) for t in sr.types]; P = sr.by_pid()
     # ---- 가드 (itdp_datenotice.plan_build 와 같음)
     assert len(sr.objects) == N.OBJECTS_BEFORE, 'NewCycleCard 객체 수 %d (원본 %d 아님)' % (len(sr.objects), N.OBJECTS_BEFORE)
@@ -111,14 +113,16 @@ def plan_variant(src_path, variant, text=N.TEXT):
         fid_script = ext_pos; script_lid = t_lid
     fid_cfg_final = _ext_index([{'path': p} for p in final_ext_paths], N.CFG_CAB); assert fid_cfg_final
     # ---- e / e_day : sharedAssets PreloadData
-    if variant in ('e', 'e_day'):
+    if variant in PRELOAD_VARIANTS:
         pidx = [i for i, o in enumerate(sas.objects) if sas.types[o[3]].class_id == PRELOAD_CLASS]; assert len(pidx) == 1
         raw = sas.object_bytes(pidx[0]); pre_pid = sas.objects[pidx[0]][0]
         fid_sa_map = len(sas.externals) + 1; fid_sa_cfg = _ext_index(sas.externals, N.CFG_CAB); assert fid_sa_cfg
         _, _, n, ent, _t = preload_parse(raw)
         adds = [(n, (fid_sa_map, 146))]
-        if variant == 'e_day':
+        if variant in ('e_day', 'prod'):
             last = max(i for i, e in enumerate(ent) if e[0] == fid_sa_cfg); adds.append((last + 1, (fid_sa_cfg, N.NOTNIGHT_PID)))
+        if variant == 'prod':
+            adds.append((last + 1, (fid_sa_cfg, cond_pid)))
         nb, newent = preload_insert(raw, adds)
         sa_nodes[SA] = ed2.rebuild_ext(sa_orig, replace={pre_pid: nb}, new_externals=[t_ext_path])
         sa_info = {'preload_pid': pre_pid, 'preload_before': n, 'preload_after': len(newent), 'preload_added': [list(a[1]) for a in adds], 'sa_new_external_fid': fid_sa_map, 'sa_cfg_fid': fid_sa_cfg}
@@ -175,7 +179,7 @@ def plan_variant(src_path, variant, text=N.TEXT):
     layer = Obj(sr, trees, N.PANEL_GO).val['m_Layer']; gtid = sr.objects[P[N.DATE_GO]][3]
     go_name = PROBE_NAME if probe else N.COND_NAME
     mgo = make_go([cond_rt, cond_mb], layer, go_name, True); tt.parse_bytes(trees[gtid], mgo)
-    conds = [(fid_cfg_final, N.NOTNIGHT_PID)] if variant == 'e_day' else []
+    conds = [(fid_cfg_final, N.NOTNIGHT_PID)] if variant == 'e_day' else [(fid_cfg_final, N.NOTNIGHT_PID), (fid_cfg_final, cond_pid)] if variant == 'prod' else []
     if probe:
         mb = bytearray(tmb.b)
         struct.pack_into('<q', mb, tmb.off['m_GameObject.m_PathID'][0], cond_go); struct.pack_into('<i', mb, tmb.off['m_GameObject.m_FileID'][0], 0)
