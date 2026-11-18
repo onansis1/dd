@@ -80,7 +80,7 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     mode = sys.argv[2] if len(sys.argv) > 2 else "prod"
-    if mode not in ("prod", "test_day", "test_always", "test_range"):
+    if mode not in ("prod", "test_day", "test_always", "test_range", "test_static"):
         sys.exit("mode 는 prod / test_day / test_always / test_range 중 하나: %r" % mode)
     cmin, cmax = (int(sys.argv[3]), int(sys.argv[4])) if len(sys.argv) > 4 else (20, 21)
     exit_delay = float(sys.argv[5]) if len(sys.argv) > 5 else None

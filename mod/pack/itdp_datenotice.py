@@ -65,7 +65,7 @@ EXIT_MB = 54; EXIT_DELAY_ORIG = 2.0           # WindowTransitionFadeExit (m_dela
 def plan_build(src_path, cond_pid, mode='prod', text=TEXT, pos=DEFAULT_POS, size_y=DEFAULT_SIZE_Y, font_size=FONT_SIZE, color=COLOR, exit_delay=None):
     """src_path: ui_screens 복사본. cond_pid: data_config 에 추가한 새 IsCycleWithinRange 의 path id (mode 에 따라 쓰지 않으면 None 가능).
     returns (bundle, orig_scene_bytes, new_scene_bytes, info)"""
-    assert mode in ('prod', 'test_day', 'test_always', 'test_range'), mode
+    assert mode in ('prod', 'test_day', 'test_always', 'test_range', 'test_static'), mode
     sb = ufs.Bundle(src_path); orig = sb.node_data(SCENE); sr = S.Ser(orig); trees = [tt.build_tree(t) for t in sr.types]; P = sr.by_pid()
     # ---- 가드: 이 게임 빌드의 원본 장면인가
     assert len(sr.objects) == OBJECTS_BEFORE, 'NewCycleCard 객체 수 %d (원본 %d 아님: 이미 편집되었거나 게임이 업데이트됨)' % (len(sr.objects), OBJECTS_BEFORE)
@@ -108,7 +108,7 @@ def plan_build(src_path, cond_pid, mode='prod', text=TEXT, pos=DEFAULT_POS, size
             elif fid == 0 and val != 0 and val not in newp:
                 outward.add((p, path, val))
         objs[p] = o
-    go_root = objs[DATE_GO]; go_root.set_str('m_Name', NEW_NAME); go_root.set('m_IsActive', 0)
+    go_root = objs[DATE_GO]; go_root.set_str('m_Name', NEW_NAME); go_root.set('m_IsActive', 1 if mode == 'test_static' else 0)
     rt_root = objs[34]
     rt_root.set('m_AnchoredPosition.x', float(pos[0])); rt_root.set('m_AnchoredPosition.y', float(pos[1])); rt_root.set('m_SizeDelta.y', float(size_y))
     st = objs[48]; st.set_str('m_text', text)
@@ -126,7 +126,7 @@ def plan_build(src_path, cond_pid, mode='prod', text=TEXT, pos=DEFAULT_POS, size
     layer = Obj(sr, trees, PANEL_GO).val['m_Layer']
     gtid = sr.objects[P[DATE_GO]][3]
     mgo = make_go([cond_rt, cond_mb], layer, COND_NAME, True); tt.parse_bytes(trees[gtid], mgo)
-    conds = {'prod': [(fid_cfg, NOTNIGHT_PID), (fid_cfg, cond_pid)], 'test_day': [(fid_cfg, NOTNIGHT_PID)], 'test_always': [], 'test_range': [(fid_cfg, cond_pid)]}[mode]
+    conds = {'prod': [(fid_cfg, NOTNIGHT_PID), (fid_cfg, cond_pid)], 'test_day': [(fid_cfg, NOTNIGHT_PID)], 'test_always': [], 'test_range': [(fid_cfg, cond_pid)], 'test_static': []}[mode]
     if mode in ('prod', 'test_range'):
         assert cond_pid, 'cond_pid 필요'
     # ConditionalActiveGameObjects 바이트: 지도 화면의 템플릿 객체 앞부분(헤더+이름) + 새 배열 2개
@@ -134,6 +134,8 @@ def plan_build(src_path, cond_pid, mode='prod', text=TEXT, pos=DEFAULT_POS, size
     head = bytearray(tb_[:a0])
     struct.pack_into('<q', head, mcond.off['m_GameObject.m_PathID'][0], cond_go); struct.pack_into('<i', head, mcond.off['m_GameObject.m_FileID'][0], 0)
     struct.pack_into('<i', head, mcond.off['m_Script.m_FileID'][0], fid_map); struct.pack_into('<q', head, mcond.off['m_Script.m_PathID'][0], MAP_SCRIPT_LOCAL_ID)
+    if mode == 'test_static':
+        struct.pack_into('<B', head, mcond.off['m_Enabled'][0], 0)     # 조건 컴포넌트를 꺼서(OnEnable 안 돎) 글자만 정적으로 켜 둔다 (화면에 그려지는지 시험)
     mb = bytes(head) + struct.pack('<i', len(conds)) + b''.join(struct.pack('<iq', f, p) for f, p in conds) + struct.pack('<i', 1) + struct.pack('<iq', 0, newp[DATE_GO])
     tt.parse_bytes(mtrees[mcond.tid], mb)                          # 새 타입(지도 화면의 같은 타입 트리)으로 레이아웃 검사
     # ---- 3. Panel 자식 목록
@@ -157,7 +159,7 @@ def plan_build(src_path, cond_pid, mode='prod', text=TEXT, pos=DEFAULT_POS, size
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('cmd', choices=['plan', 'build']); ap.add_argument('--src', required=True); ap.add_argument('--out'); ap.add_argument('--cond-pid', type=int, default=None)
-    ap.add_argument('--mode', default='prod', choices=['prod', 'test_day', 'test_always', 'test_range']); ap.add_argument('--text', default=TEXT)
+    ap.add_argument('--mode', default='prod', choices=['prod', 'test_day', 'test_always', 'test_range', 'test_static']); ap.add_argument('--text', default=TEXT)
     ap.add_argument('--y', type=float, default=DEFAULT_POS[1]); ap.add_argument('--size', type=int, default=FONT_SIZE); ap.add_argument('--exit-delay', type=float, default=None)
     a = ap.parse_args(argv)
     sb, orig, new_ser, info = plan_build(a.src, a.cond_pid, a.mode, a.text, (0.0, a.y), DEFAULT_SIZE_Y, a.size, exit_delay=a.exit_delay)

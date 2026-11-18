@@ -103,7 +103,7 @@ def verify_ui(orig_ui, new_ui, info, orig_cfg=None, new_cfg=None, full=True, R=N
             elif fid > len(sn.externals): bad.append((p, path, 'fid', fid))
     R.add('PPtr: 로컬 PPtr 은 모두 장면에 존재, 외부 번호는 외부 표 범위 안', not bad, bad[:5])
     ng = Obj(sn, tn, info['notice_go']); cg = Obj(sn, tn, info['cond_go']); nrt = Obj(sn, tn, info['notice_rt']); crt = Obj(sn, tn, info['cond_rt']); cmb = Obj(sn, tn, info['cond_mb']); prt = Obj(sn, tn, info['panel_rt'])
-    R.add('GameObject DateNotice: 이름/비활성(m_IsActive=0)', ng.val['m_Name'] == 'DateNotice' and ng.val['m_IsActive'] == 0, (ng.val['m_Name'], ng.val['m_IsActive']))
+    R.add('GameObject DateNotice: 이름/비활성(m_IsActive=0)', ng.val['m_Name'] == 'DateNotice' and ng.val['m_IsActive'] == (1 if info['mode'] == 'test_static' else 0), (ng.val['m_Name'], ng.val['m_IsActive']))
     R.add('GameObject DateNoticeCondition: 활성(켜짐)', cg.val['m_Name'] == 'DateNoticeCondition' and cg.val['m_IsActive'] == 1)
     comps = lambda g: [g.val['m_Component.Array[%d].component.m_PathID' % i] for i in range(g.val['m_Component.Array.size'])]
     R.add('조건 GO 컴포넌트 = [RectTransform, ConditionalActiveGameObjects]', comps(cg) == [info['cond_rt'], info['cond_mb']] and class_of(sn, info['cond_rt']) == 224 and class_of(sn, info['cond_mb']) == 114)
@@ -123,7 +123,7 @@ def verify_ui(orig_ui, new_ui, info, orig_cfg=None, new_cfg=None, full=True, R=N
     conds = [(cmb.val['m_conditions.Array[%d].m_FileID' % i], cmb.val['m_conditions.Array[%d].m_PathID' % i]) for i in range(cmb.val['m_conditions.Array.size'])]
     tg = [(cmb.val['m_targets.Array[%d].m_FileID' % i], cmb.val['m_targets.Array[%d].m_PathID' % i]) for i in range(cmb.val['m_targets.Array.size'])]
     R.add('ConditionalActiveGameObjects: m_conditions = %s, m_targets = [(0, %d)]' % (info['conditions'], info['notice_go']), [list(c) for c in conds] == info['conditions'] and tg == [(0, info['notice_go'])])
-    R.add('ConditionalActiveGameObjects: m_Script = (%d, 146)' % info['map_sharedassets_fid'], (cmb.val['m_Script.m_FileID'], cmb.val['m_Script.m_PathID']) == (info['map_sharedassets_fid'], 146) and cmb.val['m_Enabled'] == 1)
+    R.add('ConditionalActiveGameObjects: m_Script = (%d, 146)' % info['map_sharedassets_fid'], (cmb.val['m_Script.m_FileID'], cmb.val['m_Script.m_PathID']) == (info['map_sharedassets_fid'], 146) and cmb.val['m_Enabled'] == (0 if info['mode'] == 'test_static' else 1))
     if info.get('exit_delay') is not None:
         ex = Obj(sn, tn, 54); R.add('WindowTransitionFadeExit(54): m_delay 2.0 -> %s (m_duration 0.25 그대로), 나머지 필드 그대로' % info['exit_delay'], abs(ex.val['m_delay'] - info['exit_delay']) < 1e-6 and ex.val['m_duration'] == 0.25 and ex.val['m_easingMode'] == 2)
     # ---- UnityPy 독립 재파싱
@@ -146,7 +146,7 @@ def verify_ui(orig_ui, new_ui, info, orig_cfg=None, new_cfg=None, full=True, R=N
         mbo = scene_objs[info['cond_mb']]; t = mbo.read_typetree()
         sc = scr.get(('BuildPlayer-MapScreen.sharedAssets', t['m_Script']['m_PathID'])) if t['m_Script']['m_FileID'] == info['map_sharedassets_fid'] else None
         R.add('UnityPy: 새 MB 의 m_Script 가 가리키는 MonoScript = ConditionalActiveGameObjects (DRS.Utils)', sc == 'ConditionalActiveGameObjects', sc)
-        ngo = scene_objs[info['notice_go']].read_typetree(); R.add('UnityPy: DateNotice GO 읽기 (이름/비활성)', ngo['m_Name'] == 'DateNotice' and not ngo['m_IsActive'])
+        ngo = scene_objs[info['notice_go']].read_typetree(); R.add('UnityPy: DateNotice GO 읽기 (이름/비활성)', ngo['m_Name'] == 'DateNotice' and bool(ngo['m_IsActive']) == (info['mode'] == 'test_static'))
         # 조건이 가리키는 data_config 객체
         if new_cfg:
             cenv = UnityPy.load(new_cfg); cmap = {ob_.path_id: ob_ for ob_ in cenv.objects}
