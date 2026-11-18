@@ -135,5 +135,6 @@
   - 시험 3 `e` / 시험 4 `e_day`(GUI): 시험 `day`에서 게임 로그에 조건 컴포넌트의 스크립트 참조가 풀리지 않았다("The referenced script on this Behaviour (Game Object 'DateNoticeCondition') is missing!")는 오류가 남았습니다. 원인 후보는 NewCycleCard.sharedAssets의 PreloadData(장면이 쓰는 외부 스크립트 미리 읽기 목록)에 새 스크립트(MapScreen.sharedAssets의 MonoScript 146)가 없는 것입니다(동반 sharedAssets가 있는 장면 70개는 전부 목록에 있음). `e`는 이 항목을 추가하고 조건 없이 항상 표시, `e_day`는 거기에 낮 조건(IsCycleId_NotNight)까지 얹습니다. 이외 변형(`test_probe_a`, `test_b`, `test_c1`, `test_c2`, `test_d`)은 명령줄 `patch_datenotice.py <작업 폴더> <모드>`로만 쓸 수 있습니다.
   - **게임에서 확인됨:** 시험 3(`e`)에서 문구가 정상으로 보였습니다. 원인은 장면의 PreloadData(미리 읽기 목록) 누락이었습니다.
   - 실제 모드(`--date-notice`, `prod`)도 같은 수정을 넣었습니다. 조건 `[IsCycleId_NotNight, 새 IsCycleWithinRange(20~21)]`과 함께 PreloadData에 스크립트 1개와 조건 2개를 추가합니다. `exit_delay` 인자는 `prod`에서 무시됩니다.
+  - **게임에서 확인됨:** 시험 4(낮마다 표시: 낮에만 보임)와 시험 5(8월 21일 낮에만 보임)가 통과해, 낮 조건과 날짜 계산(사이클 2~3의 낮 = 8월 21일 낮)이 정확합니다. 따라서 실제 모드의 8월 30일 낮(사이클 20)도 같은 방식으로 동작합니다. GUI의 시험 옵션은 뺐고, 명령줄 `--date-notice-test`는 남겨 두었습니다.
   - 시험 4(`e_day`): 낮마다 표시(낮 조건 시험). 시험 5(`prod23`): 실제 모드와 같은 구성에서 날짜 조건만 8월 21일 낮(사이클 2~3의 낮)으로 바꿔 날짜 조건(±1 어긋남 여부 포함)을 하루 만에 시험합니다.
   - `always`(조건 없는 컴포넌트): 조건 목록이 비어 있을 때 `All`이 참인지 확인되지 않아 결과가 모호할 수 있습니다.
