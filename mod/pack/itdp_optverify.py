@@ -22,7 +22,7 @@ def unity_objs(path):
 def verify(src, new, info, ub_src=None, ub_new=None):
     R = []; ck = lambda n, ok, note='': R.append((n, bool(ok), note))
     a = ufs2.Bundle2(src); b = ufs2.Bundle2(new)
-    ck('B1 container: blocks-info at the END like the source, same flags/version/engine, 1 node with the same name', b.at_end == a.at_end == True and b.flags == a.flags and b.version == a.version and b.engine == a.engine and [n[3] for n in a.nodes] == [n[3] for n in b.nodes])
+    ck('B1 container: blocks-info at the same place as the source (end or after the header), same flags/version/engine, 1 node with the same name', b.at_end == a.at_end and b.flags == a.flags and b.version == a.version and b.engine == a.engine and [n[3] for n in a.nodes] == [n[3] for n in b.nodes])
     ck('B2 every block decompresses to its declared size, stream = node', all(len(b.dec_block(i)) == b.blocks[i][0] for i in range(len(b.blocks))) and len(b.decompress()) == b.nodes[0][1] and b.size == len(b.raw))
     sa = S.Ser(a.node_data(a.nodes[0][3])); sb = S.Ser(b.node_data(b.nodes[0][3])); Pa, Pb = sa.by_pid(), sb.by_pid(); newp = info['new_pid']; repl = set(info['replaced'])
     ck('S1 object count +1, all source pids present, the new pid is new', len(sb.objects) == len(sa.objects) + 1 and all(p in Pb for p in Pa) and newp in Pb and newp not in Pa)
