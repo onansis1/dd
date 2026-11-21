@@ -473,13 +473,31 @@ def _base_data(ab):
         st = json.load(open(st_p, encoding="utf-8"))
     except Exception:
         pass
+    import qopt_guard as G                       # '발걸음 소리 무음' 옵션 줄(앱이 추가)이 든 파일은 원본이 아니다
+    cur_opt = G.has_option_bytes(cur)
     if os.path.isfile(bak_p):
         bak = open(bak_p, "rb").read()
+        if G.has_option_bytes(bak):              # 오염된 백업 -> 깨끗한 원본을 찾는다
+            clean = G.find_clean(ab)
+            if clean:
+                shutil.copy2(bak_p, bak_p + ".contaminated")
+                shutil.copy2(clean, bak_p)
+                bak = open(bak_p, "rb").read()
         if _sha(cur) == _sha(bak) or _sha(cur) == st.get("out"):
             return bak, cur, "백업(원본)에서 다시 계산합니다"
+        if cur_opt and not G.has_option_bytes(bak):
+            return bak, cur, "백업(원본)에서 다시 계산합니다 (앱의 옵션 줄은 유지)"
+        if cur_opt:
+            raise RuntimeError("원본 백업을 찾지 못했습니다(현재 파일에 앱이 추가한 항목이 있음). 스팀 '게임 파일 무결성 검사'로 data_user_settings 를 복구한 뒤 다시 시도하세요.")
         shutil.copy2(bak_p, bak_p + ".old")
         note = "게임 업데이트로 파일이 바뀐 것으로 보여 현재 파일을 새 원본으로 백업합니다"
     else:
+        if cur_opt:
+            clean = G.find_clean(ab)
+            if not clean:
+                raise RuntimeError("원본 백업을 찾지 못했습니다(현재 파일에 앱이 추가한 항목이 있음). 스팀 '게임 파일 무결성 검사'로 data_user_settings 를 복구한 뒤 다시 시도하세요.")
+            shutil.copy2(clean, bak_p)
+            return open(bak_p, "rb").read(), cur, "원본을 백업했습니다 (앱의 옵션 줄은 유지)"
         note = "원본을 백업했습니다"
     with open(bak_p, "wb") as f:
         f.write(cur)
@@ -496,6 +514,17 @@ def apply_presets(ab, mapping):
             raise ValueError("알 수 없는 칸: " + slot)
         slot_values[slot] = load_preset(pname)
     new, report = patch_bundle(base, slot_values)
+    import qopt_guard as G
+    if G.has_option_bytes(cur) and not G.has_option_bytes(new):     # 앱이 넣은 옵션 줄을 다시 넣는다
+        tmpo = cur_p + ".opt.tmp"
+        open(tmpo, "wb").write(new)
+        try:
+            import patch_quietopt as Q
+            Q.apply_file(tmpo)
+            new = open(tmpo, "rb").read()
+        finally:
+            try: os.remove(tmpo)
+            except OSError: pass
     # 검증: 새 번들을 다시 읽어 값이 들어갔는지, 다른 프리셋/오브젝트가 그대로인지 확인
     chk = _monos(_load(new))
     for slot, values in slot_values.items():

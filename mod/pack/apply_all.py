@@ -215,11 +215,22 @@ def main():
         sys.exit("지도 탐색 생존자 패널(--panel)/날짜 안내 문구는 일반판에서만 쓸 수 있고, ui_screens 가 필요합니다.")
 
     # 1) 각 파일이 '원본 / 지난번 우리 결과 / 업데이트된 새 파일' 중 무엇인지 판정하고 백업을 맞춘다
+    qopt_preset = False                  # data_user_settings 가 '우리 결과(옵션 줄 포함) + 프리셋 도구의 수정'인 경우 (프리셋 값을 다시 얹어야 함)
     for f in files:
         cur_p, bak_p = os.path.join(ab, f), os.path.join(bdir, f)
         cur = sha(cur_p)
         rec = man.get(f, {})
         has_bak = os.path.exists(bak_p)
+        if f == QOPT and has_bak:
+            import qopt_guard as G
+            if G.has_option(bak_p):                # 백업에 옵션 줄이 섞여 있으면 깨끗한 원본 후보로 바꾼다 (옵션 줄이 든 파일을 원본으로 삼으면 끄기로 되돌릴 수 없다)
+                clean = G.find_clean(ab)
+                if clean:
+                    shutil.copy2(bak_p, bak_p + ".contaminated")
+                    shutil.copy2(clean, bak_p)
+                    print("안내: data_user_settings 백업에 옵션 줄이 섞여 있어 깨끗한 원본(%s)으로 바꿨습니다." % os.path.basename(clean))
+                else:
+                    print("경고: data_user_settings 백업에 이미 옵션 줄이 들어 있고 깨끗한 원본을 찾지 못했습니다. 옵션을 꺼도 줄이 남을 수 있습니다 (스팀 '게임 파일 무결성 검사'로 복구하면 해결됩니다).")
         if f == PUI and has_bak and sha(bak_p) != PUI_ORIG_SHA and os.path.isfile(cur_p + ".itd_orig") and sha(cur_p + ".itd_orig") == PUI_ORIG_SHA:
             print("안내: 백업된 ui_screens 가 원본이 아니라(개발 도구 결과) 도구가 만든 원본 백업(ui_screens.itd_orig)으로 바꿉니다.")
             shutil.copy2(bak_p, bak_p + ".prev")
@@ -229,6 +240,13 @@ def main():
             state = "이전 결과 (백업 기준으로 다시 계산)"
         elif has_bak and sha(bak_p) == cur:
             state = "원본 (수정 없음)"
+        elif f == QOPT and has_bak and G.has_option(cur_p):
+            # 현재 파일에 우리 옵션 줄이 들어 있는데 백업/지난 결과와 다르다 = 우리 결과를 프리셋 도구가 고친 파일. 게임 업데이트가 아니다.
+            if G.has_option(bak_p):
+                state = "옵션 줄이 포함된 파일 (원본을 찾지 못함, 현재 파일 기준)"
+            else:
+                state = "우리 결과 + 프리셋 (원본 백업 기준으로 다시 계산)"
+                qopt_preset = True
         elif f == PUI and has_bak and sha(bak_p) == PUI_ORIG_SHA and os.path.isfile(cur_p + ".itd_orig"):
             state = "개발 도구 결과 (원본 백업 기준으로 다시 계산)"
         elif has_bak:
@@ -397,6 +415,8 @@ def main():
         if a.quiet_toggle and use_quiet:
             print(run("patch_quietopt.py", stage).strip())
             print(run("patch_quietloc.py", stage).strip())
+        if qopt_preset and use_quiet:
+            print(run("patch_dus_presets.py", stage, ab).strip())        # 프리셋 도구로 설정한 값을 원본 백업에서 다시 만든 파일에 다시 얹는다
         if a.random_start and use_panel:
             if not use_loc:
                 sys.exit("랜덤 시작의 '무술가 포함 뽑기' 버튼 라벨에는 loc.korean/loc.english 가 필요합니다. 게임 파일을 확인하세요 (스팀 '게임 파일 무결성 검사').")
